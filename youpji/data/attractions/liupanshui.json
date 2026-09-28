@@ -116,10 +116,10 @@
     "alias": "野玉海",
     "city": "六盘水",
     "district": "水城",
-    "longitude": null,
-    "latitude": null,
-    "coord_sys": null,
-    "coord_note": "OSM/Nominatim 未收录该度假区面要素，仅能定位到所辖玉舍森林公园与玉舍镇；为避免错误距离计算，不填估算值。上游核实坐标：玉舍镇 104.7728,26.4938（WGS84）可作参考锚点。",
+    "longitude": 104.786435,
+    "latitude": 26.441575,
+    "coord_sys": "gcj02",
+    "coord_note": "坐标来源：高德 POI 搜索（poi_id=B0FFGZ1SCQ，匹配名「野玉海国家级旅游度假区」，typecode=110200）",
     "category": "综合度假区",
     "level": "4A",
     "description": "由野鸡坪、玉舍森林公园、海坪彝族文化小镇三部分组成。",
@@ -137,7 +137,15 @@
     "source_type": "government",
     "verification_status": "pending",
     "confidence": 0.8,
-    "note": "2024年评定AAAA，核心区68平方公里，距市区约30公里。市政府名录未公布门票价。度假区覆盖玉舍森林公园，两个条目范围重叠。咨询服务0858-6662252。"
+    "note": "2024年评定AAAA，核心区68平方公里，距市区约30公里。市政府名录未公布门票价。度假区覆盖玉舍森林公园，两个条目范围重叠。咨询服务0858-6662252。",
+    "amap_biz": {
+      "poi_id": "B0FFGZ1SCQ",
+      "hours_desc": "周一至周日 00:00-24:00",
+      "rating": 4.6,
+      "avg_cost": null,
+      "tel": "0858-6662252",
+      "source_url": "https://www.amap.com/place/B0FFGZ1SCQ"
+    }
   },
   {
     "name": "明湖国家湿地公园",

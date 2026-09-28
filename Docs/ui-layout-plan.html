@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>游迹 App UI 布局规划 · V0.1</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f7f5f0;
+  --card:#ffffff;
+  --line:#e9e3d6;
+  --line-soft:#f1ece2;
+  --ink:#14171e;
+  --ink2:#3a4256;
+  --muted:#7c7a72;
+  --primary:#2f6f5e;
+  --accent:#c97b3f;
+  --warn:#b06367;
+  --r:14px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--cream);color:var(--ink);
+  font-family:'Outfit','Noto Sans SC',sans-serif;
+  font-size:14.5px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:56px 28px 96px}
+h1,h2,h3{font-family:'DM Serif Display','Noto Sans SC',serif;font-weight:400;letter-spacing:-0.005em}
+h1{font-size:34px;line-height:1.25;margin:0 0 10px}
+h2{font-size:24px;margin:0 0 6px}
+h3{font-family:'Outfit','Noto Sans SC',sans-serif;font-weight:600;font-size:16px;margin:0 0 8px}
+p{margin:0 0 10px}
+.lede{font-size:15.5px;color:var(--ink2);max-width:66ch}
+.muted{color:var(--muted)}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12.5px}
+section{margin-top:52px}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.sec-head svg{color:var(--primary);flex:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.grid{display:grid;gap:14px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--cream);color:var(--ink2)}
+.badge i{width:6px;height:6px;border-radius:50%;background:var(--primary);display:block}
+.badge.b-pending i{background:var(--accent)}
+.badge.b-disputed i{background:var(--warn)}
+.badge.b-none i{background:#b9b5ab}
+
+/* ---------- phone mockup ---------- */
+.phones{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start}
+.phone-wrap{display:flex;flex-direction:column;gap:12px}
+.phone{
+  width:100%;max-width:268px;margin:0 auto;background:#fff;
+  border:1px solid var(--line);border-radius:26px;padding:9px;
+  box-shadow:0 4px 16px -2px rgba(0,0,0,.06);
+}
+.screen{background:#fbfaf7;border:1px solid var(--line-soft);border-radius:19px;overflow:hidden;display:flex;flex-direction:column}
+.statusbar{display:flex;justify-content:space-between;padding:7px 13px 3px;font-size:10px;color:var(--muted)}
+.appbar{display:flex;align-items:center;justify-content:space-between;padding:6px 13px 9px;border-bottom:1px solid var(--line-soft);background:#fff}
+.appbar b{font-size:13.5px;font-weight:600}
+.appbar span{font-size:10px;color:var(--muted)}
+.body{padding:11px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card-mini{background:#fff;border:1px solid var(--line-soft);border-radius:11px;padding:9px 10px}
+.skel{height:7px;border-radius:4px;background:var(--line-soft)}
+.skel.w1{width:44%}.skel.w2{width:72%}.skel.w3{width:88%}.skel.w4{width:60%}
+.t{font-size:11.5px;line-height:1.45;color:var(--ink)}
+.t.b{font-weight:600}
+.t.s{font-size:10px;color:var(--muted)}
+.cta{background:var(--primary);color:#fff;border-radius:11px;padding:10px;text-align:center;font-size:12px;font-weight:600}
+.cta.ghost{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+.chip{font-size:10px;padding:3px 8px;border-radius:999px;background:var(--cream);border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.row{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.nav{border-top:1px solid var(--line-soft);background:#fff;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 0 9px}
+.nav div{text-align:center;font-size:8.5px;color:#a8a49a;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav div.on{color:var(--primary);font-weight:600}
+.nav svg{width:15px;height:15px}
+.input{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:11px;color:var(--ink2)}
+.input.ph{color:#b0aca2}
+.budget{height:8px;border-radius:5px;background:var(--line-soft);overflow:hidden;display:flex}
+.budget i{display:block;height:100%}
+.tl{border-left:2px solid var(--line);padding-left:9px;margin-left:3px}
+.cap{font-size:12.5px;font-weight:600;text-align:center}
+.cap i{display:block;font-weight:400;font-size:11px;color:var(--muted);font-style:normal;margin-top:2px}
+
+/* ---------- svg diagram ---------- */
+.dia{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px 16px}
+.dia svg{width:100%;height:auto;display:block}
+
+/* ---------- table ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:12px;border-bottom:1px solid var(--line)}
+td code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--cream);padding:1px 5px;border-radius:4px;color:var(--ink2)}
+.tbl{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:6px 14px}
+
+/* ---------- kv / bench ---------- */
+.kv{display:grid;grid-template-columns:132px 1fr;row-gap:0;column-gap:16px;margin:0}
+.kv dt{color:var(--muted);font-size:12.5px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.kv dd{margin:0;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.bench{display:grid;grid-template-columns:104px 1fr 74px;gap:10px;align-items:center;padding:5px 0;font-size:12.5px}
+.bench-track{height:14px;background:var(--line-soft);border-radius:6px;overflow:hidden;display:flex}
+.bench-fill{height:100%;background:var(--primary)}
+.bench-val{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink2);text-align:right}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.list li{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ink2)}
+.list li svg{flex:none;margin-top:3px;color:var(--primary)}
+.tight li{font-size:12.5px}
+.rule{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.rule h4{margin:0 0 6px;font-size:13.5px;font-weight:600}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+@media (max-width:900px){
+  .phones{grid-template-columns:1fr;gap:26px}
+  .two{grid-template-columns:1fr}
+  .wrap{padding:36px 18px 64px}
+  h1{font-size:27px}
+  .kv{grid-template-columns:1fr}
+  .kv dt{border-bottom:none;padding-bottom:0}
+  .kv dd{padding-top:2px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>游迹 App UI 布局规划</h1>
+  <p class="lede">V0.1 只围绕一条闭环：<b>贵阳 → 安顺（黄果树 / 龙宫 / 天龙屯堡）两日游</b>。布局目标不是「把 12 个页面都摆出来」，而是让用户在 <b>3 次点击内</b>从「我想去安顺玩两天」走到一份可以照着执行的行程，并且每一项事实都看得见来源与核验状态。</p>
+
+  <div class="row" style="margin-top:16px">
+    <span class="badge"><i></i>5 个底部 Tab</span>
+    <span class="badge"><i></i>12 页收敛为 9 个必做</span>
+    <span class="badge b-pending"><i></i>核验状态可见</span>
+    <span class="badge b-none"><i></i>不直连任何 LLM</span>
+  </div>
+
+  <!-- ============ 1. IA ============ -->
+  <section>
+    <div class="sec-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <h2>信息架构</h2>
+    </div>
+    <p class="muted" style="font-size:13.5px;max-width:64ch">底部 5 个 Tab 覆盖全部二级入口。酒店、餐厅、地图<strong>不占 Tab</strong>——它们在 V0.1 里只以「行程内的项」和「探索的筛选维度」两种形态出现，独立 Tab 会诱导用户脱离行程去比价。</p>
+
+    <div class="dia">
+      <svg viewBox="0 0 1000 350" role="img" aria-label="游迹 App 信息架构图">
+        <defs>
+          <style>
+            .nb{fill:#2f6f5e}.nb2{fill:#fff}.ntt{fill:#fff;font:600 13px Outfit,'Noto Sans SC',sans-serif}
+            .ntt2{fill:#2f6f5e;font:600 13px Outfit,'Noto Sans SC',sans-serif}
+            .ctt{fill:#3a4256;font:12px 'Noto Sans SC',sans-serif}
+            .rct{fill:#fff;stroke:#e9e3d6}.ln{stroke:#c9c3b6;stroke-width:1.5;fill:none}
+          </style>
+        </defs>
+        <!-- root -->
+        <rect class="rct" x="400" y="6" width="200" height="34" rx="10"/>
+        <text class="ntt2" x="500" y="28" text-anchor="middle">游迹 App · V0.1</text>
+        <path class="ln" d="M500 40 V58"/>
+        <path class="ln" d="M110 58 H890"/>
+        <!-- columns -->
+        <g>
+          <path class="ln" d="M110 58 V84"/><rect class="nb" x="35" y="84" width="150" height="34" rx="10"/>
+          <text class="ntt" x="110" y="106" text-anchor="middle">首页</text>
+          <rect class="rct" x="25" y="130" width="170" height="28" rx="8"/><text class="ctt" x="40" y="148">需求输入</text>
+          <rect class="rct" x="25" y="164" width="170" height="28" rx="8"/><text class="ctt" x="40" y="182">行程续接</text>
+          <rect class="rct" x="25" y="198" width="170" height="28" rx="8"/><text class="ctt" x="40" y="216">热门目的地</text>
+        </g>
+        <g>
+          <path class="ln" d="M302 58 V84"/><rect class="nb" x="227" y="84" width="150" height="34" rx="10"/>
+          <text class="ntt" x="302" y="106" text-anchor="middle">探索</text>
+          <rect class="rct" x="217" y="130" width="170" height="28" rx="8"/><text class="ctt" x="232" y="148">景区列表</text>
+          <rect class="rct" x="217" y="164" width="170" height="28" rx="8"/><text class="ctt" x="232" y="182">景区详情</text>
+          <rect class="rct" x="217" y="198" width="170" height="28" rx="8"/><text class="ctt" x="232" y="216">地图视图</text>
+          <rect class="rct" x="217" y="232" width="170" height="28" rx="8"/><text class="ctt" x="232" y="250">酒店 / 餐厅</text>
+        </g>
+        <g>
+          <path class="ln" d="M500 58 V84"/><rect class="nb" x="425" y="84" width="150" height="34" rx="10"/>
+          <text class="ntt" x="500" y="106" text-anchor="middle">行程</text>
+          <rect class="rct" x="415" y="130" width="170" height="28" rx="8"/><text class="ctt" x="430" y="148">AI 规划表单</text>
+          <rect class="rct" x="415" y="164" width="170" height="28" rx="8"/><text class="ctt" x="430" y="182">生成进度</text>
+          <rect class="rct" x="415" y="198" width="170" height="28" rx="8"/><text class="ctt" x="430" y="216">行程详情</text>
+          <rect class="rct" x="415" y="232" width="170" height="28" rx="8"/><text class="ctt" x="430" y="250">局部重规划</text>
+          <rect class="rct" x="415" y="266" width="170" height="28" rx="8"/><text class="ctt" x="430" y="284">预算视图</text>
+        </g>
+        <g>
+          <path class="ln" d="M698 58 V84"/><rect class="nb" x="623" y="84" width="150" height="34" rx="10"/>
+          <text class="ntt" x="698" y="106" text-anchor="middle">攻略</text>
+          <rect class="rct" x="613" y="130" width="170" height="28" rx="8"/><text class="ctt" x="628" y="148">攻略列表</text>
+          <rect class="rct" x="613" y="164" width="170" height="28" rx="8"/><text class="ctt" x="628" y="182">攻略详情</text>
+          <rect class="rct" x="613" y="198" width="170" height="28" rx="8"/><text class="ctt" x="628" y="216">来源溯源</text>
+        </g>
+        <g>
+          <path class="ln" d="M890 58 V84"/><rect class="nb" x="815" y="84" width="150" height="34" rx="10"/>
+          <text class="ntt" x="890" y="106" text-anchor="middle">我的</text>
+          <rect class="rct" x="805" y="130" width="170" height="28" rx="8"/><text class="ctt" x="820" y="148">登录 / 偏好</text>
+          <rect class="rct" x="805" y="164" width="170" height="28" rx="8"/><text class="ctt" x="820" y="182">我的行程</text>
+          <rect class="rct" x="805" y="198" width="170" height="28" rx="8"/><text class="ctt" x="820" y="216">收藏</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 2. 三主线线框 ============ -->
+  <section>
+    <div class="sec-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M12 18h.01"/></svg>
+      <h2>主线三屏线框</h2>
+    </div>
+    <p class="muted" style="font-size:13.5px;max-width:64ch">这三屏构成 V0.1 的验收路径。其余页面都是这三屏的下钻或旁路，不需要独立设计投入。</p>
+
+    <div class="phones" style="margin-top:18px">
+
+      <!-- 1 首页 -->
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>贵州 · 5G</span></div>
+            <div class="appbar">
+              <span style="display:flex;align-items:center;gap:4px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                贵阳
+              </span>
+              <b>游迹</b>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </div>
+            <div class="body">
+              <div class="t b" style="font-size:13px">你想去哪、玩几天？</div>
+              <div class="input ph">贵阳 → 安顺 · 2 天</div>
+              <div class="row">
+                <span class="chip on">周末</span><span class="chip">2天</span><span class="chip">3天</span><span class="chip">7天</span>
+              </div>
+              <div class="cta">AI 帮我规划</div>
+
+              <div class="card-mini" style="border-color:var(--primary)">
+                <div class="row" style="justify-content:space-between">
+                  <span class="t b">继续上次行程</span><span class="t s">9/26</span>
+                </div>
+                <div class="skel w3" style="margin-top:6px"></div>
+                <div class="t s" style="margin-top:5px">贵阳→安顺 2 天 · 预算 ¥1,240</div>
+              </div>
+
+              <div class="t b" style="margin-top:2px">贵州热门</div>
+              <div class="row" style="gap:6px">
+                <div class="card-mini" style="flex:1;padding:7px"><div class="skel w4"></div><div class="t s" style="margin-top:4px">黄果树</div></div>
+                <div class="card-mini" style="flex:1;padding:7px"><div class="skel w4"></div><div class="t s" style="margin-top:4px">龙宫</div></div>
+                <div class="card-mini" style="flex:1;padding:7px"><div class="skel w4"></div><div class="t s" style="margin-top:4px">天龙屯堡</div></div>
+              </div>
+            </div>
+            <div class="nav">
+              <div class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>首页</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>探索</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>行程</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16M4 12h16M4 19h10"/></svg>攻略</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>我的</div>
+            </div>
+          </div>
+        </div>
+        <p class="cap">01 首页<i>唯一职责：把人送进规划流程。首页不列攻略、不塞广告位。</i></p>
+      </div>
+
+      <!-- 2 AI规划 -->
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>贵州 · 5G</span></div>
+            <div class="appbar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+              <b>规划行程</b><span></span>
+            </div>
+            <div class="body">
+              <div class="input ph">说一句话，或直接填 ↓</div>
+              <div class="card-mini">
+                <div class="t s">出发 / 目的地</div>
+                <div class="t b" style="margin-top:2px">贵阳 → 安顺</div>
+              </div>
+              <div class="row">
+                <div class="card-mini" style="flex:1"><div class="t s">日期</div><div class="t b">9/26–9/27</div></div>
+                <div class="card-mini" style="flex:1"><div class="t s">人数</div><div class="t b">2 大 1 小</div></div>
+              </div>
+              <div class="card-mini">
+                <div class="t s">预算上限 · 硬约束</div>
+                <div class="budget" style="margin-top:6px"><i style="width:58%;background:var(--primary)"></i><i style="width:42%;background:var(--line)"></i></div>
+                <div class="row" style="justify-content:space-between;margin-top:5px">
+                  <span class="t b">¥1,500</span><span class="t s">人均 ¥500</span>
+                </div>
+              </div>
+              <div>
+                <div class="t s" style="margin-bottom:5px">偏好</div>
+                <div class="row">
+                  <span class="chip on">自然风光</span><span class="chip on">亲子</span><span class="chip">人文</span><span class="chip">美食</span><span class="chip">轻松</span>
+                </div>
+              </div>
+              <div class="row">
+                <span class="chip">🚗 自驾</span><span class="chip">标准档</span><span class="chip">避开人多</span>
+              </div>
+              <div class="cta">生成行程 · 约 15 秒</div>
+            </div>
+            <div class="nav">
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>首页</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>探索</div>
+              <div class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>行程</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16M4 12h16M4 19h10"/></svg>攻略</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>我的</div>
+            </div>
+          </div>
+        </div>
+        <p class="cap">02 AI 规划<i>结构化表单 + 自然语言双入口。解析结果必须可编辑、可确认。</i></p>
+      </div>
+
+      <!-- 3 行程详情 -->
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>贵州 · 5G</span></div>
+            <div class="appbar">
+              <span></span>
+              <b>贵阳 → 安顺</b>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+            </div>
+            <div class="body">
+              <div class="row" style="gap:5px">
+                <span class="chip on">D1 9/26</span><span class="chip">D2 9/27</span>
+                <span class="chip">地图</span><span class="chip">预算</span>
+              </div>
+
+              <div class="card-mini" style="background:var(--cream)">
+                <div class="t s">预算 ¥1,240 / 上限 ¥1,500</div>
+                <div class="budget" style="margin-top:5px"><i style="width:83%;background:var(--primary)"></i></div>
+              </div>
+
+              <div class="tl">
+                <div class="t s">09:00 – 12:00</div>
+                <div class="card-mini" style="margin-top:3px">
+                  <div class="row" style="justify-content:space-between">
+                    <span class="t b">黄果树景区</span>
+                    <span class="badge"><i></i>已核验</span>
+                  </div>
+                  <div class="t s" style="margin-top:4px">门票 ¥160/人 · 07:00–18:00</div>
+                  <div class="t s">来源：官方票务 · 9/18 核验</div>
+                </div>
+                <div class="t s" style="margin-top:4px">12:40 · 驾车 45 分钟 · 32 km</div>
+                <div class="card-mini" style="margin-top:3px">
+                  <div class="row" style="justify-content:space-between">
+                    <span class="t b">布依农家 · 午餐</span>
+                    <span class="badge b-pending"><i></i>待核验</span>
+                  </div>
+                  <div class="t s" style="margin-top:4px">¥68/人 · 11:00–14:00</div>
+                </div>
+              </div>
+
+              <div class="card-mini" style="background:#fdf6ee;border-color:#eddcc6">
+                <div class="t b" style="color:var(--accent)">2 条提醒</div>
+                <div class="t s" style="margin-top:3px">距离为直线估算 · 9/27 有雨</div>
+              </div>
+            </div>
+            <div class="nav">
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>首页</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>探索</div>
+              <div class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>行程</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16M4 12h16M4 19h10"/></svg>攻略</div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>我的</div>
+            </div>
+          </div>
+        </div>
+        <p class="cap">03 行程详情<i>一屏可执行：时间轴 + 交通段 + 预算条 + 核验徽章 + 提醒。</i></p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 3. 布局规则 ============ -->
+  <section>
+    <div class="sec-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+      <h2>贯穿全 App 的四条硬规则</h2>
+    </div>
+    <p class="muted" style="font-size:13.5px;max-width:64ch">这四条是 UI 层对 DESIGN.md 数据契约的直接投影，不是设计偏好。违反任意一条，页面就退化成「攻略搬运站」。</p>
+
+    <div class="two" style="margin-top:16px">
+      <div class="rule">
+        <h4>1 · 核验徽章常驻，不做隐藏</h4>
+        <div class="row" style="margin:8px 0 10px">
+          <span class="badge"><i></i>verified 已核验</span>
+          <span class="badge b-pending"><i></i>pending 待核验</span>
+          <span class="badge b-pending"><i></i>stale 需更新</span>
+          <span class="badge b-disputed"><i></i>disputed 有冲突</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink2);margin:0">任何展示门票 / 开放时间 / 价格 / 营业时间的卡片，右上角必须有徽章。点击展开来源、<span class="mono">source_time</span>、<span class="mono">last_verified</span>。<strong>unverified 一律不落在卡片正文，只进提醒区</strong>——这是铁律 4 的 UI 落点。</p>
+      </div>
+
+      <div class="rule">
+        <h4>2 · 预算永远是双数字</h4>
+        <div style="margin:10px 0 12px">
+          <div class="bench"><span class="muted">已分配</span><div class="bench-track"><div class="bench-fill" style="width:83%"></div></div><span class="bench-val">¥1,240</span></div>
+          <div class="bench"><span class="muted">硬上限</span><div class="bench-track"><div class="bench-fill" style="width:100%;background:var(--line)"></div></div><span class="bench-val">¥1,500</span></div>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink2);margin:0">只显示一个数字，用户无法判断方案是否还留了余地。降级发生时（<span class="mono">plan_degraded</span>）在预算条上直接标出被调整的项，而不是塞进提醒列表。</p>
+      </div>
+
+      <div class="rule">
+        <h4>3 · 局部重规划用 diff 呈现</h4>
+        <div class="row" style="margin:8px 0 10px">
+          <span class="badge"><i></i>D2 已调整</span>
+          <span class="badge b-none"><i></i>D1 未变更</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink2);margin:0">响应里的 <span class="mono">changed_days</span> / <span class="mono">unchanged_days</span> / <span class="mono">diff</span> 要在改完后作为一张对照卡给用户看：「你删了龙宫 → D2 改成 X，D1 一个字没动」。这是铁律 8 唯一可信的用户可见证据。</p>
+      </div>
+
+      <div class="rule">
+        <h4>4 · 生成过程可见，不做假进度条</h4>
+        <ul class="list tight" style="margin-top:4px">
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg><span>解析需求 → 召回景区 → 计算路线 → 按天装包 → 预算校验</span></li>
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg><span>五步对应后端管线，命名与 DESIGN.md 保持一致</span></li>
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg><span>生成中允许先返回候选项，边出边看，而不是空转 15 秒</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. 页面 → API ============ -->
+  <section>
+    <div class="sec-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2.4"/></svg>
+      <h2>页面 → 路由 → 接口</h2>
+    </div>
+    <p class="muted" style="font-size:13.5px;max-width:64ch">路由名走 <span class="mono">kebab-case</span> 资源复数（与仓库约定一致）；右侧接口全部已存在，前端只需按契约消费，不新增后端端点。</p>
+    <div class="tbl" style="margin-top:14px">
+      <table>
+        <thead><tr><th style="width:20%">页面</th><th style="width:26%">前端路由</th><th>接口</th></tr></thead>
+        <tbody>
+          <tr><td>首页</td><td class="mono">/</td><td><code>GET /destinations</code> · <code>GET /itineraries</code></td></tr>
+          <tr><td>探索 · 景区列表</td><td class="mono">/explore/attractions</td><td><code>GET /attractions</code></td></tr>
+          <tr><td>景区详情</td><td class="mono">/explore/attractions/:id</td><td><code>GET /attractions/{id}</code> · <code>GET /guides/attraction/{id}</code></td></tr>
+          <tr><td>地图视图</td><td class="mono">/explore/map</td><td><code>GET /attractions</code> + 高德 SDK</td></tr>
+          <tr><td>酒店 / 餐厅</td><td class="mono">/explore/hotels</td> · <code>/restaurants</code></td><td><code>GET /hotels</code> · <code>GET /restaurants</code></td></tr>
+          <tr><td>AI 规划表单</td><td class="mono">/itinerary/plan</td><td><code>POST /travel/parse</code>（自然语言→结构化）</td></tr>
+          <tr><td>生成进度</td><td class="mono">/itinerary/plan/generating</td><td><code>POST /travel/plan</code></td></tr>
+          <tr><td>行程详情</td><td class="mono">/itinerary/:id</td><td><code>GET /itineraries/{id}</code></td></tr>
+          <tr><td>局部重规划</td><td class="mono">/itinerary/:id/edit</td><td><code>POST /travel/replan</code>（返回 diff）</td></tr>
+          <tr><td>预算视图</td><td class="mono">/itinerary/:id/budget</td><td>复用 <code>GET /itineraries/{id}</code> 的 <code>budget</code> 字段</td></tr>
+          <tr><td>攻略</td><td class="mono">/guides</td> · <code>/guides/:id</code></td><td><code>GET /guides</code> · <code>GET /guides/attraction/{id}</code></td></tr>
+          <tr><td>我的</td><td class="mono">/me</td><td><code>GET /auth/me</code> · <code>GET/PUT /preferences</code> · <code>GET /recommendations</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 5. 布局与适配 ============ -->
+  <section>
+    <div class="sec-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <h2>栅格与适配</h2>
+    </div>
+    <div class="two">
+      <div class="card">
+        <h3>Flutter 侧固定约定</h3>
+        <dl class="kv">
+          <dt>栅格</dt><dd>8pt 基准间距，卡片圆角 14 / 11（列表项）</dd>
+          <dt>安全区</dt><dd>底部导航 + 34pt；生成中 CTA 吸底且不挡 safe area</dd>
+          <dt>页边距</dt><dd>移动 16 / 折叠 20 / 桌面双栏 24</dd>
+          <dt>断点</dt><dd>&lt;600 单列 · 600–1024 列表+详情双栏 · ≥1024 详情页右侧常驻地图</dd>
+          <dt>Web 复用</dt><dd>同一份 Widget，≥1024 时导航转左侧 rail</dd>
+          <dt>骨架屏</dt><dd>仅用于列表首屏；禁止用假内容填充行程卡</dd>
+        </dl>
+      </div>
+      <div class="card">
+        <h3>V0.1 明确不做（UI 层）</h3>
+        <ul class="list tight">
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 8 8M16 12l-8 8"/></svg><span>底部第 6 个 Tab、首页信息流、运营 Banner 位</span></li>
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 8 8M16 12l-8 8"/></svg><span>攻略原文全文阅读器（只给摘要 + 结构化提取 + 来源）</span></li>
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 8 8M16 12l-8 8"/></svg><span>预订、支付、分享给好友、评论区</span></li>
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 8 8M16 12l-8 8"/></svg><span>App 内嵌 LLM 直连（Key 只在后端，铁律 6）</span></li>
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 8 8M16 12l-8 8"/></svg><span>实时天气驱动的动态重排 UI（属 V0.2）</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    本页为布局规划草案，未改动任何仓库文件。确认后应将「页面 → 接口映射」与「四条硬规则」沉淀进 <span class="mono">DESIGN.md</span>，线框细化再进 <span class="mono">frontend/</span>（当前为空目录）。
+  </footer>
+</div>
+</body>
+</html>

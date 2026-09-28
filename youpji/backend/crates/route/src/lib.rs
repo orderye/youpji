@@ -448,6 +448,87 @@ pub(crate) fn fits_opening_hours(
     leave <= close
 }
 
+/// 用户指定顺序后的**重排校验**（DESIGN §8.3 `reorder_day`）。
+///
+/// 在 [`reflow_day_items`] 顺次推导时间轴之后调用：按新顺序复核每个景区节点
+/// 是否仍落在营业时间内、是否排得过晚。返回需要剔除的节点 ref_id 与原因码。
+///
+/// 关键性质：**用户能定序，但不能定出违规行程**——不满足硬约束的项被剔除，
+/// 而不是照单全收后留一份走不通的行程给用户。
+///
+/// 交通段（`item_type == "transit"`）不参与校验；自由项（`free`）不占用营业窗口。
+pub fn validate_reordered_day(
+    items: &mut [PlanItem],
+    opening: &std::collections::HashMap<Uuid, (Option<NaiveTime>, Option<NaiveTime>)>,
+) -> Vec<DropReason> {
+    let mut drops = Vec::new();
+    let day_start = items.first().map(|it| it.start_time);
+    let Some(mut cursor) = day_start else {
+        return drops;
+    };
+
+    for it in items.iter_mut() {
+        if it.item_type == "transit" {
+            // 交通段独占车程：必须按 duration_min **重算**结束时间并推进 cursor，
+            // 否则保留旧 end_time 会让后续节点沿用重排前的时刻（= 时间轴没重算）。
+            let travel = it.duration_min.unwrap_or(0).max(0) as i64;
+            it.start_time = cursor;
+            it.end_time = Some(cursor + Duration::minutes(travel));
+            cursor = it.end_time.unwrap_or(cursor);
+            continue;
+        }
+        if it.item_type == "free" {
+            let dur = it.duration_min.unwrap_or(0).max(0) as i64;
+            it.start_time = cursor;
+            it.end_time = Some(cursor + Duration::minutes(dur));
+            cursor = it.end_time.unwrap_or(cursor);
+            continue;
+        }
+
+        let stay = it.duration_min.unwrap_or(120).clamp(30, 600);
+        let arrive = cursor;
+        let leave = arrive + Duration::minutes(stay as i64);
+
+        // ① 太晚：当天不再安排新的游览节点
+        if arrive.hour() >= 18 {
+            drops.push(DropReason {
+                ref_id: it.ref_id,
+                title: it.title.clone(),
+                code: "reorder_too_late".to_string(),
+            });
+            continue; // 不推进 cursor，让后续节点接着上一段
+        }
+
+        // ② 营业时间：ref_id 命中已知营业窗口时才校验
+        if let Some(id) = it.ref_id {
+            if let Some((open, close)) = opening.get(&id) {
+                if !fits_opening_hours(arrive, stay, *open, *close) {
+                    drops.push(DropReason {
+                        ref_id: it.ref_id,
+                        title: it.title.clone(),
+                        code: "opening_hours_conflict".to_string(),
+                    });
+                    continue;
+                }
+            }
+        }
+
+        it.start_time = arrive;
+        it.end_time = Some(leave);
+        cursor = leave;
+    }
+    drops
+}
+
+/// 被重排校验剔除的节点。
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DropReason {
+    pub ref_id: Option<Uuid>,
+    pub title: String,
+    pub code: String,
+}
+
 fn days_between(start: NaiveDate, end: NaiveDate) -> i32 {
     let d = (end - start).num_days() as i32 + 1;
     d.max(1)

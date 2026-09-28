@@ -200,9 +200,9 @@
     "alias": "万达小镇",
     "city": "黔东南",
     "district": "丹寨",
-    "longitude": null,
-    "latitude": null,
-    "coord_note": "携程移动端页面未输出坐标",
+    "longitude": 107.805748,
+    "latitude": 26.201787,
+    "coord_note": "坐标来源：高德 POI 搜索（poi_id=B0FFHU7TO5，匹配名「丹寨万达小镇」，typecode=110200）",
     "category": "主题园区/非遗",
     "level": "4A",
     "description": "以蜡染非遗为核心的文旅小镇，夜间灯光与展演为主",
@@ -220,7 +220,16 @@
     "source_type": "platform",
     "verification_status": "pending",
     "confidence": 0.65,
-    "note": "开放时间为「全年全天开放」故开闭时间填null；携程同站移动端页面标注「免费开放」。票务咨询0855-2171888"
+    "note": "开放时间为「全年全天开放」故开闭时间填null；携程同站移动端页面标注「免费开放」。票务咨询0855-2171888",
+    "coord_sys": "gcj02",
+    "amap_biz": {
+      "poi_id": "B0FFHU7TO5",
+      "hours_desc": "周一至周日 00:00-24:00；景区闭灯时间:23:00",
+      "rating": 4.6,
+      "avg_cost": null,
+      "tel": "0855-2170609",
+      "source_url": "https://www.amap.com/place/B0FFHU7TO5"
+    }
   },
   {
     "name": "加榜梯田",
@@ -339,9 +348,9 @@
     "alias": "龙架山",
     "city": "黔南",
     "district": "龙里",
-    "longitude": null,
-    "latitude": null,
-    "coord_note": "平台页面未输出坐标",
+    "longitude": 106.905597,
+    "latitude": 26.46523,
+    "coord_note": "坐标来源：高德 POI 搜索（poi_id=B0356003ED，匹配名「贵州龙架山国家森林公园」，typecode=110203|110101）",
     "category": "自然景观/森林",
     "level": null,
     "description": "贵阳近郊高山森林景区，避暑与徒步目的地",
@@ -359,16 +368,25 @@
     "source_type": "platform",
     "verification_status": "pending",
     "confidence": 0.6,
-    "note": "17:00停止入园。页面未披露门票价格，票价填null。携程仅3张图片、评分3.4，样本极少，置信度低"
+    "note": "17:00停止入园。页面未披露门票价格，票价填null。携程仅3张图片、评分3.4，样本极少，置信度低",
+    "coord_sys": "gcj02",
+    "amap_biz": {
+      "poi_id": "B0356003ED",
+      "hours_desc": "6月至9月 08:30-18:00；1月至5月,10月至12月 09:00-17:00",
+      "rating": 4.6,
+      "avg_cost": null,
+      "tel": [],
+      "source_url": "https://www.amap.com/place/B0356003ED"
+    }
   },
   {
     "name": "好花红千户布依寨",
     "alias": "好花红",
     "city": "黔南",
     "district": "惠水",
-    "longitude": null,
-    "latitude": null,
-    "coord_note": "平台页面未输出坐标",
+    "longitude": 106.587889,
+    "latitude": 26.014009,
+    "coord_note": "坐标来源：高德 POI 搜索（poi_id=B0FFHCV994，匹配名「好花红千户布依寨」，typecode=110200）",
     "category": "民族村寨",
     "level": null,
     "description": "惠水布依族村寨，以红色文化与布依族建筑为特色",
@@ -386,6 +404,15 @@
     "source_type": "platform",
     "verification_status": "pending",
     "confidence": 0.55,
-    "note": "开放时间为「全年全天开放」故开闭时间填null；票价未披露。携程仅5张图片、评分3.0，样本极少，置信度低"
+    "note": "开放时间为「全年全天开放」故开闭时间填null；票价未披露。携程仅5张图片、评分3.0，样本极少，置信度低",
+    "coord_sys": "gcj02",
+    "amap_biz": {
+      "poi_id": "B0FFHCV994",
+      "hours_desc": "周一至周日 00:00-24:00",
+      "rating": 4.1,
+      "avg_cost": null,
+      "tel": [],
+      "source_url": "https://www.amap.com/place/B0FFHCV994"
+    }
   }
 ]

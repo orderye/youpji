@@ -768,3 +768,189 @@ fn missing_quotes_fall_back_to_tier_defaults() {
     assert_eq!(rates.lodging_per_night, 180);
     assert_eq!(rates.food_per_person_day, 60);
 }
+
+// ============================================================
+// reorder_day：用户指定顺序后的硬约束复核（DESIGN §8.3）
+//
+// 核心命题：**用户能定序，但不能定出违规行程**。
+// 顺序由用户决定，时间轴照常顺次推导；营业时间与时段约束仍然生效，
+// 不满足的项被剔除而不是照单全收。
+// ============================================================
+
+fn t(h: u32, m: u32) -> NaiveTime {
+    NaiveTime::from_hms_opt(h, m, 0).unwrap()
+}
+
+fn spot(
+    name: &str,
+    kind: &str,
+    start_h: u32,
+    start_m: u32,
+    stay: i32,
+    lng: f64,
+    lat: f64,
+) -> PlanItem {
+    PlanItem {
+        item_type: kind.into(),
+        start_time: t(start_h, start_m),
+        end_time: Some(t(start_h, start_m) + Duration::minutes(stay as i64)),
+        title: name.into(),
+        location: Some("安顺".into()),
+        longitude: Some(lng),
+        latitude: Some(lat),
+        ref_id: Some(Uuid::now_v7()),
+        distance_km: None,
+        duration_min: Some(stay),
+        cost: 0,
+        reason: None,
+        notice: None,
+        score: None,
+        candidate_source: None,
+    }
+}
+
+fn windows<'a, I>(
+    items: I,
+) -> std::collections::HashMap<Uuid, (Option<NaiveTime>, Option<NaiveTime>)>
+where
+    I: IntoIterator<Item = &'a PlanItem>,
+{
+    items
+        .into_iter()
+        .filter_map(|i| i.ref_id.map(|r| (r, (Some(t(7, 0)), Some(t(18, 0))))))
+        .collect()
+}
+
+/// 构造一段前往某景区的交通段。
+fn transit_to(target: &PlanItem, travel_min: i32) -> PlanItem {
+    PlanItem {
+        item_type: "transit".into(),
+        start_time: t(9, 0),
+        end_time: Some(t(9, 0) + Duration::minutes(travel_min as i64)),
+        title: format!("前往 {}", target.title),
+        location: Some("安顺".into()),
+        longitude: target.longitude,
+        latitude: target.latitude,
+        ref_id: target.ref_id,
+        distance_km: None,
+        duration_min: Some(travel_min),
+        cost: 0,
+        reason: None,
+        notice: None,
+        score: None,
+        candidate_source: None,
+    }
+}
+
+/// 用户调序后时间轴必须按新顺序顺次重算，而不是保留旧时刻。
+#[test]
+fn reorder_recomputes_timeline_in_new_order() {
+    let a = spot("黄果树", "attraction", 9, 0, 120, 105.9, 25.8);
+    let b = spot("龙宫", "attraction", 13, 0, 120, 105.8, 26.1);
+    let id_b = b.ref_id.unwrap();
+
+    let opening = windows([&a, &b]);
+    // 用户要求 B 在前
+    let mut items = vec![transit_to(&b, 45), b.clone(), transit_to(&a, 40), a.clone()];
+    let drops = validate_reordered_day(&mut items, &opening);
+    assert!(drops.is_empty(), "两个项都应保留：{drops:?}");
+
+    // b 现在排第一，a 在后 —— 顺序确实被用户改写
+    let first = items.iter().find(|i| i.item_type == "attraction").unwrap();
+    assert_eq!(first.ref_id, Some(id_b));
+
+    // 时间轴顺次推进：第二个景点的开始时间 = 第一个的结束时间
+    let spots: Vec<&PlanItem> = items
+        .iter()
+        .filter(|i| i.item_type == "attraction")
+        .collect();
+    assert!(
+        spots[1].start_time >= spots[0].end_time.unwrap(),
+        "第二个景点必须在第一个结束后开始"
+    );
+}
+
+/// 关键约束：用户把某个早闭园景区排到后面，会被剔除并给出原因码。
+/// 这就是「能定序但不能定出违规行程」的实现。
+#[test]
+fn reorder_drops_item_violating_opening_hours() {
+    let early = spot("天龙屯堡", "attraction", 9, 0, 120, 105.7, 26.2); // 只开 09:00–10:30
+    let late = spot("黄果树", "attraction", 9, 0, 180, 105.9, 25.8);
+    let id_early = early.ref_id.unwrap();
+
+    let mut opening = windows([&early, &late]);
+    opening.insert(id_early, (Some(t(9, 0)), Some(t(10, 30))));
+
+    // 用户把早闭园的放到第二：到它时已过 10:30
+    let mut items = vec![
+        transit_to(&late, 30),
+        late.clone(),
+        transit_to(&early, 20),
+        early.clone(),
+    ];
+    let drops = validate_reordered_day(&mut items, &opening);
+
+    assert_eq!(drops.len(), 1, "应剔除一个：{drops:?}");
+    assert_eq!(drops[0].code, "opening_hours_conflict");
+    assert_eq!(drops[0].ref_id, Some(id_early));
+}
+
+/// 排在 18:00 之后的项不塞入当天，给出 reorder_too_late。
+#[test]
+fn reorder_drops_item_after_day_cutoff() {
+    let a = spot("黄果树", "attraction", 9, 0, 300, 105.9, 25.8); // 占到 14:00
+    let b = spot("龙宫", "attraction", 9, 0, 120, 105.8, 26.1);
+    let id_b = b.ref_id.unwrap();
+
+    let opening = windows([&a, &b]);
+    let mut items = vec![
+        transit_to(&a, 30),
+        a.clone(),
+        transit_to(&b, 400), // 长途：到达已过 18:00
+        b.clone(),
+    ];
+    let drops = validate_reordered_day(&mut items, &opening);
+
+    assert!(drops.iter().any(|d| d.ref_id == Some(id_b)), "b 应被剔除");
+    assert!(
+        drops.iter().any(|d| d.code == "reorder_too_late"),
+        "原因码应为 reorder_too_late：{drops:?}"
+    );
+}
+
+/// 交通段与自由项不参与营业窗口校验，也不被当作可排序对象。
+#[test]
+fn reorder_ignores_transit_and_free_nodes() {
+    let a = spot("黄果树", "attraction", 9, 0, 120, 105.9, 25.8);
+    let opening = windows([&a]);
+
+    let mut items = vec![
+        spot("早餐", "free", 9, 0, 30, 106.6, 26.6),
+        transit_to(&a, 60),
+        a.clone(),
+    ];
+    let drops = validate_reordered_day(&mut items, &opening);
+    assert!(drops.is_empty(), "free/transit 不应产生剔除：{drops:?}");
+}
+
+/// 未知营业窗口（ref_id 不在 map 中）不做校验，放行。
+/// 依据 DESIGN §4.1：未验证事实不得作为确定事实展示，也不能反过来
+/// 把用户已排好的项擅自删掉。
+#[test]
+fn reorder_allows_items_without_known_opening_hours() {
+    let a = spot("未收录景区", "attraction", 9, 0, 120, 105.9, 25.8);
+    let mut items = vec![transit_to(&a, 30), a.clone()];
+    let empty = std::collections::HashMap::new();
+    let drops = validate_reordered_day(&mut items, &empty);
+    assert!(drops.is_empty(), "无营业数据时不应剔除：{drops:?}");
+}
+
+/// 空输入是合法 no-op，不 panic。
+#[test]
+fn reorder_handles_empty_day() {
+    let empty: std::collections::HashMap<Uuid, (Option<NaiveTime>, Option<NaiveTime>)> =
+        std::collections::HashMap::new();
+    let mut items: Vec<PlanItem> = vec![];
+    let drops = validate_reordered_day(&mut items, &empty);
+    assert!(drops.is_empty());
+}

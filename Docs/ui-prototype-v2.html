@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>游迹 App · UI 原型 V0.1</title>
+<style>
+/* ============================================================
+   Ocean Mist 雾海蓝 — 浅色模式
+   #06425C / #4A90A4 / #A8D5BA / #F4F1DE
+   ============================================================ */
+html[data-theme="light"]{
+  --bg-primary:#FFFFFF;
+  --bg-secondary:#F2F6F8;
+  --bg-elevated:#FFFFFF;
+  --bg-tint:#F4F1DE;
+  --bg-fill:rgba(6,66,92,.08);
+  --bg-fill-strong:rgba(6,66,92,.14);
+
+  --accent-primary:#06425C;
+  --accent-secondary:#4A90A4;
+  --accent-tertiary:#A8D5BA;
+  --on-accent:#FFFFFF;
+
+  --text-primary:#0C1F29;
+  --text-secondary:#5A6B75;
+  --text-tertiary:#93A1A9;
+  --text-inverse:#FFFFFF;
+
+  --separator:rgba(60,60,67,.16);
+  --separator-strong:rgba(60,60,67,.29);
+
+  --ok:#1E7A4D;      --ok-bg:rgba(46,167,110,.12);
+  --warn:#A8630B;    --warn-bg:rgba(255,159,10,.14);
+  --dispute:#A03246; --dispute-bg:rgba(255,59,48,.10);
+  --none:#7B8790;    --none-bg:rgba(120,120,128,.10);
+
+  --hero-from:#0A506B;
+  --hero-to:#06425C;
+  --hero-title:#FFFFFF;
+  --hero-sub:rgba(255,255,255,.72);
+
+  --shadow-sm:0 1px 3px rgba(6,26,36,.06);
+  --shadow-md:0 6px 20px -4px rgba(6,26,36,.12);
+  --shadow-nav:0 .5px 0 0 var(--separator);
+
+  --page-bg:#12232B;
+  --page-fg:#E6EEF2;
+  --page-muted:#8FA6B0;
+}
+
+/* ============================================================
+   Ocean Mist 雾海蓝 — 深色模式（背景反转，accent 提亮）
+   ============================================================ */
+html[data-theme="dark"]{
+  --bg-primary:#08161C;
+  --bg-secondary:#0F2530;
+  --bg-elevated:#122C38;
+  --bg-tint:#1B3A45;
+  --bg-fill:rgba(127,196,217,.12);
+  --bg-fill-strong:rgba(127,196,217,.20);
+
+  --accent-primary:#7FC4D9;
+  --accent-secondary:#5FA8BC;
+  --accent-tertiary:#A8D5BA;
+  --on-accent:#06222D;
+
+  --text-primary:#EAF2F5;
+  --text-secondary:#9FB4BE;
+  --text-tertiary:#6B818C;
+  --text-inverse:#08161C;
+
+  --separator:rgba(235,235,245,.12);
+  --separator-strong:rgba(235,235,245,.22);
+
+  --ok:#4AD98C;      --ok-bg:rgba(74,217,140,.14);
+  --warn:#FFB340;    --warn-bg:rgba(255,179,64,.14);
+  --dispute:#FF7B85; --dispute-bg:rgba(255,123,133,.14);
+  --none:#8A979F;    --none-bg:rgba(138,151,159,.12);
+
+  --hero-from:#0E4459;
+  --hero-to:#0A2E3C;
+  --hero-title:#FFFFFF;
+  --hero-sub:rgba(255,255,255,.70);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,.30);
+  --shadow-md:0 6px 20px -4px rgba(0,0,0,.45);
+  --shadow-nav:0 .5px 0 0 var(--separator);
+
+  --page-bg:#E9EFF2;
+  --page-fg:#12232B;
+  --page-muted:#5A6B75;
+}
+
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+.phone-mockup h1,.phone-mockup h2,.phone-mockup h3,.phone-mockup p{margin:0}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  background:var(--page-bg);
+  color:var(--page-fg);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
+  font-size:17px;line-height:1.47;
+  transition:background .35s ease,color .35s ease;
+}
+
+/* ---------- 4pt grid / 移动端间距 token ---------- */
+:root{
+  --margin-page:16px;
+  --gap-card:12px;
+  --padding-card:16px;
+  --radius-card:20px;
+  --radius-sm:12px;
+  --radius-lg:28px;
+  --tabbar-h:49px;
+  --navbar-h:44px;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+
+.page{padding:0 var(--margin-page)}
+.section{
+  padding:0 var(--margin-page) var(--gap-card);
+  display:flex;flex-direction:column;
+}
+.section__header{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin-bottom:var(--gap-card);
+}
+.section__header h3{
+  font-size:17px;font-weight:600;letter-spacing:-.43px;margin:0;
+  color:var(--text-primary);   /* 手机内跟随主题 token，舞台内由下方规则覆盖 */
+}
+.stage .section__header h3{color:var(--page-fg)}
+
+/* ---------- 舞台 ---------- */
+.stage{
+  min-height:100dvh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;padding:40px 20px 32px;
+}
+.stage__meta{text-align:center;max-width:430px}
+.stage__meta h1{font-size:20px;font-weight:600;letter-spacing:-.43px;margin:0 0 4px}
+.stage__meta p{font-size:13px;line-height:1.4;color:var(--page-muted);margin:0}
+
+/* ---------- 手机原型：直角矩形，固定 430×900 ---------- */
+.phone-mockup{
+  width:430px;height:900px;flex:none;
+  background:var(--bg-primary);
+  color:var(--text-primary);   /* 显式前景色：防止舞台深色对比底被继承进手机 */
+  border-radius:0;
+  overflow:hidden;
+  position:relative;
+  display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,.28);
+  transition:background .35s ease;
+}
+.app__scroll{
+  flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  background:var(--bg-secondary);
+  padding-top:var(--navbar-h);   /* 导航栏为悬浮层，滚动区让出高度 */
+}
+/* 沉浸式：Hero 顶到导航栏下沿（导航栏浮在其上） */
+.app__scroll.is-immersive{padding-top:0;background:var(--bg-primary)}
+.app__scroll.is-immersive .spot-hero{margin-top:0}
+/* 有吸底操作栏的页面，尾部留出安全高度 */
+.app__scroll.has-dock{padding-bottom:calc(var(--tabbar-h) + 34px + 78px)}
+.app__scroll::-webkit-scrollbar{display:none}
+
+/* ---------- 状态栏（双击切主题） ---------- */
+.status-bar{
+  height:44px;flex:none;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px 0 24px;
+  font-size:13px;font-weight:600;letter-spacing:-.08px;
+  color:var(--text-primary);
+  background:var(--bg-primary);
+  cursor:pointer;user-select:none;-webkit-user-select:none;
+  position:relative;z-index:30;
+  transition:background .35s ease,color .35s ease;
+}
+.status-bar__time{font-variant-numeric:tabular-nums;min-width:52px}
+.status-bar__right{display:flex;align-items:center;gap:5px}
+.status-bar::after{
+  content:'双击状态栏切换深色';
+  position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  padding:5px 12px;background:var(--accent-primary);color:var(--on-accent);
+  font-size:11px;font-weight:600;border-radius:999px;white-space:nowrap;
+  pointer-events:none;opacity:0;z-index:60;
+  box-shadow:0 4px 12px rgba(0,0,0,.22);
+  animation:hintFade 4.8s ease-out .6s 1 both;
+}
+html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'}
+@keyframes hintFade{
+  0%{opacity:0;transform:translate(-50%,-4px)}
+  14%{opacity:1;transform:translate(-50%,0)}
+  78%{opacity:1;transform:translate(-50%,0)}
+  100%{opacity:0;transform:translate(-50%,-4px)}
+}
+
+/* ---------- 导航栏 44pt + 毛玻璃 ---------- */
+.nav-bar{
+  height:var(--navbar-h);flex:none;
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+  position:absolute;left:0;right:0;top:44px;z-index:25;
+  background:color-mix(in srgb,var(--bg-primary) 72%,transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  backdrop-filter:saturate(180%) blur(20px);
+  box-shadow:var(--shadow-nav);
+  transition:background .35s ease,color .35s ease;
+}
+/* 沉浸式页：导航栏压深色 Hero，文字转浅色 */
+.phone-mockup:has(.is-immersive) .nav-bar{
+  background:transparent;box-shadow:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  color:#fff;
+}
+.phone-mockup:has(.is-immersive) .nav-bar__title{color:#fff}
+.phone-mockup:has(.is-immersive) .nav-btn{color:#fff}
+.nav-bar__title{
+  flex:1;text-align:center;font-size:17px;font-weight:600;letter-spacing:-.43px;
+  color:var(--text-primary);
+}
+.nav-btn{
+  width:38px;height:38px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  border:none;background:transparent;cursor:pointer;
+  color:var(--accent-primary);border-radius:var(--radius-sm);
+  transition:transform .18s var(--spring),opacity .18s;
+}
+.nav-btn:active{transform:scale(.9);opacity:.6}
+.nav-btn svg{width:20px;height:20px}
+.nav-btn--ph{width:38px;flex:none}
+
+/* ---------- Tab Bar：flex 兄弟节点，非 absolute ---------- */
+.tab-bar{
+  flex:none;min-height:calc(var(--tabbar-h) + 34px);
+  padding:6px 0 34px;
+  display:grid;grid-template-columns:repeat(5,1fr);
+  background:color-mix(in srgb,var(--bg-primary) 78%,transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  backdrop-filter:saturate(180%) blur(20px);
+  box-shadow:0 -.5px 0 0 var(--separator);
+  transition:background .35s ease;
+}
+.tab-bar__item{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border:none;background:transparent;cursor:pointer;
+  color:var(--text-tertiary);font-size:10px;font-weight:500;letter-spacing:.07px;
+  padding:4px 0;transition:color .2s,transform .18s var(--spring);
+}
+.tab-bar__item:active{transform:scale(.92)}
+.tab-bar__item.is-active{color:var(--accent-primary)}
+.tab-bar__item svg{width:23px;height:23px}
+
+/* ---------- Hero：full-bleed 贴边，0 圆角 ---------- */
+.hero{
+  margin:0 0 var(--gap-card);
+  width:100%;
+  aspect-ratio:16/9.5;
+  max-height:300px;
+  border-radius:0;
+  position:relative;overflow:hidden;
+  background:linear-gradient(165deg,var(--hero-from),var(--hero-to));
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:20px var(--margin-page) 18px;
+}
+.hero::before{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:0;height:0;
+  border-left:110px solid transparent;
+  border-right:110px solid transparent;
+  border-bottom:190px solid rgba(255,255,255,.055);
+}
+.hero::after{
+  content:'';position:absolute;bottom:-20px;left:28px;
+  width:0;height:0;
+  border-left:80px solid transparent;
+  border-right:80px solid transparent;
+  border-bottom:130px solid rgba(168,213,186,.05);
+}
+.hero__body{position:relative;z-index:2}
+.hero__eyebrow{
+  font-size:12px;font-weight:600;letter-spacing:.4px;
+  color:var(--hero-sub);text-transform:uppercase;margin:0 0 4px;
+}
+.hero__title{
+  font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;
+  color:var(--hero-title);margin:0 0 6px;
+}
+.hero__meta{
+  font-size:13px;color:var(--hero-sub);margin:0;
+  display:flex;align-items:center;gap:6px;
+}
+.hero__meta svg{width:13px;height:13px;flex:none}
+
+/* ---------- 卡片 ---------- */
+.card{
+  border-radius:var(--radius-card);
+  padding:var(--padding-card);
+  background:var(--bg-elevated);
+  border:1px solid var(--separator);
+  box-shadow:var(--shadow-sm);
+  margin-bottom:var(--gap-card);
+  transition:transform .2s var(--spring),box-shadow .2s;
+}
+.card--tap{cursor:pointer;display:block;width:100%;text-align:left;font:inherit;color:inherit}
+.card--tap:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.card--tap:active{transform:scale(.985)}
+.card--feature{
+  background:linear-gradient(150deg,var(--accent-primary),var(--hero-from));
+  border:none;color:var(--hero-title);
+}
+.card--tint{background:var(--bg-tint);border-color:transparent}
+/* 标题显式前景色：深浅模式各自跟随 token，避免继承舞台色 */
+.card h3,.card .stack h3{color:var(--text-primary)}
+.card--feature h3{color:var(--hero-title)}
+.phone-mockup .section__header h3{color:var(--text-primary)}
+.phone-mockup .stat__l,.phone-mockup .field__lb,.phone-mockup .field__vl{color:var(--text-secondary)}
+
+.row{display:flex;align-items:center;gap:8px}
+.row--between{justify-content:space-between}
+.row--wrap{flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:2px}
+.muted{color:var(--text-secondary)}
+.faint{color:var(--text-tertiary)}
+
+/* ---------- 按钮 ---------- */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;min-height:50px;padding:13px 20px;
+  border:none;border-radius:14px;cursor:pointer;
+  font-family:inherit;font-size:17px;font-weight:600;letter-spacing:-.43px;
+  background:var(--accent-primary);color:var(--on-accent);
+  transition:transform .18s var(--spring),opacity .18s,filter .18s;
+}
+.btn:active{transform:scale(.975);opacity:.88}
+.btn--tinted{background:var(--bg-fill-strong);color:var(--accent-primary)}
+.btn--sm{min-height:38px;padding:8px 16px;font-size:15px;border-radius:11px;width:auto}
+.btn svg{width:18px;height:18px}
+
+/* ---------- Chips / 分段控件 ---------- */
+.seg{
+  display:flex;padding:2px;border-radius:11px;background:var(--bg-fill);
+  position:relative;
+}
+.seg__btn{
+  flex:1;min-height:34px;border:none;background:transparent;cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:600;letter-spacing:-.08px;
+  color:var(--text-secondary);border-radius:9px;
+  transition:background .22s,color .22s,box-shadow .22s;
+}
+.seg__btn.is-active{
+  background:var(--bg-elevated);color:var(--accent-primary);box-shadow:var(--shadow-sm);
+}
+.chip{
+  display:inline-flex;align-items:center;gap:4px;
+  min-height:34px;padding:6px 13px;border-radius:999px;
+  background:var(--bg-elevated);border:1px solid var(--separator);
+  font-size:14px;font-weight:500;color:var(--text-primary);cursor:pointer;
+  font-family:inherit;
+  transition:transform .16s var(--spring),background .2s,border-color .2s;
+}
+.chip:active{transform:scale(.94)}
+.chip.is-on{background:var(--accent-primary);color:var(--on-accent);border-color:transparent}
+
+/* ---------- 核验徽章 ---------- */
+.verified{
+  display:inline-flex;align-items:center;gap:4px;flex:none;
+  height:22px;padding:0 8px;border-radius:999px;
+  font-size:11px;font-weight:600;letter-spacing:-.08px;
+}
+.verified__dot{width:5px;height:5px;border-radius:50%;flex:none}
+.verified--ok{background:var(--ok-bg);color:var(--ok)}
+.verified--ok .verified__dot{background:var(--ok)}
+.verified--warn{background:var(--warn-bg);color:var(--warn)}
+.verified--warn .verified__dot{background:var(--warn)}
+.verified--dispute{background:var(--dispute-bg);color:var(--dispute)}
+.verified--dispute .verified__dot{background:var(--dispute)}
+.verified--none{background:var(--none-bg);color:var(--none)}
+.verified--none .verified__dot{background:var(--none)}
+
+/* ---------- 预算条 ---------- */
+.budget{margin-top:10px}
+.budget__nums{
+  display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;
+}
+.budget__val{font-size:20px;font-weight:700;letter-spacing:-.43px;color:var(--text-primary)}
+.budget__cap{font-size:12px;color:var(--text-secondary)}
+.budget__track{height:8px;border-radius:4px;background:var(--bg-fill);overflow:hidden}
+.budget__fill{height:100%;border-radius:4px;background:var(--accent-primary);width:0;transition:width .7s var(--spring)}
+
+/* ---------- 时间轴 ---------- */
+.timeline{position:relative;padding-left:22px}
+.timeline::before{
+  content:'';position:absolute;left:5px;top:8px;bottom:14px;width:2px;
+  background:var(--separator-strong);border-radius:1px;
+}
+.tl-item{position:relative;margin-bottom:var(--gap-card)}
+.tl-item::before{
+  content:'';position:absolute;left:-22px;top:17px;
+  width:12px;height:12px;border-radius:50%;
+  background:var(--accent-primary);
+  box-shadow:0 0 0 3px var(--bg-secondary);
+}
+.tl-item--muted::before{background:var(--bg-fill-strong)}
+.tl-time{
+  font-size:12px;font-weight:600;letter-spacing:-.08px;
+  color:var(--text-tertiary);font-variant-numeric:tabular-nums;margin:0 0 5px;
+}
+
+/* ---------- 交通段 ---------- */
+.transit{
+  display:flex;align-items:center;gap:7px;
+  padding:0 0 12px 0;margin:0;
+  font-size:12px;color:var(--text-secondary);
+}
+.transit svg{width:14px;height:14px;flex:none;color:var(--text-tertiary)}
+
+/* ---------- 提醒 ---------- */
+.alert{
+  display:flex;gap:10px;align-items:flex-start;
+  border-radius:var(--radius-sm);padding:12px 14px;
+  background:var(--warn-bg);margin-bottom:var(--gap-card);
+  font-size:13px;line-height:1.4;color:var(--text-primary);
+}
+.alert svg{width:16px;height:16px;flex:none;color:var(--warn);margin-top:1px}
+.alert b{color:var(--warn);font-weight:600}
+
+/* ---------- 滚动容器：置于 .section 内 ---------- */
+.product-scroll{
+  display:flex;gap:var(--gap-card);overflow-x:auto;
+  padding-bottom:4px;scrollbar-width:none;
+  margin-bottom:var(--gap-card);
+}
+.product-scroll::-webkit-scrollbar{display:none}
+.p-card{
+  flex:none;width:150px;border-radius:var(--radius-card);
+  background:var(--bg-elevated);border:1px solid var(--separator);
+  box-shadow:var(--shadow-sm);overflow:hidden;cursor:pointer;
+  transition:transform .2s var(--spring);
+}
+.p-card:active{transform:scale(.97)}
+.p-card__img{width:100%;aspect-ratio:4/3;position:relative}
+.p-card__img--a{background:linear-gradient(150deg,#3E7F8C,#1E5666)}
+.p-card__img--b{background:linear-gradient(150deg,#4E8A6E,#2C5B47)}
+.p-card__img--c{background:linear-gradient(150deg,#8A7355,#5C4A33)}
+.p-card__img--d{background:linear-gradient(150deg,#6A7FA0,#41506B)}
+.p-card__cap{padding:9px 11px 11px}
+.p-card__name{font-size:14px;font-weight:600;color:var(--text-primary);margin:0}
+.p-card__meta{font-size:11px;color:var(--text-secondary);margin:2px 0 0}
+
+/* ---------- 快速入口 4 列 ---------- */
+.quick-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:var(--gap-card);margin-bottom:var(--gap-card);
+}
+.quick{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  border:none;background:none;cursor:pointer;font-family:inherit;padding:0;
+}
+.quick__ico{
+  width:100%;aspect-ratio:1;border-radius:var(--radius-sm);
+  background:var(--bg-elevated);border:1px solid var(--separator);
+  display:flex;align-items:center;justify-content:center;color:var(--accent-primary);
+  box-shadow:var(--shadow-sm);
+}
+.quick__ico svg{width:20px;height:20px}
+.quick__lb{font-size:11px;color:var(--text-secondary);line-height:1.2;text-align:center}
+
+/* ---------- 表单行 ---------- */
+.field{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:50px;padding:6px 0;
+}
+.field + .field{border-top:1px solid var(--separator)}
+.field__lb{font-size:15px;color:var(--text-primary);flex:none}
+.field__vl{font-size:15px;color:var(--text-secondary);text-align:right;display:flex;align-items:center;gap:5px}
+.field__vl svg{width:15px;height:15px;color:var(--text-tertiary)}
+
+/* ---------- diff 卡片 ---------- */
+.diff{border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--separator)}
+.diff__row{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 14px;background:var(--bg-elevated);
+  font-size:14px;color:var(--text-primary);
+}
+.diff__row + .diff__row{border-top:1px solid var(--separator)}
+.diff__row--muted{background:var(--bg-secondary);color:var(--text-secondary)}
+
+/* ---------- 搜索框 ---------- */
+.search{
+  display:flex;align-items:center;gap:8px;
+  height:38px;padding:0 12px;border-radius:11px;
+  background:var(--bg-fill);color:var(--text-secondary);
+  font-size:16px;
+}
+.search svg{width:16px;height:16px;flex:none;color:var(--text-tertiary)}
+
+/* ---------- 横向筛选条 ---------- */
+.filter-scroll{
+  display:flex;gap:8px;overflow-x:auto;
+  padding-bottom:4px;scrollbar-width:none;
+  margin-bottom:var(--gap-card);
+}
+.filter-scroll::-webkit-scrollbar{display:none}
+
+/* ---------- 列表卡：图左文右 ---------- */
+.list-card{
+  display:flex;gap:12px;align-items:stretch;
+  border-radius:var(--radius-card);padding:10px;
+  background:var(--bg-elevated);border:1px solid var(--separator);
+  box-shadow:var(--shadow-sm);margin-bottom:var(--gap-card);
+  width:100%;text-align:left;font:inherit;color:inherit;border-width:1px;
+  cursor:pointer;
+  transition:transform .2s var(--spring),box-shadow .2s;
+}
+.list-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.list-card:active{transform:scale(.985)}
+.list-card__img{
+  width:92px;flex:none;border-radius:14px;overflow:hidden;position:relative;
+}
+.list-card__img > i{
+  position:absolute;left:6px;top:6px;
+  font-style:normal;font-size:10px;font-weight:600;letter-spacing:.07px;
+  color:#fff;background:rgba(12,31,41,.62);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  padding:2px 7px;border-radius:999px;
+}
+.list-card__body{flex:1;min-width:0;display:flex;flex-direction:column;padding:2px 2px 2px 0}
+.list-card__name{font-size:17px;font-weight:600;letter-spacing:-.43px;margin:0 0 2px;color:var(--text-primary)}
+.list-card__desc{
+  font-size:13px;line-height:1.4;color:var(--text-secondary);margin:0 0 8px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.list-card__foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+.list-card__price{font-size:15px;font-weight:700;letter-spacing:-.23px;color:var(--text-primary)}
+.list-card__dist{font-size:12px;color:var(--text-tertiary);font-variant-numeric:tabular-nums}
+
+/* ---------- 攻略卡 ---------- */
+.guide-card{
+  border-radius:var(--radius-card);padding:var(--padding-card);
+  background:var(--bg-elevated);border:1px solid var(--separator);
+  box-shadow:var(--shadow-sm);margin-bottom:var(--gap-card);
+}
+.guide-card__src{
+  display:flex;align-items:center;gap:6px;margin-bottom:9px;
+  font-size:11px;color:var(--text-tertiary);
+}
+.guide-card__src b{font-weight:600;color:var(--text-secondary)}
+.guide-card__title{
+  font-size:17px;font-weight:600;letter-spacing:-.43px;line-height:1.35;
+  margin:0 0 6px;color:var(--text-primary);
+}
+.guide-card__sum{
+  font-size:14px;line-height:1.5;color:var(--text-secondary);margin:0 0 11px;
+}
+.extract{
+  border-radius:var(--radius-sm);padding:11px 13px;
+  background:var(--bg-secondary);margin-bottom:11px;
+}
+.extract__lb{
+  font-size:11px;font-weight:600;letter-spacing:.4px;
+  color:var(--text-tertiary);margin:0 0 7px;
+}
+.extract__row{display:flex;gap:8px;font-size:13px;line-height:1.45;color:var(--text-primary)}
+.extract__row + .extract__row{margin-top:5px}
+.extract__row span{flex:none;color:var(--accent-primary);font-weight:600}
+.guide-card__foot{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-top:11px;border-top:1px solid var(--separator);
+}
+.link-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  border:none;background:transparent;cursor:pointer;padding:0;
+  font-family:inherit;font-size:14px;font-weight:500;color:var(--accent-primary);
+}
+.link-btn svg{width:14px;height:14px}
+.tier{
+  display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;
+  font-size:10px;font-weight:600;letter-spacing:.07px;
+  background:var(--bg-fill-strong);color:var(--accent-primary);
+}
+
+/* ---------- 我的：资料头 ---------- */
+.profile{
+  display:flex;align-items:center;gap:14px;
+  padding:var(--padding-card);margin-bottom:var(--gap-card);
+  border-radius:var(--radius-lg);
+  background:linear-gradient(150deg,var(--accent-primary),var(--hero-from));
+  color:var(--hero-title);
+}
+.profile__av{
+  width:56px;height:56px;flex:none;border-radius:50%;
+  background:rgba(255,255,255,.18);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;color:#fff;
+}
+.profile__av svg{width:28px;height:28px}
+.profile__name{font-size:19px;font-weight:700;letter-spacing:-.23px;margin:0 0 2px}
+.profile__sub{font-size:13px;margin:0;color:var(--hero-sub)}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap-card);margin-bottom:var(--gap-card)}
+.stat{
+  text-align:center;padding:13px 8px;border-radius:var(--radius-sm);
+  background:var(--bg-elevated);border:1px solid var(--separator);
+}
+.stat__n{font-size:20px;font-weight:700;letter-spacing:-.43px;color:var(--text-primary);font-variant-numeric:tabular-nums}
+.stat__l{font-size:11px;color:var(--text-secondary);margin:1px 0 0}
+
+/* ---------- 可点击反馈 ---------- */
+[role="button"],[data-act]{cursor:pointer}
+.press{transition:transform .16s var(--spring)}
+.press:active{transform:scale(.97)}
+
+/* ---------- 开关 ---------- */
+.switch{
+  position:relative;width:51px;height:31px;flex:none;
+  border:none;border-radius:999px;cursor:pointer;padding:0;
+  background:var(--bg-fill-strong);
+  transition:background .28s var(--spring);
+}
+.switch::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:27px;height:27px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 5px rgba(0,0,0,.2);
+  transition:transform .28s var(--spring);
+}
+.switch[aria-checked="true"]{background:var(--accent-primary)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+
+/* ---------- 步进器 ---------- */
+.stepper{display:flex;align-items:center;gap:14px}
+.stepper__btn{
+  width:32px;height:32px;flex:none;border-radius:50%;
+  border:1px solid var(--separator);background:var(--bg-elevated);
+  color:var(--accent-primary);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .16s var(--spring),opacity .2s;
+}
+.stepper__btn:active{transform:scale(.88)}
+.stepper__btn[disabled]{opacity:.3;cursor:default}
+.stepper__btn svg{width:15px;height:15px}
+.stepper__v{
+  min-width:66px;text-align:center;
+  font-size:17px;font-weight:600;letter-spacing:-.23px;
+  color:var(--text-primary);font-variant-numeric:tabular-nums;
+}
+
+/* ---------- 底部 Sheet ---------- */
+.sheet-mask{
+  position:absolute;inset:0;z-index:50;
+  background:rgba(0,0,0,.35);
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.sheet-mask.is-open{opacity:1;pointer-events:auto}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:60;
+  background:var(--bg-elevated);
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  padding:10px 0 34px;
+  transform:translateY(100%);
+  transition:transform .38s var(--spring);
+  max-height:76%;overflow-y:auto;scrollbar-width:none;
+  box-shadow:0 -8px 30px rgba(0,0,0,.2);
+}
+.sheet::-webkit-scrollbar{display:none}
+.sheet.is-open{transform:translateY(0)}
+.sheet__grab{
+  width:36px;height:5px;border-radius:3px;background:var(--separator-strong);
+  margin:0 auto 14px;
+}
+.sheet__title{
+  font-size:17px;font-weight:600;letter-spacing:-.43px;
+  text-align:center;margin:0 0 4px;color:var(--text-primary);
+}
+.sheet__sub{font-size:13px;text-align:center;color:var(--text-secondary);margin:0 0 6px}
+.sheet__list{padding:0 var(--margin-page)}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:absolute;left:50%;bottom:calc(var(--tabbar-h) + 46px);
+  z-index:70;transform:translate(-50%,14px);
+  padding:10px 18px;border-radius:999px;
+  background:rgba(28,28,30,.9);color:#fff;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  font-size:14px;font-weight:500;white-space:nowrap;
+  opacity:0;pointer-events:none;
+  transition:opacity .26s,transform .26s var(--spring);
+}
+html[data-theme="dark"] .toast{background:rgba(240,240,245,.92);color:#0C1F29}
+.toast.is-show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 景区详情 Hero ---------- */
+.spot-hero{
+  position:relative;width:100%;aspect-ratio:4/3;
+  border-radius:0;overflow:hidden;margin:0 0 var(--gap-card);
+}
+.spot-hero--a{background:linear-gradient(155deg,#3E7F8C,#164C5C)}
+.spot-hero--b{background:linear-gradient(155deg,#4E8A6E,#26543F)}
+.spot-hero--c{background:linear-gradient(155deg,#8A7355,#57452E)}
+.spot-hero--d{background:linear-gradient(155deg,#6A7FA0,#3B4A64)}
+.spot-hero--e{background:linear-gradient(155deg,#5E8C8C,#2F5252)}
+.spot-hero::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(8,22,28,.72) 0%,rgba(8,22,28,.12) 42%,transparent 62%);
+}
+.spot-hero__body{
+  position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:0 var(--margin-page) var(--padding-card);
+}
+.spot-hero__name{
+  font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;
+  color:#fff;margin:0 0 7px;
+}
+.spot-hero__tags{display:flex;gap:6px;flex-wrap:wrap}
+.spot-hero__tags .chip{
+  background:rgba(255,255,255,.2);border-color:transparent;
+  color:#fff;font-size:12px;min-height:26px;padding:2px 10px;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+}
+
+/* ---------- 浮动回顶按钮 ---------- */
+.fab{
+  position:absolute;right:16px;bottom:calc(var(--tabbar-h) + 44px);z-index:30;
+  width:42px;height:42px;border-radius:50%;
+  border:none;cursor:pointer;
+  background:var(--bg-elevated);color:var(--accent-primary);
+  box-shadow:0 6px 18px rgba(0,0,0,.16);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transform:translateY(8px);
+  transition:opacity .28s,transform .28s var(--spring);
+}
+.fab.is-show{opacity:1;pointer-events:auto;transform:translateY(0)}
+.fab svg{width:19px;height:19px}
+
+/* ---------- 行程列表卡（我的/行程 Tab） ---------- */
+.trip-card{
+  border-radius:var(--radius-card);overflow:hidden;
+  border:1px solid var(--separator);background:var(--bg-elevated);
+  box-shadow:var(--shadow-sm);margin-bottom:var(--gap-card);
+  width:100%;text-align:left;font:inherit;padding:0;cursor:pointer;
+  transition:transform .2s var(--spring),box-shadow .2s;
+}
+.trip-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.trip-card__cover{width:100%;height:86px;position:relative}
+.trip-card__cover--a{background:linear-gradient(135deg,#2F6F72,#0F3F48)}
+.trip-card__cover--b{background:linear-gradient(135deg,#5B7A5E,#2C4433)}
+.trip-card__body{padding:var(--padding-card)}
+.trip-card__stops{
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:9px;
+  font-size:12px;color:var(--text-secondary);
+}
+.trip-card__stops i{
+  width:4px;height:4px;border-radius:50%;background:var(--text-tertiary);font-style:normal;
+}
+
+/* ---------- 空状态 ---------- */
+.empty{
+  display:flex;flex-direction:column;align-items:center;
+  padding:44px 24px;text-align:center;
+}
+.empty__ico{
+  width:64px;height:64px;border-radius:20px;margin-bottom:14px;
+  background:var(--bg-fill);color:var(--text-tertiary);
+  display:flex;align-items:center;justify-content:center;
+}
+.empty__ico svg{width:30px;height:30px}
+.empty__t{font-size:17px;font-weight:600;color:var(--text-primary);margin:0 0 5px}
+.empty__d{font-size:14px;line-height:1.5;color:var(--text-secondary);margin:0 0 18px;max-width:30ch}
+
+/* ---------- 骨架屏 ---------- */
+.sk{background:var(--bg-fill);border-radius:8px;position:relative;overflow:hidden}
+.sk::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+  animation:shimmer 1.4s infinite;
+}
+html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)}
+@keyframes shimmer{100%{transform:translateX(100%)}}
+
+/* ---------- 加载进度（生成中） ---------- */
+.progress{height:6px;border-radius:3px;background:var(--bg-fill);overflow:hidden;margin-top:10px}
+.progress__bar{height:100%;width:0;background:var(--accent-primary);border-radius:3px;transition:width .5s ease}
+
+/* ---------- 吸底操作栏 ---------- */
+.action-dock{
+  position:absolute;left:0;right:0;bottom:calc(var(--tabbar-h) + 34px);z-index:28;
+  padding:10px var(--margin-page);
+  background:color-mix(in srgb,var(--bg-primary) 82%,transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  backdrop-filter:saturate(180%) blur(20px);
+  box-shadow:0 -.5px 0 0 var(--separator);
+}
+.action-dock .btn{min-height:48px;padding:12px 18px}
+
+/* ---------- 行程时间轴紧凑态（D2） ---------- */
+.timeline--compact .tl-item{margin-bottom:var(--gap-card)}
+
+/* ---------- 页面级切换（桌面用，App 外） ---------- */
+.stage__nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.stage__nav button{
+  border:1px solid var(--page-muted);background:transparent;
+  color:var(--page-fg);font-family:inherit;font-size:13px;font-weight:500;
+  padding:7px 15px;border-radius:999px;cursor:pointer;
+  transition:background .2s,color .2s,border-color .2s;
+}
+.stage__nav button.is-on{background:var(--page-fg);color:var(--page-bg);border-color:var(--page-fg)}
+.stage__note{font-size:12px;color:var(--page-muted);text-align:center;margin:0}
+
+@media (max-width:520px){
+  .stage{padding:20px 0}
+  .stage__meta,.stage__nav,.stage__note{padding:0 16px}
+  .phone-mockup{width:100vw;max-width:430px;box-shadow:none}
+}
+</style>
+</head>
+<body>
+
+  <div class="stage" id="stage">
+
+  <div class="stage__meta">
+    <h1 class="stage__meta-h" id="stageTitle">游迹 App · 行程详情</h1>
+    <p>底部 5 个标签可自由切换 · 双击状态栏切换深浅色</p>
+  </div>
+
+  <div class="phone-mockup" id="phone">
+    <div class="status-bar" id="statusBar">
+      <span class="status-bar__time">9:41</span>
+      <span class="status-bar__right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.3" y="5" width="3" height="6" rx="1"/><rect x="8.6" y="2.5" width="3" height="8.5" rx="1"/><rect x="12.9" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M7.5 9.8 5.2 7.4a3.3 3.3 0 0 1 4.6 0L7.5 9.8ZM3.1 5.3 1.6 3.7a8.4 8.4 0 0 1 11.8 0l-1.5 1.6a6.2 6.2 0 0 0-8.8 0Zm-2.9-2.9L-.9.6a11.8 11.8 0 0 1 16.8 0l-1.2 1.8a9.6 9.6 0 0 0-13.4 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x=".5" y=".5" width="19" height="10" rx="3" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16" height="7" rx="1.6" fill="currentColor"/><path d="M21.5 4v3a2 2 0 0 0 0-3Z" fill="currentColor" opacity=".4"/></svg>
+      </span>
+    </div>
+
+    <!-- 导航栏 -->
+    <div class="nav-bar" id="navBar"></div>
+
+    <!-- 滚动区 -->
+    <div class="app__scroll" id="scroll"></div>
+
+    <!-- 标签栏 -->
+    <div class="tab-bar" id="tabBar"></div>
+
+    <!-- 悬浮回顶 -->
+    <button class="fab" id="fab" aria-label="回到顶部">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+    </button>
+
+    <!-- 底部 Sheet -->
+    <div class="sheet-mask" id="sheetMask"></div>
+    <div class="sheet" id="sheet"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div class="stage__nav" id="stageNav"></div>
+  <p class="stage__note">双击手机状态栏可切换浅色 / 深色</p>
+
+</div>
+<script>
+/* ==========================================================
+   图标（inline SVG，currentColor）
+   ========================================================== */
+const I = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 21v-7h6v7"/></svg>',
+  compass:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H4Z"/><path d="M20 4.5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H20Z"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20.5a8 8 0 0 1 16 0"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10.5c0 5.8-8 11-8 11s-8-5.2-8-11a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10.3" r="2.8"/></svg>',
+  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h11"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>',
+  sparkle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.7 9l5.5 1.7-5.5 1.7L12 18l-1.7-5.6L4.8 10.7 10.3 9Z"/><path d="M18.5 16.5 19.2 19l2.3.8-2.3.8-.7 2.4-.7-2.4-2.3-.8 2.3-.8Z"/></svg>',
+  car:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5v2a1 1 0 0 0 1 1h1.5a1 1 0 0 0 1-1v-2M15.5 16.5v2a1 1 0 0 0 1 1H18a1 1 0 0 0 1-1v-2"/><path d="M3.5 16.5v-4l1.8-4.6A2 2 0 0 1 7.2 6.6h9.6a2 2 0 0 1 1.9 1.3l1.8 4.6v4Z"/><path d="M3.5 12.5h17"/><circle cx="7" cy="14.3" r="1"/><circle cx="17" cy="14.3" r="1"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20H2Z"/><path d="M12 9.5v4.2M12 17h.01"/></svg>',
+  chevron:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+  map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5 3 5.7v14.8l6-2.2 6 2.2 6-2.2V3.5l-6 2.2Z"/><path d="M9 3.5v14.8M15 5.7v14.8"/></svg>',
+  ticket:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5V14a2 2 0 0 0 0-4Z"/><path d="M14 6.5v11"/></svg>',
+  bed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-9M3 13h18a2 2 0 0 1 2 2v4M3 19h20"/><circle cx="7.5" cy="9.5" r="2"/><path d="M11 13V11a1.5 1.5 0 0 1 1.5-1.5h6A1.5 1.5 0 0 1 20 11v2"/></svg>',
+  food:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2.5 2.5 0 0 0 5 0V3M8.5 10.5V21"/><path d="M17 3c-1.5 1.5-2 3-2 5s.5 2.5 2 2.5V21"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.3 4.6 13a4.6 4.6 0 0 1 6.5-6.5l.9.9.9-.9A4.6 4.6 0 1 1 19.4 13Z"/></svg>',
+  heartFill:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.3 4.6 13a4.6 4.6 0 0 1 6.5-6.5l.9.9.9-.9A4.6 4.6 0 1 1 19.4 13Z"/></svg>',
+  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5h5.5V10M19 5l-8 8"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg>',
+  filter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5h17M6.5 12h11M10 17.5h4"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4 5.3 5.3"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7 20 6v5.5c0 4.8-3.4 8.9-8 9.8-4.6-.9-8-5-8-9.8V6Z"/><path d="m9 12 2 2 4-4"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7"/></svg>',
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16M9.5 6.5V4.8A1.3 1.3 0 0 1 10.8 3.5h2.4a1.3 1.3 0 0 1 1.3 1.3v1.7M6.5 6.5 7.4 20a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4l.9-13.5"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.3l3.4 2"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>',
+  cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18.5a4 4 0 0 1-.4-8A5.5 5.5 0 0 1 17.3 9.4 3.6 3.6 0 0 1 17 18.5Z"/><path d="M9.5 21.5 11 19M14 21.5 12.5 19"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8Z"/></svg>',
+  layers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8.5 4.5L12 12 3.5 7.5Z"/><path d="m3.5 12.5 8.5 4.5 8.5-4.5"/></svg>',
+  wallet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 8.5V7a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 7v10A1.5 1.5 0 0 0 5 18.5h13.5A1.5 1.5 0 0 0 20 17v-1.5"/><path d="M21 9.5h-4.5a2 2 0 0 0 0 4H21Z"/></svg>'
+};
+
+/* ==========================================================
+   数据层（mock：字段对齐 DESIGN.md 事实契约）
+   ========================================================== */
+const SPOTS = [
+  { id:'hgs', name:'黄果树景区', sub:'大瀑布 + 陡坡塘，喀斯特地貌标杆', theme:'a',
+    price:160, priceText:'¥160', open:'07:00–18:00', dur:'2.5h', dist:'128 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/18', score:4.8, hot:'最热门',
+    tags:['自然风光','避暑','亲子'], desc:'黄果树瀑布群由大瀑布、陡坡塘、天星桥三部分组成，是中国喀斯特地貌的代表性景区。' },
+  { id:'lg', name:'龙宫景区', sub:'水溶洞群 + 游船，夏季避暑首选', theme:'b',
+    price:130, priceText:'¥130', open:'08:00–17:30', dur:'2h', dist:'110 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/18', score:4.6, hot:'',
+    tags:['自然风光','避暑'], desc:'以水溶洞群与地下暗河著称的喀斯特景区，洞内常年恒温，夏季避暑理想地。' },
+  { id:'qls', name:'黔灵山公园', sub:'贵阳市区登山看猴，1 小时可达', theme:'c',
+    price:0, priceText:'免费', open:'07:00–22:00', dur:'2h', dist:'9 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'公园管理处', srcDate:'9/12', score:4.4, hot:'市区',
+    tags:['自然风光','亲子','免票'], desc:'贵阳市中心的大型山地公园，弘福寺与猕猴群是主要看点，登高可俯瞰全城。' },
+  { id:'qygz', name:'青岩古镇', sub:'600 年古镇，明清街巷与糕粑', theme:'d',
+    price:0, priceText:'免费', open:'全天', dur:'2.5h', dist:'32 km',
+    verify:'warn', verifyText:'待核验', tier:'二级来源',
+    src:'地图地点信息', srcDate:'8/28', score:4.2, hot:'',
+    tags:['人文','美食','免票'], desc:'明清军事屯堡形态的古镇，街巷格局完整，玫瑰糖与糕粑是当地代表性小吃。' },
+  { id:'tltb', name:'天龙屯堡', sub:'明代军屯遗存，演出与古建筑', theme:'e',
+    price:65, priceText:'¥65', open:'08:30–17:00', dur:'2h', dist:'42 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/18', score:4.1, hot:'',
+    tags:['人文','亲子'], desc:'明代江西军人入黔形成的屯堡聚落，保存大量石砌建筑与傩堂戏演出。' }
+];
+
+const GUIDES = [
+  { id:'g1', title:'黄果树避坑：三个时段人最少，水帘洞要走反方向',
+    sum:'作者建议上午 8 点前入园避开团队客，中午后段水流最壮观；水帘洞单向通行，从出口侧进入可少走 20 分钟回头路。',
+    extract:[['最佳时段','08:00 前入园'],['避坑','水帘洞从出口侧进，别逆向'],['建议时长','3 小时（含接驳车）']],
+    verify:'warn', verifyText:'未采信，待核验', tier:'三级来源', from:'社区图文',
+    date:'9/20', likes:'2.4k', spot:'hgs' },
+  { id:'g2', title:'安顺两天一夜，这样安排交通不赶',
+    sum:'实测市区到黄果树自驾约 1.5 小时，早出发可同时看完大瀑布和天星桥；晚上回市区吃丝娃娃比景区便宜一半。',
+    extract:[['交通','市区→黄果树自驾 1.5h'],['餐饮','丝娃娃，人均 ¥30'],['节奏','单日不超过 2 个景区']],
+    verify:'none', verifyText:'仅摘要，不作事实', tier:'三级来源', from:'社区图文',
+    date:'9/18', likes:'1.8k', spot:'lg' },
+  { id:'g3', title:'龙宫避暑实测：洞内 18℃，薄外套必须带',
+    sum:'夏季洞内恒温 18℃ 左右，洞口与洞内温差大；游船班次每小时一班，旺季建议提前半小时排队。',
+    extract:[['洞内温度','约 18℃'],['必备','薄外套'],['班次','每小时一班，旺季提前 30 分钟']],
+    verify:'ok', verifyText:'已核验', tier:'三级来源', from:'社区图文',
+    date:'9/16', likes:'1.1k', spot:'lg' }
+];
+
+/* 行程数据：D1/D2 条目 */
+const ITINERARY = {
+  id:'it1', title:'贵阳 → 安顺 2 天', budget:1240, limit:1500, people:'2 大 1 小',
+  days:[
+    { d:'D1', date:'9/26', items:[
+      { t:'09:00 – 12:00', n:'黄果树景区', m:'大瀑布 + 陡坡塘，步行约 3.5 km',
+        v:'ok', vt:'已核验', tags:['门票 ¥160/人','07:00–18:00','建议 2.5h'],
+        src:'来源：景区官方票务（一级）· 核验于 9/18', spot:'hgs',
+        transit:{ m:'驾车 45 分钟 · 32 km', ic:'car' } },
+      { t:'12:40 – 13:40', n:'布依农家 · 午餐', m:'酸汤鱼 + 糯米饭，人均 ¥68',
+        v:'warn', vt:'待核验', tags:['人均 ¥68','11:00–14:00'],
+        src:'来源：地图餐饮（二级）· 上次核验 8/30' },
+      { t:'14:10 – 16:40', n:'龙宫景区', m:'水溶洞游船，洞内较冷',
+        v:'ok', vt:'已核验', tags:['门票 ¥130/人','08:00–17:30','建议 2h'],
+        src:'来源：景区官方票务（一级）· 核验于 9/18', spot:'lg',
+        transit:{ m:'入住安顺市区 · 距景区 20 分钟', ic:'bed' } },
+      { t:'18:30', n:'和府大酒店（标准档）', m:'含早 · 双床 · 可取消',
+        v:'warn', vt:'待核验', tags:['¥438/晚','含双早','可取消'],
+        src:'来源：酒店平台（二级）· 价格随日期浮动' }
+    ]},
+    { d:'D2', date:'9/27', items:[
+      { t:'09:30 – 11:30', n:'天龙屯堡', m:'明代屯堡遗存 + 傩堂戏',
+        v:'ok', vt:'已核验', tags:['门票 ¥65/人','08:30–17:00'],
+        src:'来源：景区官方票务（一级）· 核验于 9/18', spot:'tltb' },
+      { t:'12:00 – 13:00', n:'安顺米粉 · 午餐', m:'羊肉粉 + 冰浆',
+        v:'warn', vt:'待核验', tags:['人均 ¥22','06:30–14:00'],
+        src:'来源：地图餐饮（二级）· 上次核验 9/02' },
+      { t:'14:30 – 17:00', n:'青岩古镇', m:'明清街巷 + 糕粑',
+        v:'warn', vt:'待核验', tags:['免费','全天开放'],
+        src:'来源：地图地点（二级）· 上次核验 8/28', spot:'qygz' },
+      { t:'17:30', n:'返程', m:'安顺 → 贵阳 约 1.5 小时',
+        v:'ok', vt:'已核验', tags:['驾车 95 km','预计 19:15 到达'],
+        src:'来源：高德驾车矩阵（一级）· 实时' }
+    ]}
+  ]
+};
+
+const TRIPS = [
+  { id:'it1', title:'贵阳 → 安顺 2 天', cover:'a', status:'ok', st:'进行中',
+    date:'9/26 出发', stops:['黄果树','龙宫','天龙屯堡'], money:'¥1,240 / 上限 ¥1,500' },
+  { id:'it2', title:'贵阳周边 1 日游', cover:'b', status:'none', st:'草稿',
+    date:'9/12 创建', stops:['黔灵山','青岩古镇'], money:'预算未定' }
+];
+
+/* ==========================================================
+   状态
+   ========================================================== */
+const state = {
+  stack:[{ name:'home' }],
+  explore:{ filter:'推荐', q:'' },
+  guide:{ filter:'为你推荐' },
+  plan:{ interests:new Set(['自然风光','亲子']), tier:'标准', mode:'标准', budget:1500, people:2 },
+  detail:{ day:0, view:'list' },
+  favs:new Set(['hgs']),
+  generating:false,
+  progress:0,
+  login:false,
+  sheet:null
+};
+const go = (n,p)=>{ state.stack.push(p?{name:n,...p}:{name:n}); render(); };
+const back = ()=>{ if(state.stack.length>1) state.stack.pop(); closeSheet(); render(); };
+const cur = ()=> state.stack[state.stack.length-1];
+const isTabRoot = ()=> state.stack.length===1;
+
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg; t.classList.add('is-show');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('is-show'),1900);
+}
+function openSheet(cfg){ state.sheet = typeof cfg==='string' ? SHEETS[cfg]() : cfg; render(); }
+function closeSheet(){ state.sheet=null; }
+
+/* ==========================================================
+   通用片段
+   ========================================================== */
+const verified = (v,vt)=>`<span class="verified verified--${v}"><i class="verified__dot"></i>${vt}</span>`;
+const spotById = id => SPOTS.find(s=>s.id===id);
+
+/* ==========================================================
+   01 首页
+   ========================================================== */
+const homeHTML = () => `
+  <div class="hero press" data-act="spot:qygz">
+    <div class="hero__body">
+      <p class="hero__eyebrow">贵州 · 当前定位</p>
+      <h1 class="hero__title">贵阳出发</h1>
+      <p class="hero__meta">${I.pin}<span>32 个已核验景区 · 数据更新至 9/18</span></p>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="card" style="padding:6px var(--padding-card)">
+      <div class="field press" data-act="go:plan">
+        <span class="field__lb">想去哪</span>
+        <span class="field__vl">安顺 <span class="faint">2 天</span> ${I.chevron}</span>
+      </div>
+      <div class="field press" data-act="go:plan">
+        <span class="field__lb">出发</span>
+        <span class="field__vl">贵阳 · 自驾 ${I.chevron}</span>
+      </div>
+      <div class="field press" data-act="go:plan">
+        <span class="field__lb">预算上限</span>
+        <span class="field__vl">¥${state.plan.budget.toLocaleString()} / 人 ${I.chevron}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    <button class="btn press" data-act="go:plan">${I.sparkle}<span>AI 帮我规划</span></button>
+  </div>
+
+  <div class="section" style="margin-top:var(--gap-card)">
+    <div class="card press" style="margin-bottom:0" data-act="go:detail">
+      <div class="row row--between">
+        ${verified('ok','已保存')}
+        <span class="faint" style="font-size:12px">9/26</span>
+      </div>
+      <h3 style="margin:9px 0 2px;font-size:17px">继续上次行程</h3>
+      <p class="muted" style="margin:0;font-size:14px">贵阳 → 安顺 2 天 · 预算 ¥1,240</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section__header"><h3>快捷入口</h3></div>
+    <div class="quick-grid">
+      <button class="quick press" data-act="go:explore">
+        <span class="quick__ico">${I.map}</span><span class="quick__lb">地图找景</span>
+      </button>
+      <button class="quick press" data-act="filter:ticket">
+        <span class="quick__ico">${I.ticket}</span><span class="quick__lb">门票价格</span>
+      </button>
+      <button class="quick press" data-act="filter:hotel">
+        <span class="quick__ico">${I.bed}</span><span class="quick__lb">住宿</span>
+      </button>
+      <button class="quick press" data-act="filter:food">
+        <span class="quick__ico">${I.food}</span><span class="quick__lb">吃什么</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section__header">
+      <h3>贵州热门景区</h3>
+      <span class="link-btn press" data-act="go:explore">全部</span>
+    </div>
+    <div class="product-scroll">
+      ${SPOTS.slice(0,4).map(s=>`
+        <div class="p-card press" data-act="spot:${s.id}">
+          <div class="p-card__img p-card__img--${s.theme}"></div>
+          <div class="p-card__cap">
+            <p class="p-card__name">${s.name}</p>
+            <p class="p-card__meta">${s.priceText} · ${s.tier}</p>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div style="height:8px"></div>
+`;
+
+/* ==========================================================
+   02 AI 规划
+   ========================================================== */
+const planHTML = () => {
+  const p = state.plan;
+  const all = ['自然风光','人文','美食','亲子','避暑','轻松','避人多'];
+  return `
+  <div class="page" style="padding-top:var(--gap-card)">
+    <div class="card" style="background:var(--bg-fill);border:none">
+      <div class="row" style="gap:7px;align-items:flex-start">
+        <span style="color:var(--accent-primary);flex:none;width:18px;height:18px">${I.sparkle}</span>
+        <p style="margin:0;font-size:14px;line-height:1.45" class="muted">
+          说一句话，或直接用下方条件。解析结果可逐项修改后再生成。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card" style="padding:4px var(--padding-card)">
+      <div class="field press" data-act="toast:目的地选择器">
+        <span class="field__lb">出发 → 目的地</span>
+        <span class="field__vl">贵阳 → 安顺 ${I.chevron}</span>
+      </div>
+      <div class="field press" data-act="toast:日期选择器">
+        <span class="field__lb">日期</span>
+        <span class="field__vl">9/26 – 9/27 · 2 天 ${I.chevron}</span>
+      </div>
+      <div class="field">
+        <span class="field__lb">出行人数</span>
+        <span class="field__vl">
+          <span class="stepper">
+            <button class="stepper__btn press" data-act="people:-1" ${p.people<=1?'disabled':''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
+            </button>
+            <span class="stepper__v">${p.people} 人</span>
+            <button class="stepper__btn press" data-act="people:1" ${p.people>=9?'disabled':''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section__header"><h3>预算上限</h3><span class="faint" style="font-size:12px">硬约束</span></div>
+    <div class="card">
+      <div class="row row--between">
+        <span class="budget__val">¥${p.budget.toLocaleString()}</span>
+        <span class="stepper">
+          <button class="stepper__btn press" data-act="budget:-100" ${p.budget<=500?'disabled':''}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
+          </button>
+          <span class="stepper__v" style="min-width:58px">人均</span>
+          <button class="stepper__btn press" data-act="budget:100" ${p.budget>=5000?'disabled':''}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </span>
+      </div>
+      <div class="budget" style="margin-top:6px">
+        <div class="budget__track">
+          <div class="budget__fill" style="width:${Math.min(100,(p.budget/5000)*100).toFixed(0)}%"></div>
+        </div>
+        <p class="faint" style="margin:7px 0 0;font-size:11px">
+          预算装不下时系统会先降级重排，仍超限才报错
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section__header"><h3>偏好</h3><span class="faint" style="font-size:12px">可多选</span></div>
+    <div class="row row--wrap" style="margin-bottom:var(--gap-card)">
+      ${all.map(t=>`<button class="chip press ${p.interests.has(t)?'is-on':''}" data-act="tag:${t}">${t}</button>`).join('')}
+    </div>
+    <div class="row row--wrap" style="margin-bottom:var(--gap-card)">
+      ${['经济','标准','舒适'].map(t=>`<button class="chip press ${p.mode===t?'is-on':''}" data-act="mode:${t}">${t}档</button>`).join('')}
+    </div>
+  </div>
+
+  <div class="page">
+    <button class="btn press" data-act="generate">${I.sparkle}<span>生成行程 · 约 15 秒</span></button>
+    <p class="faint" style="font-size:11px;text-align:center;margin:10px 0 0;line-height:1.4">
+      解析需求 → 召回景区 → 计算路线 → 按天装包 → 预算校验
+    </p>
+  </div>
+  <div style="height:8px"></div>`;
+};
+
+/* ==========================================================
+   生成中
+   ========================================================== */
+const generatingHTML = () => `
+  <div class="page" style="padding-top:44px">
+    <div class="card" style="text-align:center;padding:26px var(--padding-card)">
+      <div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;
+        background:var(--bg-fill);color:var(--accent-primary);
+        display:flex;align-items:center;justify-content:center">
+        <span style="width:26px;height:26px;display:block">${I.sparkle}</span>
+      </div>
+      <h3 style="margin:0 0 5px;font-size:19px">正在规划</h3>
+      <p class="muted" style="margin:0 0 18px;font-size:14px">贵阳 → 安顺 · ${state.plan.people} 人 · ¥${state.plan.budget.toLocaleString()}</p>
+      <div class="progress"><div class="progress__bar" id="pgBar" style="width:${state.progress}%"></div></div>
+      <p class="faint" id="pgText" style="margin:10px 0 0;font-size:12px">${['解析需求','召回景区','计算路线','按天装包','预算校验'][Math.min(4,Math.floor(state.progress/20))]}</p>
+    </div>
+
+    <div class="section" style="margin-top:var(--gap-card)">
+      <div class="card" data-skel>
+        <div class="sk" style="height:12px;width:40%"></div>
+        <div class="sk" style="height:10px;width:80%;margin-top:9px"></div>
+        <div class="sk" style="height:10px;width:60%;margin-top:7px"></div>
+      </div>
+      <div class="card" data-skel>
+        <div class="sk" style="height:12px;width:52%"></div>
+        <div class="sk" style="height:10px;width:74%;margin-top:9px"></div>
+      </div>
+    </div>
+  </div>
+  <div style="height:8px"></div>
+`;
+
+/* ==========================================================
+   03 行程详情
+   ========================================================== */
+/* 重排后按新顺序重算时间轴：顺次累加车程与停留时长（对齐后端 reflow + validate） */
+function recomputeTimeline(day){
+  const spots = day.items.filter(i=>i.spot);
+  const T = s => { const [h,m]=s.split(':').map(Number); return h*60+m; };
+  const F = v => String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0');
+  const spotDur = { hgs:150, lg:120, tltb:120, qygz:150, qls:120 };
+  let cursor = T('09:00');
+  spots.forEach((s,i)=>{
+    const travel = i===0 ? 60 : 40;      // 段间车程（演示值）
+    cursor += travel;
+    const dur = spotDur[s.spot] || 120;
+    const start = cursor, end = cursor + dur;
+    s.t = `${F(start)} – ${F(end)}`;
+    if (s.transit) s.transit.m = `驾车 ${travel} 分钟`;
+    cursor = end;
+  });
+  // 排到 18:00 之后的项剔除（对齐后端 reorder_too_late）
+  const dropped = [];
+  day.items = day.items.filter(it=>{
+    if(!it.spot) return true;
+    const start = T(it.t.split(' – ')[0]);
+    if (start >= 18*60){ dropped.push(it.n); return false; }
+    return true;
+  });
+  return dropped;
+}
+
+const itemHTML = (o, idx) => `  <div class="tl-item">
+    <p class="tl-time">${o.t}</p>
+    <div class="card press" style="margin-bottom:0" data-act="item:${idx}">
+      <div class="row row--between" style="align-items:flex-start;gap:10px">
+        <div class="stack" style="gap:1px;min-width:0">
+          <h3 style="margin:0;font-size:17px">${o.n}</h3>
+          <p class="muted" style="margin:0;font-size:14px">${o.m}</p>
+        </div>
+        ${verified(o.v,o.vt)}
+      </div>
+      <div class="row" style="gap:6px;margin-top:9px;flex-wrap:wrap">
+        ${o.tags.map(t=>`<span class="chip" style="min-height:26px;padding:2px 9px;font-size:12px;pointer-events:none">${t}</span>`).join('')}
+      </div>
+      <p class="faint" style="margin:9px 0 0;font-size:11px;line-height:1.4">${o.src}</p>
+    </div>
+  </div>`;
+
+const detailHTML = () => {
+  const d = ITINERARY;
+  const day = d.days[state.detail.day];
+  const v = state.detail.view;
+  if (v==='map')   return mapHTML(day);
+  if (v==='budget')return budgetHTML(d);
+  return `
+  <div class="page" style="padding-top:var(--gap-card)">
+    <div class="seg" style="margin-bottom:var(--gap-card)">
+      ${d.days.map((x,i)=>`<button class="seg__btn press ${state.detail.day===i?'is-active':''}" data-act="day:${i}">${x.d} · ${x.date}</button>`).join('')}
+      <button class="seg__btn press" data-act="view:map">地图</button>
+      <button class="seg__btn press" data-act="view:budget">预算</button>
+    </div>
+
+    <div class="card">
+      <div class="row row--between" style="margin-bottom:2px">
+        <h3 style="margin:0;font-size:17px">${day.d} 概览</h3>
+        ${verified('ok','2 项已核验')}
+      </div>
+      <p class="muted" style="margin:6px 0 0;font-size:14px">${day.items[0].n} · 驾车往返 · 约 8.5 小时</p>
+      <div class="budget">
+        <div class="budget__nums">
+          <span class="budget__val">¥${d.budget.toLocaleString()}</span>
+          <span class="budget__cap">预算上限 ¥${d.limit.toLocaleString()}</span>
+        </div>
+        <div class="budget__track"><div class="budget__fill" data-w="83"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    <div class="alert">
+      ${I.alert}
+      <div><b>2 条提醒</b><br>段间距离为直线估算 · ${day.d==='D1'?'D2':'D1'} 下午有雨</div>
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    <div class="timeline timeline--compact">
+      ${day.items.map((o,i)=>itemHTML(o,i) + (o.transit?`
+        <p class="transit"><span style="width:14px;height:14px;display:block">${I[o.transit.ic]}</span><span>${o.transit.m}</span></p>`:'')).join('')}
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    <button class="btn btn--tinted press" data-act="sheet:replan" style="margin-bottom:var(--gap-card)">
+      ${I.sparkle}<span>调整这天</span>
+    </button>
+    <div class="section__header" style="padding:0 0 var(--gap-card)">
+      <h3>重规划影响</h3><span class="faint" style="font-size:12px">局部生效</span>
+    </div>
+    <div class="diff" style="margin-bottom:var(--gap-card)">
+      <div class="diff__row">
+        <span>${day.d} · ${day.date}</span>${verified('warn','已调整')}
+      </div>
+      <div class="diff__row diff__row--muted">
+        <span>${day.d==='D1'?'D2':'D1'}</span>${verified('none','未变更')}
+      </div>
+    </div>
+    <div class="card" style="background:var(--bg-fill);border:none;margin-bottom:0">
+      <div class="row" style="gap:7px;align-items:flex-start">
+        <span style="color:var(--accent-primary);flex:none;width:17px;height:17px">${I.alert}</span>
+        <p class="muted" style="margin:0;font-size:12.5px;line-height:1.45">
+          待核验项不作为确定事实展示，出发前请再次确认营业时间与价格。
+        </p>
+      </div>
+    </div>
+  </div>
+  <div style="height:8px"></div>`;
+};
+
+const mapHTML = (day) => `
+  <div class="page" style="padding-top:var(--gap-card)">
+    <div class="card" style="padding:0;overflow:hidden;height:290px;position:relative;
+      background:linear-gradient(165deg,var(--bg-fill),var(--bg-secondary))">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;padding:20px">
+        ${day.items.filter(i=>i.spot).map((i,idx)=>`
+          <div class="press" data-act="spot:${i.spot}" style="display:flex;align-items:center;gap:6px;
+            padding:7px 12px;border-radius:999px;background:var(--bg-elevated);
+            border:1px solid var(--separator);box-shadow:var(--shadow-sm)">
+            <span style="color:var(--accent-primary);width:13px;height:13px;display:block">${I.pin}</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text-primary)">${i.n}</span>
+          </div>`).join('')}
+      </div>
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 12px;
+        background:linear-gradient(to top,var(--bg-elevated),transparent);
+        font-size:11px;color:var(--text-tertiary);text-align:center">
+        地图视图 · 实际渲染由高德 SDK 承担
+      </div>
+    </div>
+
+    <div class="section__header" style="padding:14px 0 var(--gap-card)">
+      <h3>当日路线顺序</h3><span class="faint" style="font-size:12px">${day.items.filter(i=>i.spot).length} 个景区</span>
+    </div>
+    ${day.items.map((o,i)=>o.spot?`
+      <div class="list-card press" data-act="spot:${o.spot}" style="margin-bottom:12px">
+        <span class="list-card__img p-card__img--${spotById(o.spot).theme}">
+          <i>${String(i+1).padStart(2,'0')}</i>
+        </span>
+        <span class="list-card__body">
+          <span class="list-card__name">${o.n}</span>
+          <span class="list-card__desc">${o.m}</span>
+          <span class="list-card__foot">
+            <span class="list-card__price">${o.t.split(' ')[0]}</span>
+            ${verified(o.v,o.vt)}
+          </span>
+        </span>
+      </div>`:'').join('')}
+    <button class="btn btn--tinted press" data-act="view:list" style="margin-top:6px">返回行程时间轴</button>
+  </div>
+  <div style="height:8px"></div>`;
+
+const budgetHTML = (d) => {
+  const rows = [
+    ['门票', 870, '黄果树 160×3 + 龙宫 130×3 + 天龙屯堡 65×3'],
+    ['交通', 430, '自驾油费 + 停车，高德驾车矩阵'],
+    ['住宿', 438, '安顺市区标准档 1 晚'],
+    ['餐饮', 300, '3 正餐 + 早餐，按人均估算'],
+    ['其他', 120, '门票接驳 + 零食']
+  ];
+  const sum = rows.reduce((a,r)=>a+r[1],0);
+  return `
+  <div class="page" style="padding-top:var(--gap-card)">
+    <div class="card">
+      <div class="row row--between">
+        <span class="budget__val">¥${sum.toLocaleString()}</span>
+        ${verified('ok','单价已核验')}
+      </div>
+      <p class="muted" style="margin:4px 0 0;font-size:13px">已分配 / 上限 ¥${d.limit.toLocaleString()} · 剩余 ¥${(d.limit-sum).toLocaleString()}</p>
+      <div class="budget" style="margin-top:8px">
+        <div class="budget__track"><div class="budget__fill" data-w="${(sum/d.limit*100).toFixed(0)}"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    ${rows.map(r=>`
+      <div class="card" style="padding:13px var(--padding-card)">
+        <div class="row row--between" style="margin-bottom:4px">
+          <span style="font-size:15px;font-weight:600;color:var(--text-primary)">${r[0]}</span>
+          <span style="font-size:15px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums">¥${r[1]}</span>
+        </div>
+        <p class="faint" style="margin:0;font-size:11.5px;line-height:1.4">${r[2]}</p>
+      </div>`).join('')}
+  </div>
+
+  <div class="page" style="padding-top:0">
+    <div class="card" style="background:var(--warn-bg);border:none">
+      <div class="row" style="gap:7px;align-items:flex-start">
+        <span style="color:var(--warn);flex:none;width:17px;height:17px">${I.alert}</span>
+        <p class="muted" style="margin:0;font-size:12.5px;line-height:1.45">
+          餐饮与住宿单价为二级来源估算，出发前可能变动。
+        </p>
+      </div>
+    </div>
+    <button class="btn press" data-act="view:list" style="margin-top:var(--gap-card)">返回行程时间轴</button>
+  </div>
+  <div style="height:8px"></div>`;
+};
+
+/* ==========================================================
+   04 探索
+   ========================================================== */
+const exploreHTML = () => {
+  const f = state.explore.filter, q = state.explore.q.trim();
+  let list = SPOTS;
+  if (f==='免票') list = list.filter(s=>s.price===0);
+  else if (f!=='推荐') list = list.filter(s=>s.tags.includes(f));
+  if (q) list = list.filter(s=>s.name.includes(q)||s.sub.includes(q));
+  const filters=['推荐','自然','避暑','亲子','人文','免票'];
+
+  return `
+  <div class="page" style="padding-top:var(--gap-card)">
+    <div class="search press" data-act="sheet:search">${I.search}<span>${q||'搜景区、目的地'}</span></div>
+    <div class="filter-scroll">
+      ${filters.map(t=>`<button class="chip press ${f===t?'is-on':''}" data-act="efilter:${t}">${t}</button>`).join('')}
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    <div class="row row--between" style="margin-bottom:var(--gap-card)">
+      <span class="faint" style="font-size:13px">贵阳周边 · ${list.length} 个结果</span>
+      <button class="link-btn press" data-act="sheet:filter">${I.filter}<span>筛选</span></button>
+    </div>
+    ${list.length ? list.map(s=>`
+      <div class="list-card" data-act="spot:${s.id}">
+        <span class="list-card__img p-card__img--${s.theme}"><i>${s.dist}</i></span>
+        <span class="list-card__body">
+          <span class="list-card__name">${s.name}</span>
+          <span class="list-card__desc">${s.sub}</span>
+          <span class="list-card__foot">
+            <span class="row" style="gap:8px">
+              <span class="list-card__price">${s.priceText}</span>
+              ${verified(s.verify,s.verifyText)}
+            </span>
+            <span class="row" style="gap:8px">
+              <span class="list-card__dist">${I.star} ${s.score}</span>
+              <span class="press" data-act="fav:${s.id}">
+                <span style="display:block;width:17px;height:17px;color:${state.favs.has(s.id)?'var(--accent-primary)':'var(--text-tertiary)'}">
+                  ${state.favs.has(s.id)?I.heartFill:I.heart}
+                </span>
+              </span>
+            </span>
+          </span>
+        </span>
+      </div>`).join('')
+    : `<div class="empty">
+        <div class="empty__ico">${I.search}</div>
+        <p class="empty__t">没有匹配的景区</p>
+        <p class="empty__d">换个关键词，或把筛选条件放宽一些</p>
+        <button class="btn btn--tinted btn--sm press" data-act="eclear">清除筛选</button>
+      </div>`}
+  </div>
+  <div style="height:8px"></div>`;
+};
+
+/* ==========================================================
+   05 景区详情
+   ========================================================== */
+const spotHTML = (id) => {
+  const s = spotById(id) || SPOTS[0];
+  const fav = state.favs.has(s.id);
+  return `
+  <div class="spot-hero spot-hero--${s.theme}" data-act="hero:${s.id}">
+    <div class="spot-hero__body">
+      <h1 class="spot-hero__name">${s.name}</h1>
+      <div class="spot-hero__tags">
+        ${verified(s.verify,s.verifyText)}
+        <span class="chip">${I.star} ${s.score}</span>
+        ${s.tags.slice(0,2).map(t=>`<span class="chip">${t}</span>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    <div class="card">
+      <div class="row row--between" style="padding:2px 0 12px">
+        <span class="stack" style="gap:1px">
+          <span class="faint" style="font-size:12px">门票</span>
+          <span style="font-size:24px;font-weight:700;letter-spacing:-.43px;color:var(--text-primary)">${s.priceText}<span style="font-size:13px;font-weight:500;color:var(--text-secondary)">${s.price?' / 人':''}</span></span>
+        </span>
+        <span class="stack" style="gap:1px;text-align:right">
+          <span class="faint" style="font-size:12px">建议游玩</span>
+          <span style="font-size:16px;font-weight:600;color:var(--text-primary)">${s.dur}</span>
+        </span>
+      </div>
+      <div class="row" style="gap:8px;padding-top:12px;border-top:1px solid var(--separator)">
+        <span style="color:var(--text-tertiary);width:16px;height:16px;flex:none">${I.clock}</span>
+        <span style="font-size:14px;color:var(--text-primary)">开放时间 ${s.open}</span>
+      </div>
+      <div class="row" style="gap:8px;padding-top:10px">
+        <span style="color:var(--text-tertiary);width:16px;height:16px;flex:none">${I.shield}</span>
+        <span style="font-size:12.5px;color:var(--text-secondary)">${s.tier} · ${s.src} · 核验于 ${s.srcDate}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px;font-size:17px">关于这里</h3>
+      <p class="muted" style="margin:0;font-size:14px;line-height:1.55">${s.desc}</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px;font-size:17px">位置与交通</h3>
+      <div class="row" style="gap:8px;margin-bottom:10px">
+        <span style="color:var(--text-tertiary);width:16px;height:16px;flex:none">${I.pin}</span>
+        <span style="font-size:14px;color:var(--text-primary)">距贵阳 ${s.dist} · 安顺方向</span>
+      </div>
+      <div class="row" style="gap:8px">
+        <span style="color:var(--text-tertiary);width:16px;height:16px;flex:none">${I.car}</span>
+        <span style="font-size:14px;color:var(--text-primary)">自驾可达 · 建议 8:00 前出发</span>
+      </div>
+    </div>
+
+    <div class="section__header" style="padding:2px 0 var(--gap-card)">
+      <h3>相关攻略</h3><span class="link-btn press" data-act="go:guide">更多</span>
+    </div>
+    ${GUIDES.filter(g=>g.spot===s.id).map(g=>`
+      <div class="guide-card press" data-act="guide:${g.id}">
+        <div class="guide-card__src">
+          <span class="tier">${g.tier}</span><b>${g.from}</b><span>· 摘要，非原文</span>
+        </div>
+        <h3 class="guide-card__title">${g.title}</h3>
+        <p class="guide-card__sum">${g.sum}</p>
+        <div class="guide-card__foot">
+          ${verified(g.verify,g.verifyText)}
+          <span class="faint" style="font-size:12px">${g.likes} 有用</span>
+        </div>
+      </div>`).join('') || `
+      <div class="empty">
+        <div class="empty__ico">${I.book}</div>
+        <p class="empty__t">暂无相关攻略</p>
+        <p class="empty__d">该景区尚未收录已核验的攻略摘要</p>
+      </div>`}
+
+  </div>
+  <div style="height:8px"></div>
+  <div class="action-dock">
+    <div class="row" style="gap:10px">
+      <button class="btn btn--tinted press" style="flex:1" data-act="fav:${s.id}">
+        <span style="width:18px;height:18px;display:block">${fav?I.heartFill:I.heart}</span>
+        <span>${fav?'已收藏':'收藏'}</span>
+      </button>
+      <button class="btn press" style="flex:2" data-act="add:${s.id}">
+        ${I.plus}<span>加入行程</span>
+      </button>
+    </div>
+  </div>`;
+};
+
+/* ==========================================================
+   06 攻略
+   ========================================================== */
+const guideHTML = () => {
+  const f = state.guide.filter;
+  const list = GUIDES.filter(g => f==='为你推荐' ? true
+    : g.title.includes(f) || g.sum.includes(f));
+  return `
+  <div class="page" style="padding-top:var(--gap-card)">
+    <div class="search press" data-act="sheet:searchg">${I.search}<span>搜攻略、避坑经验</span></div>
+    <div class="filter-scroll">
+      ${['为你推荐','黄果树','龙宫','避坑','美食'].map(t=>`
+        <button class="chip press ${f===t?'is-on':''}" data-act="gfilter:${t}">${t}</button>`).join('')}
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    ${list.length ? list.map(g=>`
+      <div class="guide-card press" data-act="guide:${g.id}">
+        <div class="guide-card__src">
+          <span class="tier">${g.tier}</span><b>${g.from}</b><span>· 摘要 + 结构化提取，非原文</span>
+        </div>
+        <h3 class="guide-card__title">${g.title}</h3>
+        <p class="guide-card__sum">${g.sum}</p>
+        <div class="extract">
+          <p class="extract__lb">结构化提取</p>
+          ${g.extract.map(r=>`<div class="extract__row"><span>${r[0]}</span>${r[1]}</div>`).join('')}
+        </div>
+        <div class="guide-card__foot">
+          ${verified(g.verify,g.verifyText)}
+          <span class="row" style="gap:10px">
+            <span class="faint" style="font-size:12px">${g.likes} 有用</span>
+            <span class="link-btn">${I.link}<span>来源</span></span>
+          </span>
+        </div>
+      </div>`).join('')
+    : `<div class="empty">
+        <div class="empty__ico">${I.book}</div>
+        <p class="empty__t">该主题暂无攻略</p>
+        <p class="empty__d">换个主题看看，或等待采集管线收录</p>
+        <button class="btn btn--tinted btn--sm press" data-act="gclear">查看全部</button>
+      </div>`}
+
+    <div class="card" style="background:var(--bg-fill);border:none;margin-bottom:0">
+      <div class="row" style="gap:7px;align-items:flex-start">
+        <span style="color:var(--accent-primary);flex:none;width:17px;height:17px">${I.shield}</span>
+        <p class="muted" style="margin:0;font-size:12.5px;line-height:1.45">
+          攻略仅存摘要与结构化提取，不搬运原文；未核验内容不会作为事实进入行程。
+        </p>
+      </div>
+    </div>
+  </div>
+  <div style="height:8px"></div>`;
+};
+
+/* 攻略详情 */
+const guideDetailHTML = (id) => {
+  const g = GUIDES.find(x=>x.id===id) || GUIDES[0];
+  const s = spotById(g.spot);
+  return `
+  <div class="page" style="padding-top:var(--gap-card)">
+    <div class="card">
+      <div class="guide-card__src" style="margin-bottom:11px">
+        <span class="tier">${g.tier}</span><b>${g.from}</b><span>· ${g.date}</span>
+      </div>
+      <h1 style="font-size:22px;line-height:29px;font-weight:700;letter-spacing:.35px;margin:0 0 10px;color:var(--text-primary)">
+        ${g.title}
+      </h1>
+      ${verified(g.verify,g.verifyText)}
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px;font-size:17px">摘要</h3>
+      <p class="muted" style="margin:0;font-size:14px;line-height:1.6">${g.sum}</p>
+      <p class="faint" style="margin:11px 0 0;font-size:11.5px;line-height:1.45">
+        本页仅展示采集摘要，不提供原文全文。
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px;font-size:17px">结构化提取</h3>
+      <div class="extract" style="margin-bottom:0;background:var(--bg-secondary)">
+        ${g.extract.map(r=>`<div class="extract__row"><span>${r[0]}</span>${r[1]}</div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px;font-size:17px">来源溯源</h3>
+      <div class="field" style="border:none;padding:6px 0">
+        <span class="field__lb">来源类型</span>
+        <span class="field__vl">${g.tier} · ${g.from}</span>
+      </div>
+      <div class="field" style="padding:6px 0">
+        <span class="field__lb">采集时间</span>
+        <span class="field__vl">${g.date}</span>
+      </div>
+      <div class="field" style="padding:6px 0">
+        <span class="field__lb">核验状态</span>
+        <span class="field__vl">${g.verifyText}</span>
+      </div>
+      <button class="btn btn--tinted btn--sm press" data-act="toast:打开来源链接" style="margin-top:10px;width:100%">
+        ${I.link}<span>查看原始来源</span>
+      </button>
+    </div>
+
+    ${s?`
+    <div class="section__header" style="padding:2px 0 var(--gap-card)"><h3>相关景区</h3></div>
+    <div class="list-card press" data-act="spot:${s.id}">
+      <span class="list-card__img p-card__img--${s.theme}"><i>${s.dist}</i></span>
+      <span class="list-card__body">
+        <span class="list-card__name">${s.name}</span>
+        <span class="list-card__desc">${s.sub}</span>
+        <span class="list-card__foot">
+          <span class="list-card__price">${s.priceText}</span>
+          ${verified(s.verify,s.verifyText)}
+        </span>
+      </span>
+    </div>`:''}
+
+    <div class="row" style="gap:10px;margin-bottom:8px">
+      <button class="btn btn--tinted press" style="flex:1" data-act="toast:已标记为有用">
+        <span style="width:18px;height:18px;display:block">${I.check}</span><span>有用</span>
+      </button>
+      <button class="btn press" style="flex:2" data-act="adopt:${g.id}">
+        ${I.sparkle}<span>纳入规划依据</span>
+      </button>
+    </div>
+  </div>
+  <div style="height:8px"></div>`;
+};
+
+/* ==========================================================
+   07 我的
+   ========================================================== */
+const meHTML = () => `
+  <div class="page" style="padding-top:var(--gap-card)">
+    <div class="profile press" data-act="${state.login?'me:logout':'me:login'}">
+      <span class="profile__av">${I.user}</span>
+      <div class="stack" style="gap:0;min-width:0">
+        <p class="profile__name">${state.login?'游友 8823':'未登录'}</p>
+        <p class="profile__sub">${state.login?'已同步 2 份行程 · 偏好已保存':'登录后可保存行程与偏好'}</p>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat press" data-act="me:trips">
+        <div class="stat__n">${state.login?2:0}</div><p class="stat__l">已存行程</p>
+      </div>
+      <div class="stat press" data-act="me:favs">
+        <div class="stat__n">${state.favs.size}</div><p class="stat__l">收藏景区</p>
+      </div>
+      <div class="stat press" data-act="me:done">
+        <div class="stat__n">1</div><p class="stat__l">已完成</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" style="padding-top:0">
+    <div class="section__header" style="padding:0 0 var(--gap-card)">
+      <h3>我的行程</h3>
+      <span class="link-btn press" data-act="me:trips">全部</span>
+    </div>
+    ${TRIPS.map(t=>`
+      <div class="trip-card press" data-act="go:detail">
+        <div class="trip-card__cover trip-card__cover--${t.cover}">
+          <div style="position:absolute;left:12px;bottom:10px;display:flex;gap:6px">
+            ${verified(t.status,t.st)}
+          </div>
+        </div>
+        <div class="trip-card__body">
+          <div class="row row--between">
+            <h3 style="margin:0;font-size:17px">${t.title}</h3>
+            <span class="faint" style="font-size:12px">${t.date}</span>
+          </div>
+          <div class="trip-card__stops">
+            ${t.stops.map((s,i)=>`${i?'<i></i>':''}<span>${s}</span>`).join('')}
+          </div>
+          <p class="muted" style="margin:8px 0 0;font-size:13px">${t.money}</p>
+        </div>
+      </div>`).join('')}
+  </div>
+
+  <div class="section">
+    <div class="section__header"><h3>偏好设置</h3></div>
+    <div class="card" style="padding:4px var(--padding-card);margin-bottom:var(--gap-card)">
+      <div class="field press" data-act="prefs:budget">
+        <span class="field__lb">默认预算</span>
+        <span class="field__vl">¥${state.plan.budget.toLocaleString()} / 人 ${I.chevron}</span>
+      </div>
+      <div class="field press" data-act="prefs:city">
+        <span class="field__lb">常住出发地</span>
+        <span class="field__vl">贵阳 ${I.chevron}</span>
+      </div>
+      <div class="field press" data-act="prefs:tier">
+        <span class="field__lb">住宿档位</span>
+        <span class="field__vl">${state.plan.mode} ${I.chevron}</span>
+      </div>
+      <div class="field">
+        <span class="field__lb">避开人多景点</span>
+        <span class="field__vl">
+          <button class="switch" role="switch" aria-checked="true" data-act="toggle:avoid"></button>
+        </span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:4px var(--padding-card);margin-bottom:0">
+      <div class="field press" data-act="toast:数据来源说明">
+        <span class="field__lb">数据来源说明</span>
+        <span class="field__vl" style="color:var(--accent-primary)">查看 ${I.chevron}</span>
+      </div>
+      <div class="field press" data-act="toast:隐私与定位设置">
+        <span class="field__lb">隐私与定位</span>
+        <span class="field__vl" style="color:var(--accent-primary)">管理 ${I.chevron}</span>
+      </div>
+    </div>
+  </div>
+  <div style="height:8px"></div>
+`;
+
+/* 收藏页 */
+const favsHTML = () => {
+  const list = SPOTS.filter(s=>state.favs.has(s.id));
+  return `
+  <div class="page" style="padding-top:var(--gap-card)">
+    ${list.length ? list.map(s=>`
+      <div class="list-card" data-act="spot:${s.id}">
+        <span class="list-card__img p-card__img--${s.theme}"><i>${s.dist}</i></span>
+        <span class="list-card__body">
+          <span class="list-card__name">${s.name}</span>
+          <span class="list-card__desc">${s.sub}</span>
+          <span class="list-card__foot">
+            <span class="list-card__price">${s.priceText}</span>
+            <span class="row" style="gap:8px">
+              ${verified(s.verify,s.verifyText)}
+              <span class="press" data-act="fav:${s.id}">
+                <span style="display:block;width:17px;height:17px;color:var(--accent-primary)">${I.heartFill}</span>
+              </span>
+            </span>
+          </span>
+        </span>
+      </div>`).join('')
+    : `<div class="empty">
+        <div class="empty__ico">${I.heart}</div>
+        <p class="empty__t">还没有收藏</p>
+        <p class="empty__d">在探索页点小心形，把想去的景区存起来</p>
+        <button class="btn btn--tinted btn--sm press" data-act="go:explore">去逛逛</button>
+      </div>`}
+  </div>
+  <div style="height:8px"></div>`;
+};
+
+/* 行程列表 */
+const tripsHTML = () => `
+  <div class="page" style="padding-top:var(--gap-card)">
+    ${TRIPS.map(t=>`
+      <div class="trip-card press" data-act="go:detail">
+        <div class="trip-card__cover trip-card__cover--${t.cover}">
+          <div style="position:absolute;left:12px;bottom:10px;display:flex;gap:6px">${verified(t.status,t.st)}</div>
+        </div>
+        <div class="trip-card__body">
+          <div class="row row--between">
+            <h3 style="margin:0;font-size:17px">${t.title}</h3>
+            <span class="faint" style="font-size:12px">${t.date}</span>
+          </div>
+          <div class="trip-card__stops">${t.stops.map((s,i)=>`${i?'<i></i>':''}<span>${s}</span>`).join('')}</div>
+          <p class="muted" style="margin:8px 0 0;font-size:13px">${t.money}</p>
+          <div class="row" style="gap:10px;margin-top:12px">
+            <button class="btn btn--tinted btn--sm press" data-act="trips:open">打开行程</button>
+            <button class="btn btn--sm press" data-act="trips:share" style="background:var(--bg-fill-strong);color:var(--accent-primary)">分享</button>
+          </div>
+        </div>
+      </div>`).join('')}
+    <div class="empty" style="padding:26px 24px">
+      <div class="empty__ico">${I.cal}</div>
+      <p class="empty__t">还想去哪</p>
+      <p class="empty__d">让 AI 按预算和偏好排一条路线</p>
+      <button class="btn btn--sm press" data-act="go:plan">新建行程</button>
+    </div>
+  </div>
+  <div style="height:8px"></div>`;
+
+/* ==========================================================
+   Sheet 内容
+   ========================================================== */
+const SHEETS = {
+  replan:()=>({ title:'调整这一天', sub:'只重算当天，其他天保持不变', items:[
+    { a:'sheet:order',   ic:I.layers,lb:'调整景点顺序', d:'提到最前，时间会重算' },
+    { a:'sheet:replan:drop',   ic:I.close, lb:'删掉某个景点', d:'天龙屯堡' },
+    { a:'sheet:replan:swap',   ic:I.swap,  lb:'换一个景点',   d:'青岩古镇' },
+    { a:'sheet:replan:budget', ic:I.wallet,lb:'调整当天预算', d:'更省 / 更宽裕' },
+    { a:'sheet:replan:time',   ic:I.clock, lb:'调整出发时间', d:'提前 / 延后' }
+  ]}),
+  order:()=>{
+    const day = ITINERARY.days[state.detail.day];
+    const spots = day.items.filter(i=>i.spot);
+    return { title:'调整景点顺序', sub:'点一下即可提到最前，时间会重新计算', items:[
+      ...spots.map((s,i)=>({ a:`order:top:${i}`, ic:I.up, lb:s.n, d:`${s.t} · ${s.vt}` })),
+      { a:'do:reset', ic:I.swap, lb:'恢复算法推荐顺序', d:'', plain:true }
+    ]};
+  },
+  item:(i)=>{
+    const it = ITINERARY.days[state.detail.day].items[i] || ITINERARY.days[0].items[0];
+    return { title:'行程项操作', sub:it.n, items:[
+      ...(it.spot ? [{ a:`spot:${it.spot}`, ic:I.search, lb:'查看详情', d:'票务与开放时间' }] : []),
+      { a:'sheet:swap',  ic:I.swap,  lb:'换一个',     d:'同类型推荐' },
+      { a:'sheet:remove',ic:I.trash, lb:'移除这一项', d:'并重算当天路线' }
+    ]};
+  },
+  swap:()=>({ title:'换一个', sub:'同类推荐，票价已核验', items:[
+    { a:'do:swap', ic:I.pin, lb:'青岩古镇', d:'¥65 · 已核验' },
+    { a:'do:swap', ic:I.pin, lb:'黔灵山公园', d:'免费 · 已核验' },
+    { a:'do:swap', ic:I.pin, lb:'天龙屯堡', d:'¥65 · 已核验' }
+  ]}),
+  remove:()=>({ title:'移除这一项？', sub:'当天路线会重算，其他天不受影响', items:[
+    { a:'do:remove', ic:I.trash, lb:'确认移除', d:'', danger:true },
+    { a:'close',     ic:I.close, lb:'取消', d:'', plain:true }
+  ]}),
+  filter:()=>({ title:'筛选', sub:'票价、距离、核验状态', items:[
+    { a:'toast:距离筛选', ic:I.pin,    lb:'距离', d:'50 km 内' },
+    { a:'toast:票价筛选', ic:I.ticket, lb:'票价', d:'¥100 以内' },
+    { a:'toast:核验筛选', ic:I.shield, lb:'核验状态', d:'仅看已核验' },
+    { a:'toast:排序',     ic:I.layers, lb:'排序', d:'按评分' }
+  ]}),
+  search:()=>({ title:'搜索景区', sub:'试试「黄果树」「避暑」', items:[
+    ...SPOTS.map(s=>({ a:`spot:${s.id}`, ic:I.pin, lb:s.name, d:`${s.priceText} · ${s.dist}` }))
+  ]}),
+  searchg:()=>({ title:'搜索攻略', sub:'试试「避坑」「黄果树」', items:[
+    ...GUIDES.map(g=>({ a:`guide:${g.id}`, ic:I.book, lb:g.title.slice(0,18)+'…', d:g.tier }))
+  ]}),
+  more:()=>({ title:'更多操作', sub:'当前页面', items:[
+    { a:'do:share', ic:I.link,   lb:'分享给同行', d:'生成只读链接' },
+    { a:'do:export',ic:I.layers, lb:'导出为日历', d:'写入系统日历' },
+    { a:'do:report',ic:I.alert,  lb:'上报数据问题', d:'票价或时间有误' }
+  ]})
+};
+
+/* ==========================================================
+   路由表
+   ========================================================== */
+const TABS = [
+  { k:'home',  ic:I.home,   lb:'首页', root:'home' },
+  { k:'ex',    ic:I.compass,lb:'探索', root:'explore' },
+  { k:'cal',   ic:I.cal,    lb:'行程', root:'trips' },
+  { k:'guide', ic:I.book,   lb:'攻略', root:'guide' },
+  { k:'me',    ic:I.user,   lb:'我的', root:'me' }
+];
+
+const PAGES = {
+  home:   { title:'首页',       tab:'home',  render:()=>homeHTML() },
+  plan:   { title:'规划行程',    tab:'home',  render:()=>planHTML(),  push:true },
+  generating:{title:'正在规划',  tab:'home',  render:()=>generatingHTML(), push:true, noTab:true },
+  detail: { title:'贵阳 → 安顺', tab:'cal',   render:()=>detailHTML() },
+  explore:{ title:'探索',       tab:'ex',    render:()=>exploreHTML() },
+  spot:   { title:'景区详情',    tab:'ex',    render:()=>spotHTML(cur().id), immersive:true, dock:true },
+  guide:  { title:'攻略',       tab:'guide', render:()=>guideHTML() },
+  guideDetail:{ title:'攻略详情',tab:'guide', render:()=>guideDetailHTML(cur().id) },
+  me:     { title:'我的',       tab:'me',    render:()=>meHTML() },
+  favs:   { title:'收藏',       tab:'me',    render:()=>favsHTML() },
+  trips:  { title:'我的行程',    tab:'cal',   render:()=>tripsHTML() }
+};
+
+const STAGE_LABELS = {
+  home:'首页', plan:'AI 规划', generating:'生成中', detail:'行程详情',
+  explore:'探索', spot:'景区详情', guide:'攻略', guideDetail:'攻略详情',
+  me:'我的', favs:'收藏', trips:'行程列表'
+};
+
+/* ==========================================================
+   渲染
+   ========================================================== */
+function render(){
+  const c = cur();
+  const page = PAGES[c.name] || PAGES.home;
+  const canBack = state.stack.length > 1;
+  const noTab = !!page.noTab;
+
+  document.getElementById('navBar').innerHTML = `
+    ${canBack
+      ? `<button class="nav-btn" data-act="back">${I.back}</button>`
+      : '<span class="nav-btn--ph"></span>'}
+    <span class="nav-bar__title">${page.title}</span>
+    ${c.name==='detail'||c.name==='me'
+      ? `<button class="nav-btn" data-act="sheet:more">${I.menu}</button>`
+      : '<span class="nav-btn--ph"></span>'}`;
+
+  document.getElementById('scroll').innerHTML = page.render();
+  const sc = document.getElementById('scroll');
+  sc.scrollTop = 0;
+  // 沉浸式页面（景区详情 Hero）让 Hero 顶到导航栏下方
+  sc.classList.toggle('is-immersive', !!page.immersive);
+  sc.classList.toggle('has-dock', !!page.dock);
+
+  const tb = document.getElementById('tabBar');
+  tb.style.display = noTab ? 'none' : 'grid';
+  tb.innerHTML = TABS.map(t=>`
+    <button class="tab-bar__item press ${t.k===page.tab?'is-active':''}" data-tab="${t.root}">
+      ${t.ic}<span>${t.lb}</span>
+    </button>`).join('');
+
+  document.getElementById('stageNav').innerHTML =
+    Object.keys(PAGES).filter(k=>!PAGES[k].noTab).map(k=>
+      `<button data-screen="${k}" class="${k===c.name?'is-on':''}">${STAGE_LABELS[k]}</button>`).join('');
+
+  const t = document.getElementById('stageTitle');
+  if (t) t.textContent = '游迹 App · ' + STAGE_LABELS[c.name];
+
+  // Sheet
+  const mask = document.getElementById('sheetMask');
+  const sheet = document.getElementById('sheet');
+  if (state.sheet){
+    const cfg = state.sheet;
+    sheet.innerHTML = `
+      <div class="sheet__grab"></div>
+      <p class="sheet__title">${cfg.title}</p>
+      ${cfg.sub?`<p class="sheet__sub">${cfg.sub}</p>`:''}
+      <div class="sheet__list">
+        ${cfg.items.map(it=>`
+          <button class="field press ${it.plain?'':''}" data-act="${it.a}" style="width:100%;background:none;border:none;text-align:left;font:inherit;padding:13px 0">
+            <span class="row" style="gap:11px;width:100%">
+              <span style="color:${it.danger?'#FF453A':'var(--accent-primary)'};width:19px;height:19px;flex:none;display:block">${it.ic}</span>
+              <span style="flex:1;min-width:0">
+                <span style="display:block;font-size:16px;font-weight:500;color:${it.danger?'#FF453A':'var(--text-primary)'}">${it.lb}</span>
+                ${it.d?`<span style="display:block;font-size:12.5px;color:var(--text-secondary);margin-top:1px">${it.d}</span>`:''}
+              </span>
+            </span>
+          </button>`).join('')}
+      </div>`;
+    mask.classList.add('is-open'); sheet.classList.add('is-open');
+  } else {
+    mask.classList.remove('is-open'); sheet.classList.remove('is-open');
+  }
+
+  // 预算条动画
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('[data-w]').forEach(el=>{ el.style.width = el.dataset.w + '%'; });
+  });
+  updateFab();
+}
+
+/* 滚动回顶按钮 */
+function updateFab(){
+  const sc = document.getElementById('scroll');
+  const fab = document.getElementById('fab');
+  if (fab) fab.classList.toggle('is-show', sc.scrollTop > 400);
+}
+
+/* ==========================================================
+   交互
+   ========================================================== */
+// 事件挂在整个 stage：覆盖手机内交互 + 手机外的页面切换按钮
+document.getElementById('stage').addEventListener('click', (e)=>{
+  const tabB = e.target.closest('[data-tab]');
+  if (tabB){
+    const r = tabB.dataset.tab;
+    if (cur().name !== r){ state.stack=[{name:r}]; closeSheet(); }
+    render(); return;
+  }
+  const scr = e.target.closest('[data-screen]');
+  if (scr){ state.stack=[{name:scr.dataset.screen}]; closeSheet(); render(); return; }
+
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  const [cmd, arg] = act.split(':');
+
+  switch(cmd){
+    case 'back':  back(); return;
+    case 'close': closeSheet(); render(); return;
+    case 'go':    go(arg); return;
+
+    case 'spot':  go('spot',{id:arg}); return;
+    case 'guide': go('guideDetail',{id:arg}); return;
+
+    case 'sheet':
+      openSheet(arg);
+      render(); return;
+
+    case 'fav': {
+      const has = state.favs.has(arg);
+      has ? state.favs.delete(arg) : state.favs.add(arg);
+      render();
+      toast(has ? '已取消收藏' : '已加入收藏');
+      return;
+    }
+    case 'add':   toast('已加入行程，AI 会据此重算路线'); return;
+    case 'adopt': toast('已纳入规划依据（待核验内容不作为事实）'); return;
+    case 'hero':  toast('全屏查看景区实景'); return;
+    case 'toast': toast(arg); return;
+
+    case 'day':   state.detail.day=+arg; state.detail.view='list'; render(); return;
+    case 'view':  state.detail.view=arg; render(); return;
+
+    case 'people':{
+      state.plan.people = Math.min(9,Math.max(1,state.plan.people + (+arg)));
+      render(); return;
+    }
+    case 'budget':{
+      state.plan.budget = Math.min(5000,Math.max(500,state.plan.budget + (+arg)));
+      render(); return;
+    }
+    case 'tag':{
+      state.plan.interests.has(arg) ? state.plan.interests.delete(arg) : state.plan.interests.add(arg);
+      render(); return;
+    }
+    case 'mode':  state.plan.mode=arg; render(); return;
+
+    case 'efilter': state.explore.filter=arg; render(); return;
+    case 'gfilter': state.guide.filter=arg; render(); return;
+    case 'eclear':  state.explore.filter='推荐'; state.explore.q=''; render(); return;
+    case 'gclear':  state.guide.filter='为你推荐'; render(); return;
+
+    case 'me':
+      if (arg==='login'){ state.login=true; render(); toast('登录成功'); return; }
+      if (arg==='logout'){ state.login=false; render(); toast('已退出登录'); return; }
+      if (arg==='favs'){ go('favs'); return; }
+      if (arg==='trips'){ go('trips'); return; }
+      if (arg==='done'){ toast('已完成行程回顾属 V0.2'); return; }
+      return;
+
+    case 'prefs': toast(arg+' 设置'); return;
+    case 'toggle':{
+      const sw = el.getAttribute('aria-checked')==='true';
+      el.setAttribute('aria-checked', sw?'false':'true');
+      toast(sw?'已关闭':'已开启'); return;
+    }
+    case 'generate': runGenerate(); return;
+    case 'order': {
+      // 提到景区序列最前；对应后端 reorder_day（锁定前缀），时间轴整体重算
+      const day = ITINERARY.days[state.detail.day];
+      const spots = day.items.filter(i=>i.spot);
+      if (!spots.length){ toast('当天没有可排序的景区'); return; }
+      const moved = spots[+arg];
+      if (!moved){ toast('该项目不可排序'); return; }
+      const rest = spots.filter((_,i)=>i!==+arg);
+      const firstSpotPos = day.items.findIndex(i=>i.spot);
+      // 保留非景区节点（早餐/餐厅/酒店）原位，仅重排景区之间的相对顺序
+      const newSpots = [moved, ...rest];
+      const rebuilt = [];
+      let si = 0;
+      day.items.forEach(it => { rebuilt.push(it.spot ? newSpots[si++] : it); });
+      day.items = rebuilt;
+      const dropped = recomputeTimeline(day);   // 时间轴整体重算
+      state.reordered = true;
+      closeSheet(); render();
+      toast(dropped.length
+        ? `已重排时间；「${dropped.join('、')}」已过时段被移除`
+        : `已把「${moved.n}」提到最前，时间已重算`);
+      return;
+    }
+    case 'do':
+      closeSheet(); render();
+      toast(arg==='swap' ? '已替换并重算当天'
+          : arg==='reset' ? '已恢复推荐顺序'
+          : arg==='remove' ? '已移除并重算当天' : '已完成');
+      return;
+    case 'item':   openSheet(SHEETS.item(+arg)); render(); return;
+  }
+});
+
+/* 生成流程 */
+let genTimer = null;
+function runGenerate(){
+  state.generating = true; state.progress = 0;
+  go('generating');
+  clearInterval(genTimer);
+  genTimer = setInterval(()=>{
+    state.progress += 5;
+    const bar = document.getElementById('pgBar');
+    const txt = document.getElementById('pgText');
+    if (bar) bar.style.width = state.progress + '%';
+    if (txt) txt.textContent = ['解析需求','召回景区','计算路线','按天装包','预算校验'][Math.min(4,Math.floor(state.progress/20))];
+    if (state.progress >= 100){
+      clearInterval(genTimer);
+      setTimeout(()=>{ state.generating=false; state.stack=[{name:'detail'}]; render(); toast('行程已生成'); },420);
+    }
+  },190);
+}
+
+/* 返回顶部 */
+document.getElementById('scroll').addEventListener('scroll', updateFab, {passive:true});
+document.getElementById('fab').addEventListener('click', ()=>{
+  document.getElementById('scroll').scrollTo({top:0,behavior:'smooth'});
+});
+document.getElementById('sheetMask').addEventListener('click', ()=>{ closeSheet(); render(); });
+
+/* ==========================================================
+   双击状态栏切换主题（iOS 原生交互）
+   ========================================================== */
+(function(){
+  const KEY = 'youpji-app-theme';
+  const root = document.documentElement;
+  const saved = localStorage.getItem(KEY);
+  if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  document.getElementById('statusBar').addEventListener('dblclick', ()=>{
+    const next = (root.getAttribute('data-theme') || 'light') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem(KEY, next);
+    document.getElementById('statusBar').animate(
+      [{transform:'scale(1)'},{transform:'scale(.975)'},{transform:'scale(1)'}],
+      {duration:220, easing:'cubic-bezier(.34,1.56,.64,1)'}
+    );
+  });
+})();
+
+render();
+</script>

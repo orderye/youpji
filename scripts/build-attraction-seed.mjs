@@ -210,6 +210,192 @@ function haversineKm(aLng, aLat, bLng, bLat) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
+// ---------------------------------------------------------------------------
+// 阶段 2.5：营业时间抽取（高德 opentime2 文本 → attraction_hours 行）
+//
+// 为什么单独解析而不是直接写 attractions.opening_time：
+//   1. 高德返回的是**自由文本**，形如
+//      「9月1日至11月30日 07:00-18:30开放(16:00停止售票,17:00停止入园)；
+//        12月1日至次年2月28日 07:30-18:00开放(...)」
+//      同一景区有淡旺季差异（梵净山还有春节与东西线差异），
+//      attractions 表的单一 opening_time/closing_time 根本表达不了，
+//      只有 attraction_hours(weekday, season) 能装下。
+//   2. 高德是**二级来源**，按铁律 4 与 migrations/0002 的 fact_status_check，
+//      这些行必须落 pending + confidence<0.7，不允许标 verified。
+//   3. 只**追加**候选行，不覆盖核验批次里已有的官方开放时间。
+// ---------------------------------------------------------------------------
+
+/** 「周一至周日」/「周一至周五」→ weekday 列表；无星期描述返回 null（=每天） */
+const CN_WEEK = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 日: 0, 天: 0 };
+
+function parseWeekdays(text) {
+  if (!text) return null;
+  // 覆盖全周一律折叠成 null（schema 约定 null = 每天），
+  // 否则「周一至周日 09:00-17:00」会被摊成 7 行完全相同的记录。
+  if (/周一至周日|周一至周六|周日至周六|周日至周一|全天|每天|每日/.test(text)) {
+    return null;
+  }
+  const m = /周([一二三四五六日天])至周([一二三四五六日天])/.exec(text);
+  if (m) {
+    const from = CN_WEEK[m[1]];
+    const to = CN_WEEK[m[2]];
+    const out = [];
+    for (let d = from; ; d = (d + 1) % 7) {
+      out.push(d);
+      if (d === to) break;
+      if (out.length > 7) break;
+    }
+    return out.length >= 7 ? null : out;
+  }
+  const single = /周([一二三四五六日天])(?!至)/.exec(text);
+  if (single) return [CN_WEEK[single[1]]];
+  return null;
+}
+
+/** 抽出季节/日期区间描述，如「9月1日至11月30日」「1/1-12/31」「节假日:春节」 */
+function parseSeason(text) {
+  if (!text) return null;
+  // 高德会在跨年区间写「12月1日至次年2月28日」，中间插了「次年」会打断正则
+  const nextYear = /(\d{1,2})月(\d{1,2})日至次年(\d{1,2})月(\d{1,2})日/.exec(text);
+  if (nextYear) {
+    return `${nextYear[1]}月${nextYear[2]}日-${nextYear[3]}月${nextYear[4]}日`.slice(0, 32);
+  }
+  const full = /(\d{1,2})月(\d{1,2})日至(\d{1,2})月(\d{1,2})日/.exec(text);
+  if (full) {
+    return `${full[1]}月${full[2]}日-${full[3]}月${full[4]}日`.slice(0, 32);
+  }
+  const slash = /(\d{1,2})\/(\d{1,2})\s*[-–~至]\s*(\d{1,2})\/(\d{1,2})/.exec(text);
+  if (slash) {
+    return `${slash[1]}/${slash[2]}-${slash[3]}/${slash[4]}`.slice(0, 32);
+  }
+  const months = /(\d{1,2})月(?:(\d{1,2})日)?至(\d{1,2})月(?:(\d{1,2})日)?/.exec(text);
+  if (months) {
+    return `${months[1]}月-${months[3]}月`.slice(0, 32);
+  }
+  const holiday = /(春节|国庆节?|元旦|中秋|端午节?|清明)/.exec(text);
+  if (holiday) return `节假日:${holiday[1]}`.slice(0, 32);
+  return null; // 无日期区间 → 全年
+}
+
+/** 抽出本段的开门/关门时间；拿不到返回 null */
+function parseClock(text) {
+  // 优先取「开放」前最近的一段时间，其次取本段第一个时间区间
+  const withOpen = /开放/.test(text);
+  const re = /(\d{1,2}):(\d{2})\s*[-–~]\s*(\d{1,2}):(\d{2})/g;
+  const all = [...text.matchAll(re)];
+  if (all.length === 0) return null;
+  const pick = withOpen ? all[0] : all[0];
+  const [, h1, m1, h2, m2] = pick;
+  const open = `${h1.padStart(2, "0")}:${m1}`;
+  const close = `${h2.padStart(2, "0")}:${m2}`;
+  // 24:00 不是合法 TIME，PG 会拒绝；归一到 23:59 并在 note 说明
+  const closeSafe = close === "24:00" ? "23:59" : close;
+  return { open, close: closeSafe, midnight: close === "24:00" };
+}
+
+/** 把「停止售票/最晚入园」等附加约束从正文里摘出来做 note */
+function extractNote(seg) {
+  const notes = [];
+  const KW = "停止售票|停止入园|最晚进入|最晚售票|最晚入园|停止检票";
+  // 先把开门/关门区间剥掉，否则「07:30-18:00 最晚进入17:00」里的 18:00
+  // 会被误当成「18:00最晚进入」——那是闭园时间，不是最晚入园时间。
+  const rest = seg.replace(/\d{1,2}:\d{2}\s*[-–~]\s*\d{1,2}:\d{2}/g, " ");
+  // 时间既可能在关键字前（「16:00停止售票」），
+  // 也在关键字后（「最晚进入17:00」），两种写法都要认
+  for (const m of rest.matchAll(new RegExp(`(\\d{1,2}:\\d{2})\\s*(${KW})`, "g"))) {
+    notes.push(`${m[1]}${m[2]}`);
+  }
+  for (const m of rest.matchAll(new RegExp(`(${KW})\\s*(\\d{1,2}:\\d{2})`, "g"))) {
+    notes.push(`${m[2]}${m[1]}`);
+  }
+  if (/全天/.test(seg)) notes.push("全天开放");
+  return notes.length ? [...new Set(notes)].join("；") : null;
+}
+
+/**
+ * 解析单条景区的 opentime2 文本。
+ * 返回 [{ weekday, season, open_time, close_time, note, raw }]，无法解析时返回 []。
+ */
+function parseHoursDesc(desc) {
+  if (!desc || typeof desc !== "string") return [];
+  const out = [];
+  // 高德用全角分号分隔时段；个别条目用中文分号/换行混排
+  const segments = desc
+    .split(/[；;\n]/)
+    .map((s) => s.trim())
+    .filter((s) => /\d{1,2}:\d{2}/.test(s));
+
+  for (const seg of segments) {
+    const clock = parseClock(seg);
+    if (!clock) continue;
+    const weekdays = parseWeekdays(seg);
+    const season = parseSeason(seg);
+    const note = extractNote(seg);
+    const base = {
+      open_time: clock.open,
+      close_time: clock.close,
+      season,
+      note: [note, clock.midnight ? "原文 24:00 已归一为 23:59" : null]
+        .filter(Boolean)
+        .join("；") || null,
+      raw: seg,
+    };
+    if (weekdays === null) {
+      out.push({ ...base, weekday: null });
+    } else {
+      for (const wd of weekdays) out.push({ ...base, weekday: wd });
+    }
+  }
+  // 去重（同一 weekday+season 出现多次时保留首条）
+  const seen = new Set();
+  return out.filter((h) => {
+    const k = `${h.weekday}|${h.season}|${h.open_time}|${h.close_time}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+/**
+ * 阶段 2.5 入口：把 amap_biz.hours_desc 摊平成 attraction_hours 候选行。
+ * 高德为二级来源 → source_type='map'、verification_status='pending'、confidence=0.55
+ * （故意低于 fact_status_check 的 0.7 阈值，确保数据库侧也不会被升级为 verified）。
+ */
+function extractHours(rows) {
+  const hoursRows = [];
+  let parsed = 0;
+  let skipped = 0;
+  for (const a of rows) {
+    const biz = a.amap_biz;
+    if (!biz || !biz.hours_desc) continue;
+    const segs = parseHoursDesc(biz.hours_desc);
+    if (segs.length === 0) {
+      skipped++;
+      continue;
+    }
+    parsed++;
+    a.hours_source = "amap";
+    for (const h of segs) {
+      hoursRows.push({
+        name: a.name,
+        weekday: h.weekday,
+        season: h.season,
+        open_time: h.open_time,
+        close_time: h.close_time,
+        note: h.note,
+        raw: h.raw,
+        source_type: "map",
+        source_url: biz.source_url,
+        source_time: a.source_time || null,
+        last_verified: null,
+        verification_status: "pending",
+        confidence: 0.55,
+      });
+    }
+  }
+  return { hoursRows, parsed, skipped };
+}
+
 /** 推断记录声明的坐标系：显式 coord_sys 优先，其次从 coord_note 文本推断 */
 function declaredCoordSys(a) {
   const explicit = (a.coord_sys || "").toLowerCase().replace(/[-_\s]/g, "");
@@ -257,6 +443,51 @@ function normalizeCoords(rows) {
   return { converted, unknown };
 }
 
+// ---------------------------------------------------------------------------
+// 阶段 4：数量关卡
+//
+// 铁律原文是「第一批 100–300 个高价值景区」，那是**上线首批口径**。
+// 数据管线要维护的是**全省可用池**，两者不是一回事：先用池子把数据补全、
+// 把待核验项攒够，再由 Admin 按高价值挑选进入首批。
+// 因此上限默认放开（999），下限仍是硬告警。
+// 真要出「首批」时用 `MAX_ATTRACTIONS=300` 复跑即可。
+// ---------------------------------------------------------------------------
+const MIN_ATTRACTIONS = 100;
+const MAX_ATTRACTIONS = Number(process.env.MAX_ATTRACTIONS || 999);
+const LEVEL_RANK = { "5A": 0, "4A": 1, "3A": 2, "2A": 3, "1A": 4 };
+
+function completeness(a) {
+  return (
+    (a.ticket_price != null ? 1 : 0) +
+    (a.opening_time != null ? 1 : 0) +
+    (a.amap_biz?.rating != null ? 1 : 0) +
+    (a.recommended_duration_min != null ? 1 : 0) +
+    (a.category ? 1 : 0)
+  );
+}
+
+function applyQuantityGate(usable) {
+  if (usable.length <= MAX_ATTRACTIONS) return { kept: usable, dropped: [], gate: "未触发" };
+
+  const ranked = [...usable].sort((a, b) => {
+    const la = LEVEL_RANK[a.level] ?? 9;
+    const lb = LEVEL_RANK[b.level] ?? 9;
+    if (la !== lb) return la - lb;
+    const ra = a.amap_biz?.rating ?? -1;
+    const rb = b.amap_biz?.rating ?? -1;
+    if (ra !== rb) return rb - ra;
+    const ca = completeness(a);
+    const cb = completeness(b);
+    if (ca !== cb) return cb - ca;
+    return String(a.name).localeCompare(String(b.name), "zh");
+  });
+
+  const kept = ranked.slice(0, MAX_ATTRACTIONS);
+  const keptSet = new Set(kept.map((a) => a));
+  const dropped = usable.filter((a) => !keptSet.has(a));
+  return { kept, dropped, gate: `已按高价值排序截断至 ${MAX_ATTRACTIONS}` };
+}
+
 function main() {
   const args = process.argv.slice(2);
   const outIdx = args.indexOf("--out");
@@ -291,7 +522,7 @@ function main() {
   if (missingBefore > 0) {
     const batch = missing.slice(0, LIMIT);
     console.log(
-      `\n[阶段 1/4] 坐标补全 —— 缺失 ${missingBefore} 条，本轮处理 ${batch.length} 条` +
+      `\n[阶段 1/5] 坐标补全 —— 缺失 ${missingBefore} 条，本轮处理 ${batch.length} 条` +
         `（按 5A→4A→3A 优先；剩余 ${missingBefore - batch.length} 条留待后续增量运行）`
     );
     merged.length = 0;
@@ -302,7 +533,7 @@ function main() {
     const g = runGeocoder(workFile, workFile, LIMIT);
     console.log(g.output.split("\n").map((l) => "  " + l).join("\n"));
   } else {
-    console.log("\n[阶段 1/4] 坐标补全 —— 全部已有坐标");
+    console.log("\n[阶段 1/5] 坐标补全 —— 全部已有坐标");
   }
 
   const rows = JSON.parse(readFileSync(workFile, "utf8"));
@@ -327,7 +558,7 @@ function main() {
   }
 
   // 阶段 1.5：坐标系归一化（WGS-84 → GCJ-02），DESIGN §4.2 要求全局统一
-  console.log("\n[阶段 1.5/4] 坐标系归一化");
+  console.log("\n[阶段 1.5/5] 坐标系归一化");
   const mixed = rows.filter(
     (a) => a.coord_sys && !/^gcj-?0?2$/i.test(a.coord_sys) && a.longitude != null
   );
@@ -354,7 +585,7 @@ function main() {
   writeFileSync(workFile, JSON.stringify(rows, null, 2), "utf8");
 
   // 阶段 2：事实校验
-  console.log("\n[阶段 2/4] 事实校验");
+  console.log("\n[阶段 2/5] 事实校验");
   const v = runValidator(workFile);
   if (!v.ok) {
     console.log("  校验未通过，列出问题：");
@@ -375,27 +606,75 @@ function main() {
     );
   }
 
+  // 阶段 2.5：营业时间抽取（高德 opentime2 → attraction_hours 候选行）
+  console.log("\n[阶段 2.5/5] 营业时间抽取");
+  const { hoursRows, parsed, skipped } = extractHours(rows);
+  const hoursFile = join(DATA_DIR, ".hours.json");
+  if (hoursRows.length > 0) {
+    writeFileSync(hoursFile, JSON.stringify(hoursRows, null, 2), "utf8");
+    const seasons = new Set(hoursRows.map((h) => h.season).filter(Boolean));
+    console.log(
+      `  从 ${parsed} 个景区解析出 ${hoursRows.length} 条时段（${skipped} 条文本无法解析）`
+    );
+    console.log(`  季节区间：${[...seasons].slice(0, 8).join("、") || "无（全年）"}`);
+    console.log(
+      `  一律 source_type=map / verification_status=pending / confidence=0.55` +
+        `（二级来源，不覆盖官方开放时间）`
+    );
+  } else {
+    writeFileSync(hoursFile, "[]", "utf8");
+    console.log(`  无可用营业时间文本（${skipped} 条尝试解析但失败）`);
+  }
+
   // 阶段 3：坐标完整性关卡
-  console.log("\n[阶段 3/4] 坐标完整性关卡");
-  const usable = rows.filter(
+  console.log("\n[阶段 3/5] 坐标完整性关卡");
+  const withCoord = rows.filter(
     (a) => a.longitude != null && a.latitude != null && a.coord_sys === "gcj02"
   );
   const rejected = rows.filter(
     (a) => a.longitude == null || a.latitude == null || a.coord_sys !== "gcj02"
   );
-  console.log(`  可入库      ${usable.length}`);
+  console.log(`  可入库      ${withCoord.length}`);
   console.log(`  无坐标剔除  ${rejected.length}`);
   if (rejected.length > 0) {
     const sample = rejected.slice(0, 8).map((a) => `${a.city ?? ""}${a.name}`);
     console.log(`  剔除样例    ${sample.join("、")}${rejected.length > 8 ? " …" : ""}`);
   }
 
-  console.log("\n" + "─".repeat(46));
-  console.log(`最终可入库    ${usable.length} 条`);
-  console.log(`铁律目标      100–300 条`);
-  if (usable.length < 100) {
+  // 阶段 4：数量关卡（全省可用池；首批口径用 MAX_ATTRACTIONS=300 复跑）
+  console.log("\n[阶段 4/5] 数量关卡");
+  const { kept: usable, dropped, gate } = applyQuantityGate(withCoord);
+  console.log(`  下限告警    ${MIN_ATTRACTIONS} 条`);
+  console.log(`  池上限      ${MAX_ATTRACTIONS} 条（env MAX_ATTRACTIONS 可调）`);
+  console.log(`  关卡        ${gate}`);
+  if (dropped.length > 0) {
+    const byLevel = {};
+    for (const a of dropped) {
+      const k = a.level || "未定级";
+      byLevel[k] = (byLevel[k] || 0) + 1;
+    }
+    const keptLevel = {};
+    for (const a of usable) {
+      const k = a.level || "未定级";
+      keptLevel[k] = (keptLevel[k] || 0) + 1;
+    }
+    console.log(`  保留分布    ${Object.entries(keptLevel).map(([k, v]) => `${k}:${v}`).join(" ")}`);
     console.log(
-      `⚠  距铁律下限还差 ${100 - usable.length} 条。` +
+      `  截断掉      ${dropped.length} 条（${Object.entries(byLevel)
+        .map(([k, v]) => `${k}:${v}`)
+        .join(" ")}）`
+    );
+    console.log(`  截断样例    ${dropped.slice(0, 8).map((a) => a.name).join("、")} …`);
+  }
+
+  console.log("\n" + "─".repeat(46));
+  console.log(`全省可用池    ${usable.length} 条`);
+  console.log(
+    `首批口径      ${MIN_ATTRACTIONS}–300 条 → MAX_ATTRACTIONS=300 npm run attractions:build`
+  );
+  if (usable.length < MIN_ATTRACTIONS) {
+    console.log(
+      `⚠  距铁律下限还差 ${MIN_ATTRACTIONS - usable.length} 条。` +
         (process.env.AMAP_KEY
           ? "已提供 AMAP_KEY，缺口来自事实核验而非坐标。"
           : "配置 AMAP_KEY 后可自动补全坐标，缺口会显著收窄。")
@@ -415,6 +694,11 @@ function main() {
   const finalFile = join(DATA_DIR, ".final.json");
   writeFileSync(finalFile, JSON.stringify(usable, null, 2), "utf8");
 
+  // 营业时间同样只保留通过坐标关卡的景区，避免 hours 指向未入库的记录
+  const usableNames = new Set(usable.map((a) => a.name));
+  const usableHours = hoursRows.filter((h) => usableNames.has(h.name));
+  writeFileSync(join(DATA_DIR, ".hours.final.json"), JSON.stringify(usableHours, null, 2), "utf8");
+
   const r = spawnSync(
     process.execPath,
     [
@@ -422,6 +706,8 @@ function main() {
       finalFile,
       "--out",
       outPath,
+      "--hours",
+      join(DATA_DIR, ".hours.final.json"),
     ],
     { encoding: "utf8" }
   );
@@ -430,7 +716,12 @@ function main() {
     console.log("生成 SQL 失败：残留行未通过事实校验。\n");
     return;
   }
-  console.log(`\n已生成 → ${outPath}（含 ${usable.length} 条，均已通过坐标与事实校验）\n`);
+  console.log(`\n已生成 → ${outPath}`);
+  console.log(
+    `  景区 ${usable.length} 条` +
+      (usableHours.length > 0 ? ` · 营业时段 ${usableHours.length} 条（pending）` : "")
+  );
+  console.log("");
 }
 
 main();

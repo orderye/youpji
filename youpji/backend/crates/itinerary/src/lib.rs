@@ -257,6 +257,15 @@ pub enum EditOp {
         day_index: i32,
         hotel_id: Uuid,
     },
+    /// 用户指定当天景区顺序：把 `ordered_attraction_ids` 提到的前面，
+    /// 其余景区按现有评分序补在其后，随后**整日时间轴重新推导**。
+    ///
+    /// 只支持「锁定前缀」而非完整置换，避免用户用低分景区压过高分项。
+    /// 重排只作用于 `day_index` 当天；其余天保持不变（DESIGN §8.3）。
+    ReorderDay {
+        day_index: i32,
+        ordered_attraction_ids: Vec<Uuid>,
+    },
 }
 
 /// 局部重规划结果（阶段 4.2）：必须返回 changed/unchanged days 与 diff。
@@ -454,6 +463,7 @@ pub async fn apply_edit(
             ..
         } => (*day_index, Some(*to_day_index)),
         EditOp::ReplaceHotel { day_index, .. } => (*day_index, None),
+        EditOp::ReorderDay { day_index, .. } => (*day_index, None),
     };
 
     let day_id = day_id_of(&before, day_index)?;
@@ -528,6 +538,19 @@ pub async fn apply_edit(
                 &mut diff,
                 &mut op_warnings,
                 &mut delta,
+            )
+            .await?;
+        }
+        EditOp::ReorderDay {
+            ordered_attraction_ids,
+            ..
+        } => {
+            apply_reorder_day(
+                &mut tx,
+                day_id,
+                &ordered_attraction_ids,
+                &mut diff,
+                &mut op_warnings,
             )
             .await?;
         }
@@ -739,6 +762,197 @@ async fn apply_move_item(
         "message": "已跨天搬运并重排两天时间轴",
         "ref": item_id.to_string(),
     }));
+    Ok(())
+}
+
+/// 用户指定当天顺序（DESIGN §8.3 `reorder_day`）。
+///
+/// 步骤：
+/// 1. 取当天 items，按 `ordered_attraction_ids` 把景区节点提到前面，其余保持原相对序；
+/// 2. `reflow_day_items` 顺次重算时间轴与车程；
+/// 3. `validate_reordered_day` 复核营业时间与过晚约束，剔除违规节点；
+/// 4. 剔除项连带其进出 transit 一并移除，然后再次 reflow，保证不留孤儿交通段。
+///
+/// 餐厅/酒店/free 节点不参与用户排序，但会随时间轴一起顺移。
+async fn apply_reorder_day(
+    conn: &mut sqlx::PgConnection,
+    day_id: Uuid,
+    ordered_attraction_ids: &[Uuid],
+    diff: &mut serde_json::Value,
+    warnings: &mut Vec<serde_json::Value>,
+) -> ApiResult<()> {
+    if ordered_attraction_ids.is_empty() {
+        return Err(ApiError::BadRequest(
+            "ordered_attraction_ids must not be empty".into(),
+        ));
+    }
+
+    let rows = items_of_day(conn, day_id).await?;
+    if rows.is_empty() {
+        return Err(ApiError::NotFound("day has no items".into()));
+    }
+
+    // 只认 `attraction` 类型的节点作为可排序项；transit/free/food/hotel 由 reflow 处理
+    let is_attraction = |r: &ItemRow| r.item_type == "attraction";
+
+    // 用户指定的前缀必须都真实存在于当天，且都是景区节点
+    for id in ordered_attraction_ids {
+        if !rows.iter().any(|r| r.id == *id || r.ref_id == Some(*id)) {
+            return Err(ApiError::BadRequest(format!(
+                "attraction {id} not found in this day"
+            )));
+        }
+    }
+
+    let before_order: Vec<String> = rows
+        .iter()
+        .filter(|r| is_attraction(r))
+        .map(|r| r.id.to_string())
+        .collect();
+
+    // 构造新序列：用户前缀（按给定顺序）→ 其余景区（原相对序）
+    let mut reordered: Vec<ItemRow> = Vec::with_capacity(rows.len());
+    let mut used_ids = std::collections::HashSet::new();
+    for want in ordered_attraction_ids {
+        if let Some(pos) = rows.iter().position(|r| {
+            is_attraction(r)
+                && !used_ids.contains(&r.id)
+                && (r.id == *want || r.ref_id == Some(*want))
+        }) {
+            used_ids.insert(rows[pos].id);
+            reordered.push(rows[pos].clone());
+        }
+    }
+    for r in rows.iter() {
+        if is_attraction(r) && !used_ids.contains(&r.id) {
+            reordered.push(r.clone());
+        }
+    }
+    // 非景区节点（free/transit/food/hotel）保持在它们各自相邻的原始相对位置：
+    // 简化做法——按原始 sort_order 把非景区节点插回，重排只改变景区之间的顺序。
+    let mut merged: Vec<ItemRow> = Vec::with_capacity(rows.len());
+    let mut att_iter = reordered.into_iter();
+    for r in rows.iter() {
+        if is_attraction(r) {
+            if let Some(a) = att_iter.next() {
+                merged.push(a);
+            }
+        } else {
+            merged.push(r.clone());
+        }
+    }
+
+    // reflow：顺次重算时间轴与车程
+    let mut plan_items: Vec<route::PlanItem> = merged.iter().map(row_to_plan_item).collect();
+    route::reflow_day_items(&mut plan_items);
+
+    // 取当天涉及景区的营业时间窗，做硬约束复核
+    let mut opening = std::collections::HashMap::new();
+    for r in merged.iter().filter(|r| is_attraction(r)) {
+        if let Some(rid) = r.ref_id {
+            let win: Option<(Option<chrono::NaiveTime>, Option<chrono::NaiveTime>)> =
+                sqlx::query_as("SELECT opening_time, closing_time FROM attractions WHERE id = $1")
+                    .bind(rid)
+                    .fetch_optional(&mut *conn)
+                    .await?;
+            if let Some(w) = win {
+                opening.insert(rid, w);
+            }
+        }
+    }
+    let drops = route::validate_reordered_day(&mut plan_items, &opening);
+    let drop_ids: std::collections::HashSet<Uuid> = drops.iter().filter_map(|d| d.ref_id).collect();
+
+    // 写回保留节点的时间轴
+    let mut kept: Vec<ItemRow> = Vec::new();
+    for (row, it) in merged.iter().zip(plan_items.iter()) {
+        if is_attraction(row) && drop_ids.contains(&row.ref_id.unwrap_or(Uuid::nil())) {
+            continue;
+        }
+        let mut nr = row.clone();
+        nr.start_time = Some(it.start_time);
+        nr.end_time = it.end_time;
+        nr.distance_km = it.distance_km;
+        nr.duration_min = it.duration_min;
+        kept.push(nr);
+    }
+
+    // 剔除景区的进出 transit 一并移除，避免留下指向已删节点的孤儿交通段
+    let kept_transit_to: std::collections::HashSet<Uuid> = kept
+        .iter()
+        .filter(|r| r.item_type == "transit")
+        .filter_map(|r| r.ref_id)
+        .collect();
+    let dropped_titles: std::collections::HashSet<String> =
+        drops.iter().map(|d| d.title.clone()).collect();
+    let before_transit: Vec<String> = rows
+        .iter()
+        .filter(|r| r.item_type == "transit")
+        .map(|r| r.title.clone())
+        .collect();
+    kept.retain(|r| {
+        if r.item_type != "transit" {
+            return true;
+        }
+        // 标题形如「前往 黄果树景区」；ref_id 命中被剔除的景区则一并删
+        match r.ref_id {
+            Some(rid) => kept_transit_to.contains(&rid) || !drop_ids.contains(&rid),
+            None => !dropped_titles
+                .iter()
+                .any(|t| r.title == format!("前往 {t}")),
+        }
+    });
+
+    // 重新 reflow 一次：移除孤儿 transit 后时间轴要再收紧一次
+    let mut final_items: Vec<route::PlanItem> = kept.iter().map(row_to_plan_item).collect();
+    route::reflow_day_items(&mut final_items);
+    for (row, it) in kept.iter_mut().zip(final_items.iter()) {
+        row.start_time = Some(it.start_time);
+        row.end_time = it.end_time;
+        row.distance_km = it.distance_km;
+        row.duration_min = it.duration_min;
+    }
+
+    sqlx::query("UPDATE itinerary_items SET sort_order = -sort_order - 1 WHERE day_id = $1")
+        .bind(day_id)
+        .execute(&mut *conn)
+        .await?;
+    for (i, row) in kept.iter().enumerate() {
+        sqlx::query(
+            "UPDATE itinerary_items SET sort_order = $1, start_time = $2, end_time = $3,
+             distance_km = $4, duration_min = $5 WHERE id = $6",
+        )
+        .bind(i as i32)
+        .bind(row.start_time)
+        .bind(row.end_time)
+        .bind(row.distance_km)
+        .bind(row.duration_min)
+        .bind(row.id)
+        .execute(&mut *conn)
+        .await?;
+    }
+
+    let after_order: Vec<String> = kept
+        .iter()
+        .filter(|r| r.item_type == "attraction")
+        .map(|r| r.id.to_string())
+        .collect();
+    diff["updated"] = serde_json::json!(after_order);
+    diff["order_before"] = serde_json::json!(before_order);
+    diff["order_after"] = serde_json::json!(after_order);
+    diff["transit_before"] = serde_json::json!(before_transit);
+
+    warnings.push(serde_json::json!({
+        "code": "day_reordered",
+        "message": "已按你的顺序重排当天行程并重新计算时间",
+    }));
+    for d in &drops {
+        warnings.push(serde_json::json!({
+            "code": d.code,
+            "message": format!("「{}」在新顺序下不满足开放时间或已过时段，已移除", d.title),
+            "ref": d.ref_id.map(|r| r.to_string()),
+        }));
+    }
     Ok(())
 }
 

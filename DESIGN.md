@@ -265,12 +265,22 @@ cursor 对调用方不透明（V0.1 为偏移编码，后续可换 keyset 而不
 - **行程默认私有**：`GET /api/v1/itineraries/:id` 与 `POST /api/v1/travel/replan` 必须携带有效 JWT，且行程归属人等于当前用户（或 role=admin），否则 `403 FORBIDDEN`。
 - `POST /api/v1/travel/plan` 的归属人**只从 JWT 推导**，请求体不接受 `user_id`；未登录可 `save=false` 预览，`save=true`（默认）需登录，否则 `401`。
 - `POST /api/v1/travel/replan` 只接受结构化编辑操作
-  `edit_op ∈ {remove_item, replace_restaurant, move_item_to_day, replace_hotel}`；
+  `edit_op ∈ {remove_item, replace_restaurant, move_item_to_day, replace_hotel, reorder_day}`；
   响应必须含 `changed_days` / `unchanged_days` / `diff` / `warnings`；
   除数据源变化或全局参数变更外，禁止整体重生成。
 - 编辑操作在**单事务**内完成：任一步失败整体回滚，不留「节点已删、顺序未重排」的半成品。
 - `remove_item` 传 `attraction_id`（可传 `attractions.id` 或 `itinerary_items.id`），连带删除其进出 transit；禁止用名称字符串匹配节点。
 - 编辑后按桶重算预算并**复核硬约束**：总额超过 `budget_limit` 时返回 `422 BUDGET_EXCEEDED` 且不落库。
+
+**`reorder_day`（用户指定当天顺序）**
+
+- 允许用户指定某一天内景区的**优先前缀**：`ordered_attraction_ids` 按期望顺序排列，未列出的景区按 `Route Score` 降序补在其后。
+- 只支持「锁定前缀」，不支持完整置换顺序：用户可把想去的项提到前面，但不能让低分景区整体压过高分项，否则 `Route Score` 失效、行程质量失控。
+- 实现复用 `route::pack_day` 纯函数——把候选遍历序由「评分降序」换成「用户序在前」，时间轴、营业时间校验、预算累计**全部重新推导**，不做字段级覆盖。
+- 重排**只作用于 `day_index` 指定的那一天**，`unchanged_days` 必须包含其余所有天（铁律 8 的直接落点）。
+- 重排后仍受全部硬约束约束：排到 18:00 后的项跳过并给 `opening_hours_conflict`；装不下预算按 §5 阶梯降级，仍超限才 `422 BUDGET_EXCEEDED`。
+  即**用户能定序，但不能定出违规行程**。
+- 餐厅/酒店/交通段节点不接受拖拽，不参与 `ordered_attraction_ids`。
 
 ## 9. 后台与数据治理
 

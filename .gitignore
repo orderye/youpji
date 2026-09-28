@@ -12,3 +12,9 @@ build/
 .sqlx/
 
 youpji/data/attractions/.geocode-cache.json
+.geocode-cache.json
+.gov-registry-cache.html
+
+# 营业时间抽取的中间产物（阶段 2.5），每次重跑都会重生成
+youpji/data/attractions/.hours.json
+youpji/data/attractions/.hours.final.json

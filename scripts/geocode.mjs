@@ -18,6 +18,9 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 
 const CACHE_PATH = join(".geocode-cache.json");
+// 缓存版本：候选筛选规则变更时必须递增，否则会复用旧规则下的错误取点。
+// v1→v2：高德改为「按类目+名称+省份择优选取」，且不再用 citylimit 硬限制。
+const CACHE_VERSION = "v2";
 const QPS_INTERVAL_MS = 400; // 高德 POI 搜索按 QPS 限速，取保守值
 const NOMINATIM_INTERVAL_MS = 1100; // Nominatim 使用条款要求 ≤1 次/秒
 
@@ -37,14 +40,91 @@ function saveCache(cache) {
   writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), "utf8");
 }
 
+/**
+ * 高德对部分字段返回空数组 `[]`（JSON 里是数组），对景区普遍返回 cost="0"。
+ * 统一收敛成 null，避免把「0 元」当成真实人均写进库里。
+ */
+function toNumOrNull(v, { zeroAsMissing = false } = {}) {
+  if (v === null || v === undefined || v === "" || Array.isArray(v)) return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (zeroAsMissing && n === 0) return null;
+  return n;
+}
+
 /** 高德 POIs[].location = "lng,lat"（GCJ-02） */
+
+/**
+ * 明确不是景区本体的类目（typecode 前两位）。
+ * 01 汽车服务 · 05 餐饮 · 06 购物 · 07 生活服务 · 09 医疗 · 10 住宿
+ * 12 商务住宅 · 15 交通设施 · 17 公司企业 · 18 门址/出入口
+ */
+const POI_BLOCK_TYPE = new Set(["01", "05", "06", "07", "09", "10", "12", "15", "17", "18"]);
+
+/** 名称里带这些词的几乎必然不是景区本体 */
+const POI_BLOCK_NAME =
+  /(停车场|停车位|服务区|收费站|公交站|地铁站|火车站|高铁站|汽车站|机场|码头|加油站|游客中心|游客服务|售票处|售票窗口|检票口|出入口|出入口|办公楼|产业园|工业园|小区|住宅|酒店|宾馆|民宿|餐厅|饭店|小吃|快餐|超市|商场|购物中心|派出所|银行|医院|学校)/;
+
+/**
+ * 在候选里择优，而不是无脑取 pois[0]。
+ *
+ * 为什么必须这样：实测 `keywords=黄果树风景区&city=贵阳&citylimit=true`
+ * 返回的前 5 条**全是**「黄果树广场停车场(入口)」「黄果树大厦」
+ * 「黄果树瀑韵天城」这类住宅与停车场，真正的景区根本不在前 5 名里。
+ * 旧实现直接取 pois[0]，于是把停车场坐标写成了景区坐标。
+ */
+function pickCandidate(pois, keyword, city) {
+  const core = coreName(keyword);
+  const cityShort = city ? String(city).replace(/市$/, "") : "";
+  const pool = [];
+
+  for (const p of pois) {
+    if (!p.location || !/^[\d.]+,[\d.]+$/.test(p.location)) continue;
+    const [lng, lat] = p.location.split(",").map(Number);
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
+
+    const typecode = String(p.typecode || "");
+    const name = String(p.name || "");
+    if (POI_BLOCK_TYPE.has(typecode.slice(0, 2))) continue;
+    if (POI_BLOCK_NAME.test(name)) continue;
+
+    let score = 0;
+    if (typecode.startsWith("110")) score += 50; // 风景名胜 / 公共设施
+    if (name.includes(core)) score += 40;
+    else if (core.includes(name) && name.length >= 2) score += 30;
+    else if (core.length >= 2 && name.includes(core.slice(0, 2))) score += 10;
+    if (cityShort && String(p.cityname || "").includes(cityShort)) score += 10;
+
+    pool.push({ p, lng, lat, score, typecode });
+  }
+  if (pool.length === 0) return null;
+  pool.sort((a, b) => b.score - a.score);
+  return pool[0];
+}
+
+/**
+ * 在候选里择优，但放宽「必须落在贵州」这一条。
+ * 仅当严格模式下候选全被省份过滤掉时才启用，用于覆盖少数缺 adcode 的 POI。
+ */
+function pickCandidateRelaxed(pois, keyword, city) {
+  const gz = { ...queryAmap._lastRes };
+  return pickCandidate(
+    (gz.pois || []).filter((p) => !String(p.adcode || "").startsWith("52")),
+    keyword,
+    city
+  );
+}
+
 async function queryAmap(key, keyword, city) {
   const url =
     "https://restapi.amap.com/v3/place/text" +
     `?key=${encodeURIComponent(key)}` +
     `&keywords=${encodeURIComponent(keyword)}` +
-    (city ? `&city=${encodeURIComponent(city)}&citylimit=true` : "") +
-    "&extensions=base&offset=5&page=1";
+    // 注意：这里**只用 city 加权、不加 citylimit**。
+    // citylimit=true 会把不属于该市的真景区挤出结果集
+    // （黄果树在安顺镇宁，用 city=贵阳 检索时结果里全是贵阳的停车场与住宅）。
+    (city ? `&city=${encodeURIComponent(city)}` : "") +
+    "&extensions=all&offset=15&page=1";
 
   const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) return { ok: false, reason: `HTTP ${res.status}` };
@@ -55,24 +135,33 @@ async function queryAmap(key, keyword, city) {
   const pois = data.pois || [];
   if (pois.length === 0) return { ok: false, reason: "无匹配 POI" };
 
-  // 取第一个带有效坐标的候选
-  for (const p of pois) {
-    if (p.location && /^[\d.]+,[\d.]+$/.test(p.location)) {
-      const [lng, lat] = p.location.split(",").map(Number);
-      if (Number.isFinite(lng) && Number.isFinite(lat)) {
-        return {
-          ok: true,
-          source: "amap",
-          coord_sys: "gcj02",
-          longitude: Number(lng.toFixed(6)),
-          latitude: Number(lat.toFixed(6)),
-          amap_id: p.id,
-          matched_name: p.name,
-        };
-      }
-    }
-  }
-  return { ok: false, reason: "候选均无坐标" };
+  queryAmap._lastRes = data;
+
+  // 硬约束：必须落在贵州省（adcode 52xxxx）
+  const gz = pois.filter((p) => String(p.adcode || "").startsWith("52"));
+  let best = pickCandidate(gz, keyword, city);
+  if (!best) best = pickCandidateRelaxed(pois, keyword, city);
+  if (!best) return { ok: false, reason: `${pois.length} 条候选均被类目/名称过滤` };
+
+  const { p, lng, lat } = best;
+  const biz = p.biz_ext || {};
+  return {
+    ok: true,
+    source: "amap",
+    coord_sys: "gcj02",
+    longitude: Number(lng.toFixed(6)),
+    latitude: Number(lat.toFixed(6)),
+    amap_id: p.id,
+    matched_name: p.name,
+    amap_typecode: p.typecode || null,
+    adcode: p.adcode || null,
+    // 事实类附加信息：高德属二级来源，入库一律 pending，不因坐标而提升验证等级
+    hours_desc: biz.opentime2 || null,
+    rating: toNumOrNull(biz.rating),
+    // 高德对景区普遍返回 cost="0"（景区本身不按人均收费），视为未提供
+    avg_cost: toNumOrNull(biz.cost, { zeroAsMissing: true }),
+    tel: p.tel && p.tel !== "[]" ? p.tel : null,
+  };
 }
 
 /** 去掉「景区/旅游区/风景名胜区/度假区」等后缀，只留核心地名用于检索 */
@@ -229,7 +318,8 @@ async function main() {
   );
   // --limit 限制本轮实际联网查询的条数（已缓存的仍全部回填）
   const cache0 = loadCache();
-  const cacheHas = (c, a) => Object.prototype.hasOwnProperty.call(c, `${a.city ?? ""}|${a.name}`);
+  const cacheKeyOf = (a) => `${CACHE_VERSION}|${a.city ?? ""}|${a.name}`;
+  const cacheHas = (c, a) => Object.prototype.hasOwnProperty.call(c, cacheKeyOf(a));
   const needGeo = limit === 0
     ? []
     : [
@@ -266,7 +356,7 @@ async function main() {
   const failed = [];
 
   for (const a of needGeo) {
-    const cacheKey = `${a.city ?? ""}|${a.name}`;
+    const cacheKey = cacheKeyOf(a);
     let result = cache[cacheKey];
 
     if (!result) {
@@ -285,11 +375,26 @@ async function main() {
       a.coord_sys = result.coord_sys;
       const via =
         result.source === "amap"
-          ? `高德 POI 搜索（poi_id=${result.amap_id}，匹配名「${result.matched_name}」）`
+          ? `高德 POI 搜索（poi_id=${result.amap_id}，匹配名「${result.matched_name}」` +
+            `${result.amap_typecode ? `，typecode=${result.amap_typecode}` : ""}）`
           : `OpenStreetMap Nominatim（${result.osm_type}/${result.osm_id}，匹配「${String(result.matched_name).slice(0, 60)}」）`;
       a.coord_note = `坐标来源：${via}`;
       // 坐标是可溯源事实，但属二级来源，不因坐标而提升票价/开放时间的验证等级
       if (!a.source_type || a.source_type === "ugc") a.source_type = "map";
+
+      // 高德顺带返回的营业时间/评分/人均/电话。
+      // 只作为**候选线索**随行携带：由 build-attraction-seed.mjs 统一抽取成
+      // attraction_hours 行，落 pending —— 不直接覆盖既有官方开放时间。
+      if (result.source === "amap" && (result.hours_desc || result.rating)) {
+        a.amap_biz = {
+          poi_id: result.amap_id,
+          hours_desc: result.hours_desc ?? null,
+          rating: result.rating ?? null,
+          avg_cost: result.avg_cost ?? null,
+          tel: result.tel ?? null,
+          source_url: `https://www.amap.com/place/${result.amap_id}`,
+        };
+      }
     }
   }
 
