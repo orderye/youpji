@@ -255,3 +255,94 @@ async fn replan_without_token_is_401() {
     assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
     assert_eq!(json_of(resp).await["code"], "UNAUTHORIZED");
 }
+
+#[tokio::test]
+async fn ai_chat_returns_structured_response() {
+    let resp = test_app()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/ai/chat")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    json!({"message": "黄果树瀑布门票多少钱？"}).to_string(),
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+    let v = json_of(resp).await;
+    assert!(v["reply"].as_str().unwrap().contains("黄果树"));
+    assert!(v["sources"].as_array().is_some());
+    assert!(v["suggestions"].as_array().is_some());
+}
+
+#[tokio::test]
+async fn ai_chat_empty_message_returns_welcome() {
+    let resp = test_app()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/ai/chat")
+                .header("content-type", "application/json")
+                .body(Body::from(json!({"message": ""}).to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+    let v = json_of(resp).await;
+    assert!(v["reply"].as_str().unwrap().contains("您好"));
+}
+
+#[tokio::test]
+async fn itinerary_start_without_token_is_401() {
+    let resp = test_app()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/itineraries/00000000-0000-0000-0000-000000000001/start")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(json_of(resp).await["code"], "UNAUTHORIZED");
+}
+
+#[tokio::test]
+async fn itinerary_feedback_without_token_is_401() {
+    let resp = test_app()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/itineraries/00000000-0000-0000-0000-000000000001/feedback")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    json!({"rating": 5, "comment": "很好"}).to_string(),
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(json_of(resp).await["code"], "UNAUTHORIZED");
+}
+
+#[tokio::test]
+async fn auth_delete_me_without_token_is_401() {
+    let resp = test_app()
+        .oneshot(
+            Request::builder()
+                .method("DELETE")
+                .uri("/api/v1/auth/me")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(json_of(resp).await["code"], "UNAUTHORIZED");
+}

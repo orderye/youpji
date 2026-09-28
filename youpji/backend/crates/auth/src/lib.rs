@@ -153,3 +153,26 @@ fn parse_legacy_token(token: &str) -> ApiResult<(Uuid, String)> {
         Uuid::parse_str(parts[0]).map_err(|_| ApiError::Unauthorized("bad token id".into()))?;
     Ok((id, parts[1].to_string()))
 }
+
+/// 注销并删除当前账号及其私有数据（DESIGN.md §10: 最小隐私合规）
+pub async fn delete_account(state: &AppState, user_id: Uuid) -> ApiResult<()> {
+    let mut tx = state.pool.begin().await?;
+    sqlx::query("DELETE FROM user_preferences WHERE user_id = $1")
+        .bind(user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM user_feedback WHERE user_id = $1")
+        .bind(user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM itineraries WHERE user_id = $1")
+        .bind(user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM users WHERE id = $1")
+        .bind(user_id)
+        .execute(&mut *tx)
+        .await?;
+    tx.commit().await?;
+    Ok(())
+}

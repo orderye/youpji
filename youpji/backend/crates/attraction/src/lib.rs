@@ -31,6 +31,7 @@ pub struct AttractionRow {
     pub couple_score: i16,
     pub indoor: bool,
     pub popularity: i32,
+    pub status: String,
     pub parking: Option<String>,
     pub transport: Option<String>,
     pub verification_status: String,
@@ -114,7 +115,7 @@ pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<AttractionR
                   a.longitude, a.latitude, a.category, a.level, a.description,
                   a.opening_time, a.closing_time, a.ticket_price, a.recommended_duration_min,
                   a.difficulty, a.family_score, a.elderly_score, a.photography_score,
-                  a.couple_score, a.indoor, a.popularity, a.parking, a.transport,
+                  a.couple_score, a.indoor, a.popularity, a.status, a.parking, a.transport,
                   a.verification_status::text AS verification_status, a.confidence,
                   a.last_verified, a.source_type::text AS source_type, a.source_url
            FROM attractions a
@@ -157,7 +158,7 @@ pub async fn detail(state: &AppState, id: Uuid) -> ApiResult<AttractionDetail> {
                   longitude, latitude, category, level, description,
                   opening_time, closing_time, ticket_price, recommended_duration_min,
                   difficulty, family_score, elderly_score, photography_score,
-                  couple_score, indoor, popularity, parking, transport,
+                  couple_score, indoor, popularity, status, parking, transport,
                   verification_status::text AS verification_status, confidence,
                   last_verified, source_type::text AS source_type, source_url
            FROM attractions WHERE id = $1"#,
@@ -214,4 +215,177 @@ pub async fn detail(state: &AppState, id: Uuid) -> ApiResult<AttractionDetail> {
         hours,
         guides,
     })
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AdminListQuery {
+    #[serde(flatten)]
+    pub page: Page,
+    pub city: Option<String>,
+    pub category: Option<String>,
+    pub level: Option<String>,
+    pub verification_status: Option<String>,
+    pub status: Option<String>,
+    pub q: Option<String>,
+}
+
+pub async fn admin_list(state: &AppState, q: AdminListQuery) -> ApiResult<Paged<AttractionRow>> {
+    let limit = q.page.limit();
+    let offset = q.page.offset();
+
+    let rows: Vec<AttractionRow> = sqlx::query_as(
+        r#"SELECT a.id, a.destination_id, a.name, a.alias, a.province, a.city, a.district,
+                  a.longitude, a.latitude, a.category, a.level, a.description,
+                  a.opening_time, a.closing_time, a.ticket_price, a.recommended_duration_min,
+                  a.difficulty, a.family_score, a.elderly_score, a.photography_score,
+                  a.couple_score, a.indoor, a.popularity, a.status, a.parking, a.transport,
+                  a.verification_status::text AS verification_status, a.confidence,
+                  a.last_verified, a.source_type::text AS source_type, a.source_url
+           FROM attractions a
+           WHERE ($1::text IS NULL OR a.city = $1)
+             AND ($2::text IS NULL OR a.category = $2)
+             AND ($3::text IS NULL OR a.level = $3)
+             AND ($4::text IS NULL OR a.verification_status::text = $4)
+             AND ($5::text IS NULL OR a.status = $5)
+             AND ($6::text IS NULL OR a.name ILIKE '%' || $6 || '%' OR COALESCE(a.alias,'') ILIKE '%' || $6 || '%')
+           ORDER BY a.popularity DESC, a.name
+           LIMIT $7 OFFSET $8"#,
+    )
+    .bind(&q.city)
+    .bind(&q.category)
+    .bind(&q.level)
+    .bind(&q.verification_status)
+    .bind(&q.status)
+    .bind(&q.q)
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(&state.pool)
+    .await?;
+
+    Ok(Paged::new(rows, &q.page))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AdminVerifyInput {
+    pub verification_status: Option<String>,
+    pub confidence: Option<f64>,
+    pub source_url: Option<String>,
+    pub source_type: Option<String>,
+    pub ticket_price: Option<i32>,
+    pub opening_time: Option<chrono::NaiveTime>,
+    pub closing_time: Option<chrono::NaiveTime>,
+}
+
+pub async fn admin_verify(state: &AppState, id: Uuid, input: AdminVerifyInput) -> ApiResult<()> {
+    let status = input
+        .verification_status
+        .unwrap_or_else(|| "verified".into());
+    let confidence = input.confidence.unwrap_or(0.9);
+    let source_type = input.source_type.unwrap_or_else(|| "official".into());
+
+    let mut tx = state.pool.begin().await?;
+
+    let exists: Option<Uuid> =
+        sqlx::query_scalar("SELECT id FROM attractions WHERE id = $1 FOR UPDATE")
+            .bind(id)
+            .fetch_optional(&mut *tx)
+            .await?;
+    if exists.is_none() {
+        return Err(ApiError::NotFound("attraction not found".into()));
+    }
+
+    sqlx::query(
+        r#"UPDATE attractions
+           SET verification_status = $1::verification_status,
+               confidence = $2,
+               source_type = $3::source_type,
+               source_url = COALESCE($4, source_url),
+               ticket_price = COALESCE($5, ticket_price),
+               opening_time = COALESCE($6, opening_time),
+               closing_time = COALESCE($7, closing_time),
+               last_verified = now(),
+               updated_at = now()
+           WHERE id = $8"#,
+    )
+    .bind(&status)
+    .bind(confidence)
+    .bind(&source_type)
+    .bind(&input.source_url)
+    .bind(input.ticket_price)
+    .bind(input.opening_time)
+    .bind(input.closing_time)
+    .bind(id)
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AdminUpdateInput {
+    pub name: Option<String>,
+    pub alias: Option<String>,
+    pub category: Option<String>,
+    pub level: Option<String>,
+    pub description: Option<String>,
+    pub opening_time: Option<chrono::NaiveTime>,
+    pub closing_time: Option<chrono::NaiveTime>,
+    pub ticket_price: Option<i32>,
+    pub status: Option<String>,
+    pub longitude: Option<f64>,
+    pub latitude: Option<f64>,
+    pub parking: Option<String>,
+    pub transport: Option<String>,
+}
+
+pub async fn admin_update(state: &AppState, id: Uuid, input: AdminUpdateInput) -> ApiResult<()> {
+    let mut tx = state.pool.begin().await?;
+
+    let exists: Option<Uuid> =
+        sqlx::query_scalar("SELECT id FROM attractions WHERE id = $1 FOR UPDATE")
+            .bind(id)
+            .fetch_optional(&mut *tx)
+            .await?;
+    if exists.is_none() {
+        return Err(ApiError::NotFound("attraction not found".into()));
+    }
+
+    sqlx::query(
+        r#"UPDATE attractions
+           SET name = COALESCE($1, name),
+               alias = COALESCE($2, alias),
+               category = COALESCE($3, category),
+               level = COALESCE($4, level),
+               description = COALESCE($5, description),
+               opening_time = COALESCE($6, opening_time),
+               closing_time = COALESCE($7, closing_time),
+               ticket_price = COALESCE($8, ticket_price),
+               status = COALESCE($9, status),
+               longitude = COALESCE($10, longitude),
+               latitude = COALESCE($11, latitude),
+               parking = COALESCE($12, parking),
+               transport = COALESCE($13, transport),
+               updated_at = now()
+           WHERE id = $14"#,
+    )
+    .bind(&input.name)
+    .bind(&input.alias)
+    .bind(&input.category)
+    .bind(&input.level)
+    .bind(&input.description)
+    .bind(input.opening_time)
+    .bind(input.closing_time)
+    .bind(input.ticket_price)
+    .bind(&input.status)
+    .bind(input.longitude)
+    .bind(input.latitude)
+    .bind(&input.parking)
+    .bind(&input.transport)
+    .bind(id)
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(())
 }

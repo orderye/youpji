@@ -58,6 +58,7 @@ youpji/
 │   │   ├── route/          # 距离矩阵、评分、排线、局部重规划
 │   │   ├── recommendation/ # 召回与画像（V0.1 规则版）
 │   │   ├── weather/        # 天气接入与缓存
+│   │   ├── review/         # 审核队列、营业时段比对采纳、审计日志、仪表盘统计
 │   │   ├── ai/             # AI Gateway、prompt、JSON schema、校验
 │   │   └── common/         # 错误类型、ID、分页、时间、geo 类型
 │   ├── migrations/
@@ -282,19 +283,65 @@ cursor 对调用方不透明（V0.1 为偏移编码，后续可换 keyset 而不
   即**用户能定序，但不能定出违规行程**。
 - 餐厅/酒店/交通段节点不接受拖拽，不参与 `ordered_attraction_ids`。
 
+### 8.4 行程执行与反馈契约
+
+- **行程开始**：`POST /api/v1/itineraries/:id/start`
+  - 鉴权：必须登录且仅限行程本人（或 admin）。
+  - 动作：将 `itineraries.status` 由 `draft` 推进至 `in_progress`，记录实际执行状态。
+- **行程反馈**：`POST /api/v1/itineraries/:id/feedback`
+  - 请求体：`{ "rating": 1..5, "comment": "...", "images": [...] }`
+  - 动作：向 `user_feedback` 写入用户对行程的体验评分与反馈建议，用于推荐模型调优。
+
+### 8.5 AI 智能对话契约（`POST /api/v1/ai/chat`）
+
+- **AI 边界铁律落点**：用户旅行咨询与问答入口。支持云端 LLM 代理转发与本地事实规则降级引擎。
+- 输入：`{ "message": "...", "session_id": "...", "context": {} }`
+- 响应：`{ "reply": "...", "session_id": "...", "suggestions": [...], "facts": [...] }`
+- **铁律硬约束**：回答中涉及票价、营业时间等事实字段，必须经过系统事实校验或带来源标注；对于未验证实体，系统在 `facts` 中标明 `verification_status: unverified`，禁止由大模型凭空断言。
+
+### 8.6 账号注销契约（`DELETE /api/v1/auth/me`）
+
+- 鉴权：必须携带有效 JWT 证明本人身份。
+- 级联清理：在单事务内注销账号并物理清理/匿名化该用户的行程、收藏、偏好与个人轨迹数据，满足个保法与 GDPR 合规硬要求。
+
 ## 9. 后台与数据治理
 
-- Admin 模块：Dashboard、景区、酒店、餐厅、攻略、图片、数据来源、**数据审核**、AI 任务、用户、系统设置。
-- 审核流：`采集/发现差异 → pending → 人工采纳/驳回 → verified 更新`；关键字段变更保留历史（简单方式：`attraction_facts` 变更表或审计表）。
-- Worker 每日：巡检景区/酒店/餐厅/天气/活动 → 差异进审核队列；**禁止**未经确认覆盖重要事实。
-- 来源分级落库为 `source_type` 枚举，与 §4.1 一致。
+### 9.1 管理端架构与接口（`apps/api/src/admin.rs` & `crates/review`）
+
+管理端采用轻量 SPA（挂载于 `/admin/`），所有管理路由挂在 `/api/v1/admin/*`，强制校验管理员权限（`role = 'admin'`，否则 `403 FORBIDDEN`）。
+
+| 路由 | 方法 | 作用 |
+|---|---|---|
+| `/admin/dashboard` | GET | 仪表盘关键指标（总景区数、已核验数、待审营业时段数、总行程数、活跃用户数） |
+| `/admin/attractions` | GET | 景区管理列表（支持 `city`, `level`, `status`, `name` 检索与分页） |
+| `/admin/attractions/:id/verify` | POST | 景区快速核验/驳回（更新 `verification_status`、`confidence` 并留审计） |
+| `/admin/attractions/:id` | PUT | 景区核心事实修改（名称、票价、开放时间、等级、描述等） |
+| `/admin/attractions/hours/review` | GET | 营业时段候选审核列表（聚合官方时段与高德二级候选时段进行差异比对） |
+| `/admin/attractions/hours/:id/adopt` | POST | 采纳高德营业时段（将候选升级为 `verified`，同时同步回 `attractions` 表） |
+| `/admin/attractions/hours/:id/reject` | POST | 驳回营业时段候选 |
+| `/admin/reviews` | GET | 通用数据审核队列 |
+| `/admin/reviews/:id/approve` | POST | 采纳审核项并自动合并入库 |
+| `/admin/reviews/:id/reject` | POST | 驳回审核项 |
+| `/admin/users` | GET | 用户管理列表（支持分页与角色筛选） |
+| `/admin/users/:id/role` | PUT | 用户角色调整（`user` / `admin`），禁止降级自身 |
+| `/admin/audit-logs` | GET | 管理员全量审计日志检索（操作人、动作、资源、变更快照、IP） |
+
+### 9.2 数据巡检与 Worker 任务（`apps/worker/src/main.rs`）
+
+- **超期巡检 (`run_stale_check`)**：每 24h 扫描核验时间超过 90 天的可变事实，自动将 `verified` 降级为 `stale`，提示人工或定时爬虫复查。
+- **孤儿清理 (`run_orphan_cleanup`)**：自动清理软删除遗留或未绑定有效景区的孤立时段/标签行。
+- **审核流**：`高德/采集发现差异 → pending → Admin人工比对采纳/驳回 → verified 升级`，全流程触发审计日志，严禁未经核对自动覆盖门票与营业时间。
 
 ## 10. 安全与隐私
 
-- Key、连接串仅存后端/密钥管理；`.env` 不进 Git。
-- 用户：GPS、行程、收藏、反馈默认仅本人可见；导出/删除走账号设置（预留 GDPR/个保法接口形状即可，V0.1 至少做「删除账号」清理任务）。
-- 限流：AI 接口按用户/IP 限流（Redis token bucket）。
-- Admin 操作全量审计日志。
+- **密钥治理**：Key、连接串仅存后端环境变量或密钥系统；生产环境拒绝默认密钥与通配 CORS。
+- **用户隐私**：GPS、行程、收藏、反馈默认仅本人可见；支持 `DELETE /api/v1/auth/me` 物理注销清理。
+- **分级限流（`crates/common/src/rate_limit.rs`）**：
+  - 基于 Redis 令牌桶算法，在 Redis 故障或离线时平滑降级为进程内 DashMap 内存限流。
+  - 限流配额：AI 规划（5 次/分/用户或IP）、AI 会话（10 次/分）、通用接口（60 次/分）。
+  - 超限响应：统一返回 HTTP 429 与 `{ "code": "RATE_LIMITED", "message": "请求过于频繁，请稍后再试" }`，附带 `Retry-After: 60`。
+- **全量审计日志**：
+  - `admin_audit_log` 数据表记录所有 Admin 级写操作（`operator_id`, `action`, `resource_type`, `resource_id`, `changes_json`, `ip`），不可被修改或覆写。
 
 ## 11. 非功能约定
 

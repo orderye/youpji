@@ -66,3 +66,49 @@ pub async fn upsert_preferences(
     .await?;
     Ok(())
 }
+
+#[derive(Debug, sqlx::FromRow, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct UserAdminRow {
+    pub id: Uuid,
+    pub phone: Option<String>,
+    pub email: Option<String>,
+    pub display_name: Option<String>,
+    pub role: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+pub async fn admin_list_users(
+    state: &AppState,
+    limit: i64,
+    offset: i64,
+) -> ApiResult<Vec<UserAdminRow>> {
+    let rows = sqlx::query_as::<_, UserAdminRow>(
+        r#"SELECT id, phone, email, display_name, role, created_at
+           FROM users
+           ORDER BY created_at DESC
+           LIMIT $1 OFFSET $2"#,
+    )
+    .bind(limit.clamp(1, 100))
+    .bind(offset.max(0))
+    .fetch_all(&state.pool)
+    .await?;
+    Ok(rows)
+}
+
+pub async fn admin_update_role(state: &AppState, id: Uuid, new_role: &str) -> ApiResult<()> {
+    if new_role != "admin" && new_role != "user" {
+        return Err(common::error::ApiError::BadRequest(
+            "invalid role, must be user or admin".into(),
+        ));
+    }
+    let res = sqlx::query("UPDATE users SET role = $1, updated_at = now() WHERE id = $2")
+        .bind(new_role)
+        .bind(id)
+        .execute(&state.pool)
+        .await?;
+    if res.rows_affected() == 0 {
+        return Err(common::error::ApiError::NotFound("user not found".into()));
+    }
+    Ok(())
+}

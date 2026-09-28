@@ -24,6 +24,8 @@ use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use uuid::Uuid;
 
+pub mod admin;
+
 /// 构造应用（阶段 6.2：集成测试复用同一 router）。
 pub fn build_router(config: Config, state: AppState) -> Router {
     let cors = if config.cors_origins.iter().any(|o| o == "*") {
@@ -45,9 +47,10 @@ pub fn build_router(config: Config, state: AppState) -> Router {
 
     Router::new()
         .route("/health", get(health))
+        .nest("/api/v1/admin", admin::admin_routes())
         .route("/api/v1/auth/register", post(auth_register))
         .route("/api/v1/auth/login", post(auth_login))
-        .route("/api/v1/auth/me", get(auth_me))
+        .route("/api/v1/auth/me", get(auth_me).delete(auth_delete_me))
         .route("/api/v1/destinations", get(destinations_list))
         .route("/api/v1/attractions", get(attractions_list))
         .route("/api/v1/attractions/{id}", get(attraction_detail))
@@ -60,9 +63,15 @@ pub fn build_router(config: Config, state: AppState) -> Router {
         .route("/api/v1/travel/plan", post(travel_plan))
         .route("/api/v1/travel/replan", post(travel_replan))
         .route("/api/v1/itineraries/{id}", get(itinerary_get))
+        .route("/api/v1/itineraries/{id}/start", post(itinerary_start))
+        .route(
+            "/api/v1/itineraries/{id}/feedback",
+            post(itinerary_feedback),
+        )
         .route("/api/v1/itineraries", get(itinerary_list))
         .route("/api/v1/preferences", get(pref_get).put(pref_put))
         .route("/api/v1/recommendations", get(recos))
+        .route("/api/v1/ai/chat", post(ai_chat_handler))
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .with_state(state)
@@ -152,7 +161,7 @@ fn bearer(headers: &HeaderMap) -> ApiResult<String> {
         .ok_or_else(|| ApiError::Unauthorized("missing bearer token".into()))
 }
 
-async fn current_user(state: &AppState, headers: &HeaderMap) -> ApiResult<SessionUser> {
+pub(crate) async fn current_user(state: &AppState, headers: &HeaderMap) -> ApiResult<SessionUser> {
     let token = bearer(headers)?;
     // 阶段 5.1：标准 JWT 校验（不再使用进程内 session 表）
     let (id, role) = auth::parse_token_with_secret(&state.config.jwt_secret, &token)?;
@@ -205,6 +214,15 @@ async fn auth_login(
 async fn auth_me(State(state): State<AppState>, headers: HeaderMap) -> ApiResult<Json<Value>> {
     let u = current_user(&state, &headers).await?;
     Ok(Json(json!(u)))
+}
+
+async fn auth_delete_me(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> ApiResult<Json<Value>> {
+    let u = current_user(&state, &headers).await?;
+    auth::delete_account(&state, u.user_id).await?;
+    Ok(Json(json!({"ok": true, "deleted_user_id": u.user_id})))
 }
 
 async fn destinations_list(
@@ -298,7 +316,13 @@ async fn recos(
 }
 
 /// POST /travel/parse：RuleParser → RequestValidator（阶段 2 验收）。
-async fn travel_parse(Json(input): Json<Value>) -> ApiResult<Json<Value>> {
+async fn travel_parse(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(input): Json<Value>,
+) -> ApiResult<Json<Value>> {
+    let client_id = bearer(&headers).unwrap_or_else(|_| "anonymous_client".into());
+    common::check_rate_limit(&state, "parse", &client_id, 60, 60).await?;
     let text = input["text"].as_str().unwrap_or_default();
     if text.trim().is_empty() {
         return Err(ApiError::BadRequest("text required".into()));
@@ -322,6 +346,9 @@ async fn travel_plan(
     headers: HeaderMap,
     Json(mut body): Json<PlanBody>,
 ) -> ApiResult<Json<Value>> {
+    let client_id = bearer(&headers).unwrap_or_else(|_| "anonymous_client".into());
+    common::check_rate_limit(&state, "plan", &client_id, 30, 60).await?;
+
     // 幂等（阶段 5.4）：同一 Idempotency-Key 不产生重复行程
     let idem = idempotency_key(&headers, "plan");
     if let Some(key) = &idem {
@@ -396,6 +423,9 @@ async fn travel_replan(
     headers: HeaderMap,
     Json(body): Json<ReplanBody>,
 ) -> ApiResult<Json<Value>> {
+    let client_id = bearer(&headers).unwrap_or_else(|_| "anonymous_client".into());
+    common::check_rate_limit(&state, "replan", &client_id, 30, 60).await?;
+
     // 行程默认私有：必须登录且是归属人（或 admin），否则不得编辑
     let u = current_user(&state, &headers).await?;
     let owner = itinerary::owner_of(&state, body.itinerary_id).await?;
@@ -413,6 +443,44 @@ async fn travel_replan(
         common::state::idempotency_put(&state, key, resp.clone()).await;
     }
     Ok(Json(resp))
+}
+
+async fn itinerary_start(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    headers: HeaderMap,
+) -> ApiResult<Json<Value>> {
+    let u = current_user(&state, &headers).await?;
+    itinerary::start_itinerary(&state, id, u.user_id, &u.role).await?;
+    Ok(Json(serde_json::json!({
+        "ok": true,
+        "id": id,
+        "status": "in_progress"
+    })))
+}
+
+async fn itinerary_feedback(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    headers: HeaderMap,
+    Json(input): Json<itinerary::FeedbackInput>,
+) -> ApiResult<Json<Value>> {
+    let u = current_user(&state, &headers).await?;
+    let fid = itinerary::submit_feedback(&state, id, u.user_id, &u.role, input).await?;
+    Ok(Json(serde_json::json!({
+        "ok": true,
+        "feedback_id": fid
+    })))
+}
+
+async fn ai_chat_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(req): Json<ai::ChatRequest>,
+) -> ApiResult<Json<ai::ChatResponse>> {
+    let client_id = bearer(&headers).unwrap_or_else(|_| "anonymous_client".into());
+    common::check_rate_limit(&state, "chat", &client_id, 30, 60).await?;
+    ai::handle_chat(&state, req).await.map(Json)
 }
 
 async fn itinerary_get(

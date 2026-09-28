@@ -7,12 +7,14 @@ use common::state::AppState;
 use route::PlanRequest;
 use serde_json::Value;
 
+pub mod chat;
 pub mod request;
 pub mod rules;
 
 #[cfg(test)]
 mod rules_tests;
 
+pub use chat::{handle_chat, ChatRequest, ChatResponse};
 pub use request::{validate_request, TransportMode};
 pub use rules::parse_natural_text;
 

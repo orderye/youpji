@@ -17,6 +17,7 @@ route.workspace = true
 recommendation.workspace = true
 weather.workspace = true
 ai.workspace = true
+review.workspace = true
 anyhow.workspace = true
 axum.workspace = true
 chrono.workspace = true

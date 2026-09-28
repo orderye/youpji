@@ -67,6 +67,7 @@ dependencies = [
  "redis",
  "reqwest",
  "restaurant",
+ "review",
  "route",
  "serde",
  "serde_json",
@@ -1624,6 +1625,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "review"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "common",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "ring"
 version = "0.17.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2488,6 +2504,7 @@ name = "user"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "common",
  "serde",
  "serde_json",

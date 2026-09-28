@@ -18,6 +18,7 @@ members = [
     "crates/recommendation",
     "crates/weather",
     "crates/ai",
+    "crates/review",
 ]
 
 [workspace.package]
@@ -72,6 +73,7 @@ route = { path = "crates/route" }
 recommendation = { path = "crates/recommendation" }
 weather = { path = "crates/weather" }
 ai = { path = "crates/ai" }
+review = { path = "crates/review" }
 
 [profile.release]
 lto = "thin"

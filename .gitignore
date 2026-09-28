@@ -5,6 +5,7 @@ node_modules/
 .env
 *.log
 dist/
+!youpji/admin/dist/
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
