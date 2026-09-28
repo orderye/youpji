@@ -1,0 +1,14 @@
+{
+  "name": "youpji",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "seed": "node scripts/seed.mjs",
+    "check:backend": "cd youpji/backend && cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace --all-targets"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
+}
+

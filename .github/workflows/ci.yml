@@ -1,0 +1,90 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  BACKEND_DIR: youpji/backend
+
+jobs:
+  rust:
+    name: fmt / clippy / test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: youpji/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            youpji/backend -> target
+      - name: fmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: test
+        run: cargo test --workspace --all-targets
+
+  migrations:
+    name: migrations + seed
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: youpji
+          POSTGRES_PASSWORD: youpji_dev
+          POSTGRES_DB: youpji
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U youpji -d youpji"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://youpji:youpji_dev@127.0.0.1:5432/youpji
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            youpji/backend -> target
+      - name: apply migrations
+        working-directory: youpji/backend
+        run: |
+          for f in migrations/*.sql; do
+            echo "::group::$f"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
+            echo "::endgroup::"
+          done
+      - name: apply seed
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f youpji/data/seed/seed.sql
+          psql "$DATABASE_URL" -c "SELECT count(*) AS attractions FROM attractions;" \
+                               -c "SELECT count(*) AS hotels FROM hotels;" \
+                               -c "SELECT count(*) AS restaurants FROM restaurants;"
+      - name: integration test (e2e_anshun)
+        working-directory: youpji/backend
+        run: cargo test --workspace --all-targets -- --ignored --nocapture
+
+  docker:
+    name: image build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: build api/worker/scheduler image
+        uses: docker/build-push-action@v6
+        with:
+          context: youpji/backend
+          file: youpji/backend/docker/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,78 @@
+# youpji workspace
+[workspace]
+resolver = "2"
+members = [
+    "apps/api",
+    "apps/worker",
+    "apps/scheduler",
+    "crates/common",
+    "crates/auth",
+    "crates/user",
+    "crates/destination",
+    "crates/attraction",
+    "crates/hotel",
+    "crates/restaurant",
+    "crates/content",
+    "crates/itinerary",
+    "crates/route",
+    "crates/recommendation",
+    "crates/weather",
+    "crates/ai",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.85"
+
+[workspace.dependencies]
+anyhow = "1"
+async-trait = "0.1"
+axum = { version = "0.8", features = ["macros"] }
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", features = [
+    "runtime-tokio",
+    "tls-rustls",
+    "postgres",
+    "uuid",
+    "chrono",
+    "json",
+    "migrate",
+] }
+tokio = { version = "1", features = ["full"] }
+tower = "0.5"
+http-body-util = "0.1"
+tower-http = { version = "0.6", features = ["trace", "cors", "limit"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+uuid = { version = "1", features = ["serde", "v7"] }
+thiserror = "2"
+dotenvy = "0.15"
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+utoipa = { version = "5", features = ["chrono", "uuid"] }
+utoipa-axum = "0.2"
+utoipa-swagger-ui = { version = "9", features = ["axum"] }
+
+# shared across crates
+common = { path = "crates/common" }
+auth = { path = "crates/auth" }
+user = { path = "crates/user" }
+destination = { path = "crates/destination" }
+attraction = { path = "crates/attraction" }
+hotel = { path = "crates/hotel" }
+restaurant = { path = "crates/restaurant" }
+content = { path = "crates/content" }
+itinerary = { path = "crates/itinerary" }
+route = { path = "crates/route" }
+recommendation = { path = "crates/recommendation" }
+weather = { path = "crates/weather" }
+ai = { path = "crates/ai" }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

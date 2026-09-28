@@ -1,0 +1,38 @@
+[package]
+name = "api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+common.workspace = true
+auth.workspace = true
+user.workspace = true
+destination.workspace = true
+attraction.workspace = true
+hotel.workspace = true
+restaurant.workspace = true
+content.workspace = true
+itinerary.workspace = true
+route.workspace = true
+recommendation.workspace = true
+weather.workspace = true
+ai.workspace = true
+anyhow.workspace = true
+axum.workspace = true
+chrono.workspace = true
+dotenvy.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+reqwest.workspace = true
+redis.workspace = true
+
+[dev-dependencies]
+http-body-util.workspace = true
+tower = { workspace = true, features = ["util"] }

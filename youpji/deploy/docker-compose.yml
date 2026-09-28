@@ -1,0 +1,117 @@
+# 游迹 V0.1 本地/生产编排（DESIGN.md §12）
+# 服务名固定：postgres redis api worker scheduler web admin
+# web / admin 属于前端产物，目录尚未生成，默认置于 profile 不启动：
+#   docker compose --profile web --profile admin up -d
+name: youpji
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgres://youpji:youpji_dev@postgres:5432/youpji
+  REDIS_URL: redis://redis:6379
+  JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+  CORS_ORIGINS: ${CORS_ORIGINS:-*}
+  RUST_LOG: ${RUST_LOG:-info,tower_http=warn}
+  AMAP_KEY: ${AMAP_KEY:-}
+  AI_BASE_URL: ${AI_BASE_URL:-}
+  AI_API_KEY: ${AI_API_KEY:-}
+  OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: youpji-postgres
+    environment:
+      POSTGRES_USER: youpji
+      POSTGRES_PASSWORD: youpji_dev
+      POSTGRES_DB: youpji
+    ports:
+      - "5433:5432"
+    volumes:
+      - youpji_pgdata:/var/lib/postgresql/data
+      - ../backend/migrations/docker-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U youpji -d youpji"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: youpji-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - youpji_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: docker/Dockerfile
+    container_name: youpji-api
+    environment:
+      <<: *backend-env
+      BIND: 0.0.0.0:8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ../backend
+      dockerfile: docker/Dockerfile
+    command: ["youpji-worker"]
+    container_name: youpji-worker
+    environment: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: ../backend
+      dockerfile: docker/Dockerfile
+    command: ["youpji-scheduler"]
+    container_name: youpji-scheduler
+    environment: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  admin:
+    profiles: ["admin"]
+    image: nginx:alpine
+    container_name: youpji-admin
+    volumes:
+      - ../admin/dist:/usr/share/nginx/html:ro
+    ports:
+      - "8088:80"
+    restart: unless-stopped
+
+  web:
+    profiles: ["web"]
+    image: nginx:alpine
+    container_name: youpji-web
+    volumes:
+      - ../frontend/out:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  youpji_pgdata:
+  youpji_redis:

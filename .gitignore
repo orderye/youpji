@@ -1,0 +1,13 @@
+target/
+backend/target/
+node_modules/
+.DS_Store
+.env
+*.log
+dist/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.dart_tool/
+.sqlx/
+

@@ -1,0 +1,17 @@
+[package]
+name = "itinerary"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+common.workspace = true
+route.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+uuid.workspace = true

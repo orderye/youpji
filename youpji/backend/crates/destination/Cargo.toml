@@ -1,0 +1,13 @@
+[package]
+name = "destination"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+common.workspace = true
+anyhow.workspace = true
+axum.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+uuid.workspace = true

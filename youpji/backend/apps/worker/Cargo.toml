@@ -1,0 +1,20 @@
+[package]
+name = "worker"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+common.workspace = true
+attraction.workspace = true
+content.workspace = true
+hotel.workspace = true
+restaurant.workspace = true
+weather.workspace = true
+anyhow.workspace = true
+chrono.workspace = true
+dotenvy.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
