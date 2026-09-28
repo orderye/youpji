@@ -21,6 +21,7 @@ pub fn admin_routes() -> Router<AppState> {
         )
         .route("/attractions/{id}/verify", post(admin_attraction_verify))
         .route("/hours-review", get(admin_hours_review_list))
+        .route("/hours-review/batch-adopt", post(admin_hours_batch_adopt))
         .route("/hours-review/{id}/approve", post(admin_hours_approve))
         .route("/hours-review/{id}/reject", post(admin_hours_reject))
         .route("/data-reviews", get(admin_data_reviews_list))
@@ -129,6 +130,24 @@ async fn admin_hours_review_list(
     )
     .await?;
     Ok(Json(rows))
+}
+
+#[derive(Debug, Deserialize)]
+struct BatchAdoptHoursBody {
+    hours_ids: Vec<Uuid>,
+    writeback: Option<bool>,
+}
+
+async fn admin_hours_batch_adopt(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<BatchAdoptHoursBody>,
+) -> ApiResult<Json<review::BatchAdoptResult>> {
+    let admin = require_admin_user(&state, &headers).await?;
+    let writeback = body.writeback.unwrap_or(true);
+    let result =
+        review::batch_approve_hours(&state.pool, &body.hours_ids, admin.user_id, writeback).await?;
+    Ok(Json(result))
 }
 
 #[derive(Debug, Deserialize)]

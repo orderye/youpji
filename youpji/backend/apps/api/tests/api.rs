@@ -274,6 +274,7 @@ async fn ai_chat_returns_structured_response() {
     assert_eq!(resp.status(), StatusCode::OK);
     let v = json_of(resp).await;
     assert!(v["reply"].as_str().unwrap().contains("黄果树"));
+    assert!(v["session_id"].as_str().is_some());
     assert!(v["sources"].as_array().is_some());
     assert!(v["suggestions"].as_array().is_some());
 }

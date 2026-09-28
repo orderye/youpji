@@ -216,11 +216,33 @@ async fn auth_me(State(state): State<AppState>, headers: HeaderMap) -> ApiResult
     Ok(Json(json!(u)))
 }
 
+#[derive(Debug, Deserialize, Default)]
+struct DeleteMeQuery {
+    confirm: Option<String>,
+}
+
 async fn auth_delete_me(
     State(state): State<AppState>,
     headers: HeaderMap,
+    Query(q): Query<DeleteMeQuery>,
+    body_bytes: axum::body::Bytes,
 ) -> ApiResult<Json<Value>> {
     let u = current_user(&state, &headers).await?;
+    let body_confirm = if !body_bytes.is_empty() {
+        serde_json::from_slice::<Value>(&body_bytes)
+            .ok()
+            .and_then(|v| {
+                v.get("confirm")
+                    .and_then(|c| c.as_str().map(|s| s.to_string()))
+            })
+    } else {
+        None
+    };
+    if q.confirm.as_deref() != Some("DELETE") && body_confirm.as_deref() != Some("DELETE") {
+        return Err(common::error::ApiError::BadRequest(
+            "Account deletion is irreversible. Please confirm with ?confirm=DELETE or body {\"confirm\":\"DELETE\"}".into(),
+        ));
+    }
     auth::delete_account(&state, u.user_id).await?;
     Ok(Json(json!({"ok": true, "deleted_user_id": u.user_id})))
 }
@@ -455,7 +477,7 @@ async fn itinerary_start(
     Ok(Json(serde_json::json!({
         "ok": true,
         "id": id,
-        "status": "in_progress"
+        "status": "active"
     })))
 }
 

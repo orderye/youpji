@@ -107,7 +107,7 @@ services:
     image: nginx:alpine
     container_name: youpji-web
     volumes:
-      - ../frontend/out:/usr/share/nginx/html:ro
+      - ../frontend/build/web:/usr/share/nginx/html:ro
     ports:
       - "8080:80"
     restart: unless-stopped

@@ -287,21 +287,22 @@ cursor 对调用方不透明（V0.1 为偏移编码，后续可换 keyset 而不
 
 - **行程开始**：`POST /api/v1/itineraries/:id/start`
   - 鉴权：必须登录且仅限行程本人（或 admin）。
-  - 动作：将 `itineraries.status` 由 `draft` 推进至 `in_progress`，记录实际执行状态。
+  - 动作：将 `itineraries.status` 由 `draft`/`confirmed` 推进至 `active`（兼容 `in_progress`），记录实际执行状态。
 - **行程反馈**：`POST /api/v1/itineraries/:id/feedback`
   - 请求体：`{ "rating": 1..5, "comment": "...", "images": [...] }`
-  - 动作：向 `user_feedback` 写入用户对行程的体验评分与反馈建议，用于推荐模型调优。
+  - 动作：向 `user_feedback` 写入用户对行程的体验评分与反馈建议（支持附图数组），用于推荐模型调优。
 
 ### 8.5 AI 智能对话契约（`POST /api/v1/ai/chat`）
 
 - **AI 边界铁律落点**：用户旅行咨询与问答入口。支持云端 LLM 代理转发与本地事实规则降级引擎。
 - 输入：`{ "message": "...", "session_id": "...", "context": {} }`
-- 响应：`{ "reply": "...", "session_id": "...", "suggestions": [...], "facts": [...] }`
-- **铁律硬约束**：回答中涉及票价、营业时间等事实字段，必须经过系统事实校验或带来源标注；对于未验证实体，系统在 `facts` 中标明 `verification_status: unverified`，禁止由大模型凭空断言。
+- 响应：`{ "reply": "...", "session_id": "...", "suggestions": [...], "sources": [...] }`
+- **铁律硬约束**：回答中涉及票价、营业时间等事实字段，必须经过系统事实校验或带来源标注；对于未验证实体，系统在 `sources` 中标明参考来源，禁止由大模型凭空断言。
 
 ### 8.6 账号注销契约（`DELETE /api/v1/auth/me`）
 
 - 鉴权：必须携带有效 JWT 证明本人身份。
+- 防误删确认：必须携带 `?confirm=DELETE` 查询参数或请求体 `{"confirm":"DELETE"}`，否则返回 `400 BAD_REQUEST`。
 - 级联清理：在单事务内注销账号并物理清理/匿名化该用户的行程、收藏、偏好与个人轨迹数据，满足个保法与 GDPR 合规硬要求。
 
 ## 9. 后台与数据治理
@@ -316,9 +317,10 @@ cursor 对调用方不透明（V0.1 为偏移编码，后续可换 keyset 而不
 | `/admin/attractions` | GET | 景区管理列表（支持 `city`, `level`, `status`, `name` 检索与分页） |
 | `/admin/attractions/:id/verify` | POST | 景区快速核验/驳回（更新 `verification_status`、`confidence` 并留审计） |
 | `/admin/attractions/:id` | PUT | 景区核心事实修改（名称、票价、开放时间、等级、描述等） |
-| `/admin/attractions/hours/review` | GET | 营业时段候选审核列表（聚合官方时段与高德二级候选时段进行差异比对） |
-| `/admin/attractions/hours/:id/adopt` | POST | 采纳高德营业时段（将候选升级为 `verified`，同时同步回 `attractions` 表） |
-| `/admin/attractions/hours/:id/reject` | POST | 驳回营业时段候选 |
+| `/admin/hours-review` | GET | 营业时段候选审核列表（聚合官方时段与高德二级候选时段进行差异比对） |
+| `/admin/hours-review/batch-adopt` | POST | 批量采纳营业时段候选（一次性升级多个吻合候选，写回主表并记录审计） |
+| `/admin/hours-review/:id/approve` | POST | 采纳高德营业时段（将候选升级为 `verified`，同时同步回 `attractions` 表） |
+| `/admin/hours-review/:id/reject` | POST | 驳回营业时段候选 |
 | `/admin/reviews` | GET | 通用数据审核队列 |
 | `/admin/reviews/:id/approve` | POST | 采纳审核项并自动合并入库 |
 | `/admin/reviews/:id/reject` | POST | 驳回审核项 |

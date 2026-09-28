@@ -1013,7 +1013,7 @@ pub async fn start_itinerary(
 ) -> ApiResult<()> {
     let owner = owner_of(state, id).await?;
     ensure_owner(owner, user_id, role)?;
-    sqlx::query("UPDATE itineraries SET status = 'in_progress', updated_at = now() WHERE id = $1")
+    sqlx::query("UPDATE itineraries SET status = 'active', updated_at = now() WHERE id = $1")
         .bind(id)
         .execute(&state.pool)
         .await?;
@@ -1024,6 +1024,8 @@ pub async fn start_itinerary(
 pub struct FeedbackInput {
     pub rating: Option<i16>,
     pub comment: Option<String>,
+    #[serde(default)]
+    pub images: Option<Vec<String>>,
 }
 
 /// 提交行程反馈（DESIGN.md §8: POST /api/v1/itineraries/{id}/feedback）
@@ -1036,15 +1038,18 @@ pub async fn submit_feedback(
 ) -> ApiResult<Uuid> {
     let owner = owner_of(state, id).await?;
     ensure_owner(owner, user_id, role)?;
+    let images_json =
+        serde_json::to_value(input.images.unwrap_or_default()).unwrap_or(serde_json::json!([]));
     let fid: Uuid = sqlx::query_scalar(
-        r#"INSERT INTO user_feedback (user_id, itinerary_id, rating, comment, created_at)
-           VALUES ($1, $2, $3, $4, now())
+        r#"INSERT INTO user_feedback (user_id, itinerary_id, rating, comment, images, created_at)
+           VALUES ($1, $2, $3, $4, $5, now())
            RETURNING id"#,
     )
     .bind(user_id)
     .bind(id)
     .bind(input.rating)
     .bind(input.comment)
+    .bind(images_json)
     .fetch_one(&state.pool)
     .await?;
     Ok(fid)

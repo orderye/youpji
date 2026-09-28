@@ -580,3 +580,36 @@ pub async fn list_audit_logs(pool: &PgPool, limit: i64) -> ApiResult<Vec<AdminAu
 
     Ok(rows)
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BatchAdoptResult {
+    pub total: usize,
+    pub adopted: usize,
+    pub failed_ids: Vec<Uuid>,
+}
+
+pub async fn batch_approve_hours(
+    pool: &PgPool,
+    hours_ids: &[Uuid],
+    admin_id: Uuid,
+    writeback: bool,
+) -> ApiResult<BatchAdoptResult> {
+    let mut adopted = 0;
+    let mut failed_ids = Vec::new();
+
+    for &id in hours_ids {
+        match approve_hours(pool, id, admin_id, writeback).await {
+            Ok(()) => adopted += 1,
+            Err(e) => {
+                tracing::warn!(id = %id, error = %e, "batch approve hours failed for item");
+                failed_ids.push(id);
+            }
+        }
+    }
+
+    Ok(BatchAdoptResult {
+        total: hours_ids.len(),
+        adopted,
+        failed_ids,
+    })
+}

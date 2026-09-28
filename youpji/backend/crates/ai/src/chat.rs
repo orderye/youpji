@@ -7,21 +7,28 @@ use serde_json::{json, Value};
 pub struct ChatRequest {
     pub message: String,
     #[serde(default)]
+    pub session_id: Option<String>,
+    #[serde(default)]
     pub context: Option<Value>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct ChatResponse {
     pub reply: String,
+    pub session_id: String,
     pub sources: Vec<String>,
     pub suggestions: Vec<String>,
 }
 
 pub async fn handle_chat(state: &AppState, req: ChatRequest) -> ApiResult<ChatResponse> {
+    let session_id = req
+        .session_id
+        .unwrap_or_else(|| uuid::Uuid::now_v7().to_string());
     let msg = req.message.trim();
     if msg.is_empty() {
         return Ok(ChatResponse {
             reply: "您好！我是游迹 AI 旅游助手。请告诉我您想去贵州哪里游玩、玩几天、预算多少，我来为您规划！".into(),
+            session_id,
             sources: vec![],
             suggestions: vec!["贵阳到安顺两日游".into(), "黄果树瀑布最佳游览时间".into(), "贵阳美食推荐".into()],
         });
@@ -50,6 +57,7 @@ pub async fn handle_chat(state: &AppState, req: ChatRequest) -> ApiResult<ChatRe
                 if let Some(content) = v["choices"][0]["message"]["content"].as_str() {
                     return Ok(ChatResponse {
                         reply: content.to_string(),
+                        session_id: session_id.clone(),
                         sources: vec!["云端 AI 助理".into()],
                         suggestions: vec!["生成详细行程方案".into(), "查看相关景区门票".into()],
                     });
@@ -97,6 +105,7 @@ pub async fn handle_chat(state: &AppState, req: ChatRequest) -> ApiResult<ChatRe
 
     Ok(ChatResponse {
         reply,
+        session_id,
         sources,
         suggestions,
     })

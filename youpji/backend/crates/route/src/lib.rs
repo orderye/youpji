@@ -660,7 +660,7 @@ pub async fn plan_with(
         "{}{}日{}",
         req.destination,
         n_days,
-        if matches!(req.transport.as_str(), "self_drive" | "drive") {
+        if matches!(req.transport.as_str(), "self_drive" | "drive" | "driving") {
             "自驾"
         } else {
             "行程"
@@ -762,14 +762,14 @@ pub fn compute_budget(
 ) -> Result<BudgetBreakdown, PlanError> {
     let nights = n_days.max(1);
     let people = req.people.max(1);
-    let self_drive = matches!(req.transport.as_str(), "self_drive" | "drive");
+    let self_drive = matches!(req.transport.as_str(), "self_drive" | "drive" | "driving");
 
     let rooms = (people as usize).div_ceil(rates.people_per_room.max(1) as usize) as i32;
     let lodging = rates.lodging_per_night * nights * rooms;
     let food = rates.food_per_person_day * n_days * people;
     let transport_cost = if self_drive {
         (total_dist * rates.per_km_drive) as i32 + rates.drive_fixed_day * n_days
-    } else if req.transport == "transit" {
+    } else if matches!(req.transport.as_str(), "transit" | "public") {
         rates.transit_per_person_day * n_days * people
     } else {
         rates.other_transport_day * n_days

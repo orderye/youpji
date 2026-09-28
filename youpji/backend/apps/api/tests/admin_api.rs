@@ -270,3 +270,20 @@ async fn admin_routes_with_tampered_token_is_401() {
     assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
     assert_eq!(json_of(resp).await["code"], "UNAUTHORIZED");
 }
+
+#[tokio::test]
+async fn admin_hours_batch_adopt_without_token_is_401() {
+    let resp = test_app()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/admin/hours-review/batch-adopt")
+                .header("content-type", "application/json")
+                .body(Body::from(json!({"hours_ids": []}).to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(json_of(resp).await["code"], "UNAUTHORIZED");
+}
