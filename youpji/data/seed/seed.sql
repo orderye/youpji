@@ -198,10 +198,12 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================================
 -- 景区数据（自动生成，请勿手工编辑）
 -- 生成命令：npm run attractions:build
--- 来源批次：youpji/data/attractions/*.json（4 个分区，事实经官方/政府/平台来源核验）
--- 坐标：OSM/Nominatim WGS-84 → 流水线折算为 GCJ-02，与 DESIGN §4.2 存储口径一致
--- 关卡：无 source_url 的 verified 会被拒绝；无坐标不��库；坐标系无法判定不入库
--- 数量：32 条（铁律目标 100–300，缺口需继续补采）
+-- 票价来源：贵州省人民政府「景点名录」https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/
+--         （一级政府来源，532 家 A 级景区，含是否收门票与政府定价）
+-- 坐标：OSM/Nominatim WGS-84 → 流水线折算为 GCJ-02（DESIGN §4.2 全局统一 GCJ-02）
+-- 开放时间：政府名录不含该字段，故多数记录落 pending；排线时以 08:00-18:00 兜底并告警
+-- 关卡：verified 须票与时间双来源；无坐标不入库；坐标系无法判定不入库
+-- 数量：48 条（名录 532 条中 48 条已取得坐标）
 -- ============================================================
 -- 自动生成，请勿手工编辑
 -- 来源：scripts/import-attractions.mjs 校验通过后输出
@@ -212,6 +214,25 @@ INSERT INTO attractions (
   difficulty, family_score, elderly_score, photography_score, couple_score,
   source_type, source_url, last_verified, verification_status, confidence
 ) VALUES
+  ('赤水丹霞', '赤水丹霞', '遵义', '赤水', 105.744471, 28.356266, '自然景观/丹霞', '5A', '', NULL, NULL, 180, 480, '夏秋', 4, 55, 30, 90, 70, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('赤水丙安古镇', '丙安古镇', '遵义', '赤水', 105.823617, 28.471616, '人文古镇', '4A', '', NULL, NULL, 10, 120, '秋', 2, 55, 40, 80, 65, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.8),
+  ('汇川海龙屯', '海龙屯', '遵义', '汇川', 106.819958, 27.809255, '历史遗迹', '4A', '', NULL, NULL, 65, 150, '秋', 3, 50, 40, 70, 55, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('习水土城古镇', '土城古镇', '遵义', '习水', 106.006248, 28.27297, '红色人文', '4A', '', NULL, NULL, 0, 120, '秋', 2, 55, 45, 70, 60, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.8),
+  ('赤水四洞沟', '四洞沟', '遵义', '赤水', 105.649376, 28.459148, '自然景观/瀑布峡谷', '4A', '', NULL, NULL, 75, 180, '夏', 3, 55, 35, 85, 70, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('仁怀茅台酒镇', '茅台酒镇', '遵义', '仁怀', 106.366169, 27.84047, '人文古镇', '4A', '', NULL, NULL, 0, 180, '全年', 2, 55, 50, 70, 70, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.8),
+  ('绥阳双河洞', '双河洞', '遵义', '绥阳', 107.279289, 28.239989, '自然景观/溶洞', '4A', '', NULL, NULL, 130, 180, '夏', 3, 55, 35, 75, 65, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('仁怀茅台中国酒文化城', '中国酒文化城', '遵义', '仁怀', 106.372481, 27.851876, '人文展馆', '4A', '', NULL, NULL, 60, 120, '全年', 1, 60, 60, 60, 60, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('新蒲水上大天门旅游景区（云门囤景区）', '云门囤', '遵义', '新蒲新区', 107.326356, 27.661134, '自然景观/山水', '4A', '', NULL, NULL, 40, 150, '夏', 3, 55, 35, 80, 70, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('汇川娄山关', '娄山关', '遵义', '汇川', 106.85742, 28.02275, '红色人文', '4A', '', NULL, NULL, 0, 90, '秋', 2, 50, 45, 75, 55, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.8),
+  ('遵义会议会址', '遵义会议会址', '遵义', '红花岗', 106.919902, 27.687963, '红色人文', '4A', '', '08:30', '21:00', 0, 150, '全年', 1, 70, 65, 60, 60, 'official', 'https://www.zunyihy.cn/n167/index.html', now(), 'verified', 0.95),
+  ('百里杜鹃', '百里杜鹃', '毕节', '百里杜鹃管理区', 105.934779, 27.175818, '自然景观/花海', '5A', '', NULL, NULL, 130, 420, '春', 3, 65, 45, 95, 75, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('织金洞', '织金洞', '毕节', '织金', 105.90073, 26.769706, '自然景观/溶洞', '5A', '', '08:30', '17:00', 110, 180, '全年', 3, 60, 40, 85, 70, 'official', 'https://www.zjdgeopark.com/cn/document/785.html', now(), 'verified', 0.95),
+  ('大方奢香古镇', '奢香古镇', '毕节', '大方', 105.605438, 27.187098, '人文古镇', '4A', '', NULL, NULL, 0, 120, '全年', 1, 60, 55, 70, 65, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.8),
+  ('赫章阿西里西韭菜坪', '韭菜坪', '毕节', '赫章', 104.695753, 26.848933, '自然景观/草原', '4A', '', NULL, NULL, 40, 180, '夏', 3, 55, 35, 80, 65, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('赫章阿西里西二台坡', '二台坡', '毕节', '赫章', 104.86403, 27.012074, '自然景观/草原', '4A', '', NULL, NULL, 20, 150, '夏', 2, 55, 40, 75, 60, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('七星关鸡鸣三省', '鸡鸣三省', '毕节', '七星关', 105.309699, 27.702577, '自然景观/峡谷', '4A', '', NULL, NULL, 20, 120, '秋', 2, 55, 40, 75, 60, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.85),
+  ('梵净山', '梵净山西线', '铜仁', '印江', 108.696317, 27.915959, '自然景观/山岳', '5A', '梵净山西线徒步登山入口，官方明确无索道。', '06:30', NULL, 3, 600, '春秋', 5, 15, 5, 88, 60, 'government', 'https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/', NULL, 'pending', 0.8),
+  ('兴义万峰林', '万峰林', '黔西南', '兴义', 104.926075, 24.971762, '自然景观/喀斯特峰林', '5A', '中国锥状喀斯特最典型的发育代表区，峰林与布依村寨田坝相间。', '08:00', '18:00', 70, 300, '春秋', 2, 80, 75, 90, 78, 'official', 'https://www.wanfenglin.cn/piaowuxinxi.html', now(), 'verified', 0.9),
   ('黄果树瀑布景区', '黄果树', '安顺', '镇宁', 105.669501, 25.989091, '自然景观/瀑布', '5A', '以大瀑布、陡坡塘瀑布群、天星桥三片区组成的世界级喀斯特瀑布群', '06:30', '18:30', 160, 300, '夏秋', 3, 70, 40, 95, 80, 'official', 'https://www.hgscn.com/hgs/jqgg/202607/20260709_07479175.shtml', NULL, 'pending', 0.75),
   ('旧州古镇', '旧州', '安顺', '西秀', 106.141053, 26.248915, '历史文化/古镇', '4A', '安顺州古治府所在，2008年入选中国第四批历史文化名镇', NULL, NULL, NULL, 120, '春秋', 1, 55, 65, 65, 60, 'government', 'https://www.anshun.gov.cn/ztzl/rdzt/aswlxhj/360ddj/hxjq/202607/t20260727_90663501.html', NULL, 'unverified', 0.4),
   ('青岩古镇', '青岩', '贵阳', '花溪', 106.687033, 26.330432, '历史文化/古镇', '5A', '始建于明洪武年间的军事屯堡古镇，明清古建筑群保存完整', '08:30', '17:00', 10, 150, '春秋', 1, 70, 60, 75, 70, 'platform', 'https://m.gy.bendibao.com/mip/65209.shtm', NULL, 'pending', 0.6),
@@ -239,9 +260,6 @@ INSERT INTO attractions (
   ('堂安侗寨', '堂安', '黔东南', '黎平', 109.215852, 25.901177, '民族村寨', NULL, '肇兴侗寨群旁的山地侗寨，梯田与鼓楼组合景观', NULL, NULL, NULL, 150, '四季', 2, 58, 60, 78, 70, 'platform', 'https://you.ctrip.com/sight/liping1346/145631.html', NULL, 'pending', 0.55),
   ('瑶山古寨', '瑶山古寨', '黔南', '荔波', 107.777138, 25.236142, '民族村寨', '4A', '白裤瑶族聚居地，毗邻小七孔，含瑶族文化展演', '08:30', '21:30', 50, 180, '四季', 1, 70, 68, 76, 72, 'platform', 'https://gs.ctrip.com/html5/you/sight/libo659/141396.html', NULL, 'pending', 0.7),
   ('水春河景区', '水春河', '黔南', '荔波', 107.924887, 25.468502, '自然景观/峡谷漂流', NULL, '樟江支流峡谷河段，清凉漂流与亲水项目为主', '07:30', '17:00', NULL, 180, '夏', 2, 65, 45, 72, 74, 'platform', 'https://gs.ctrip.com/html5/you/sight/libo659/144189251.html', NULL, 'pending', 0.6),
-  ('兴义万峰林景区', '万峰林', '黔西南', '兴义', 104.926075, 24.971762, '自然景观/喀斯特峰林', '5A', '中国锥状喀斯特最典型的发育代表区，峰林与布依村寨田坝相间。', '08:00', '18:00', 70, 300, '春秋', 2, 80, 75, 90, 78, 'official', 'https://www.wanfenglin.cn/piaowuxinxi.html', now(), 'verified', 0.9),
-  ('梵净山旅游区（东线·江口）', '梵净山东线', '铜仁', '江口', 108.696317, 27.915959, '自然景观/山岳', '5A', '武陵山脉主峰红云金顶所在，世界自然遗产地。', '06:30', NULL, NULL, 480, '春秋', 5, 35, 15, 95, 70, 'official', 'https://fanjingshan.gz.cn/?p=11957', NULL, 'pending', 0.75),
-  ('梵净山旅游区（西线·印江）', '梵净山西线', '铜仁', '印江', 108.696317, 27.915959, '自然景观/山岳', '5A', '梵净山西线徒步登山入口，官方明确无索道。', '06:30', NULL, NULL, 600, '春秋', 5, 15, 5, 88, 60, 'official', 'https://fanjingshan.gz.cn/?p=11957', NULL, 'pending', 0.7),
   ('马岭河峡谷风景名胜区', '马岭河峡谷', '黔西南', '兴义', 104.956847, 25.135696, '自然景观/峡谷', '4A', '兴义城东北的地缝型喀斯特峡谷，谷内瀑布群密集。', NULL, NULL, NULL, 240, '夏秋', 4, 55, 30, 88, 72, 'official', 'https://www.wanfenglin.com/malinghedaxiagu/898.html', NULL, 'unverified', 0.3),
   ('万峰湖景区', '万峰湖', '黔西南', '兴义', 104.863727, 24.732744, '自然景观/湖泊', NULL, '天生桥水电站形成的高原人工淡水湖，中国第一大人工湖。', NULL, NULL, NULL, 180, '春秋', 1, 65, 70, 78, 70, 'official', 'https://www.wanfenglin.com/wanfenghu/417.html', NULL, 'unverified', 0.3)
 ON CONFLICT DO NOTHING;

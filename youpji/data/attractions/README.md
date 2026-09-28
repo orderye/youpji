@@ -5,12 +5,22 @@
 
 ## 目录
 
-| 文件 | 覆盖区域 | 条数 |
-|---|---|---|
-| `anshun-guiyang.json` | 贵阳 · 安顺 | 10 |
-| `tongren-qianxinan.json` | 铜仁 · 黔西南 | 5 |
-| `liupanshui.json` | 六盘水 | 9 |
-| `qandongnan-qiannan.json` | 黔东南 · 黔南 | 14 |
+| 文件 | 覆盖区域 | 条数 | 作用 |
+|---|---|---|---|
+| `gov-registry.json` | 贵州全省 | 532 | **价格权威**：省政府「景点名录」自动生成 |
+| `anshun-guiyang.json` | 贵阳 · 安顺 | 10 | 补坐标/时间/分类评分 |
+| `tongren-qianxinan.json` | 铜仁 · 黔西南 | 5 | 补坐标/时间/分类评分 |
+| `liupanshui.json` | 六盘水 | 9 | 补坐标/时间/分类评分 |
+| `qandongnan-qiannan.json` | 黔东南 · 黔南 | 14 | 补坐标/时间/分类评分 |
+| `zunyi-bijie.json` | 遵义 · 毕节 | 17 | 补坐标/时间/分类评分 |
+
+名录来源：<https://www.guizhou.gov.cn/ztzl/wzgz/yzgz/jdml/>
+由 `scripts/import-gov-registry.mjs` 解析入库，含「是否收门票」与「门票价格（元）」字段。
+票价取字段中第一个数字（对应成人/门票/旺季主档），原文全文写入 `note` 供人工复核。
+
+> 名录**不含开放时间**，因此这些记录一律 `pending` 而非 `verified`
+> （校验规则要求票价与时间双来源）。排线时营业时间以 08:00–18:00 兜底并打
+> `unverified_fact` 警告。开闭园时间需另行采集。
 
 ## 流水线
 
@@ -57,6 +67,20 @@ Nominatim 会把同名地物当成景区，解析器已加三重过滤：
 
 ## 当前状态
 
-入库 32 条（5A 6 · 4A 14 · 3A 1 · 未定级 11），
-铁律目标 100–300，缺口需继续补采。
-详见 `Docs/` 下的阶段报告。
+- 名录解析 532 条，其中 **48 条已取得坐标并入库**
+  （verified 6 / pending 36 / unverified 6）
+- 铁律目标 100–300：**缺口 52 条，全部卡在坐标，不是票价**
+- 政府名录已提供 529 个官方票价，票价侧不再是瓶颈
+
+## 批量补坐标的约束
+
+`GEOCODE_LIMIT` 控制单轮查询条数（默认 120），按 5A→4A→3A 优先：
+
+```bash
+GEOCODE_LIMIT=60 npm run attractions:build     # 每次补 60 条
+GEOCODE_LIMIT=0   npm run attractions:build     # 只用已有坐标，产出 SQL
+```
+
+Nominatim 有限流（HTTP 429），触发后自动冷却 10 分钟。已补全的坐标
+写回源文件，重复运行不会浪费配额。**要一次补齐 500+ 条需配置 `AMAP_KEY`**：
+高德 POI 搜索原生返回 GCJ-02，省掉折算且配额更高。

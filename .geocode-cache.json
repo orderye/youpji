@@ -192,5 +192,33 @@
     "osm_type": "relation",
     "osm_id": 286450,
     "matched_name": "万峰湖, 兴义市, 安龙县, 黔西南布依族苗族自治州, 贵州省, 中国"
+  },
+  "贵阳|花溪青岩古镇": {
+    "ok": false,
+    "reason": "Nominatim 限流(429)，已冷却 10 分钟；批量补坐标请配置 AMAP_KEY"
+  },
+  "贵阳|乌当万象温泉": {
+    "ok": false,
+    "reason": "Nominatim 限流(429)，已冷却 10 分钟；批量补坐标请配置 AMAP_KEY"
+  },
+  "贵阳|白云泉湖公园": {
+    "ok": false,
+    "reason": "Nominatim 限流(429)，已冷却 10 分钟；批量补坐标请配置 AMAP_KEY"
+  },
+  "贵阳|乌当乐湾国际温泉": {
+    "ok": false,
+    "reason": "Nominatim 限流(429)，已冷却 10 分钟；批量补坐标请配置 AMAP_KEY"
+  },
+  "贵阳|双龙多彩贵州风景眼文化创意园": {
+    "ok": false,
+    "reason": "Nominatim 限流(429)，已冷却 10 分钟；批量补坐标请配置 AMAP_KEY"
+  },
+  "贵阳|修文黔贵六广温泉": {
+    "ok": false,
+    "reason": "Nominatim 限流(429)，已冷却 10 分钟；批量补坐标请配置 AMAP_KEY"
+  },
+  "贵阳|清镇乡愁贵州": {
+    "ok": false,
+    "reason": "Nominatim 限流(429)，已冷却 10 分钟；批量补坐标请配置 AMAP_KEY"
   }
 }

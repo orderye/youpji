@@ -22,25 +22,106 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = resolve(__dirname, "..", "youpji", "data", "attractions");
 const SCRIPT_DIR = __dirname;
 
+const CORE_SUFFIX =
+  /(国家级)?(旅游|风景|名胜)?(度假)?(景区|旅游区|风景区|风景名胜区|旅游景区|生态旅游区|文化旅游区)$/;
+const CITY_PREFIX =
+  /^(贵阳市|六盘水市|遵义市|安顺市|毕节市|铜仁市|黔东南州|黔南州|黔西南州)/;
+
+function coreName(name) {
+  return String(name || "")
+    .replace(CITY_PREFIX, "")
+    .replace(/[（(][^）)]*[）)]/g, "")
+    .replace(/[“”"']/g, "")
+    .replace(CORE_SUFFIX, "")
+    .trim();
+}
+
+/**
+ * 合并策略：政府名录做**价格权威**，逐个核验的批次做**增量信息**。
+ *
+ * 名录有官方票价但没有坐标/开放时间/分类评分；核验批次反之。
+ * 按核心地名匹配后合并，两边信息都保留；核验批次里拿到官方双来源的
+ * 记录会覆盖名录的 pending 状态（verified 要求票与时间同时有来源）。
+ */
 function loadAll(dir) {
   const files = readdirSync(dir)
     .filter((f) => f.endsWith(".json") && !f.startsWith("."))
     .sort();
-  const merged = [];
-  const seen = new Map();
+  const registryFile = "gov-registry.json";
+  const batches = [];
+  let registry = [];
+
   for (const f of files) {
     const raw = JSON.parse(readFileSync(join(dir, f), "utf8"));
     const rows = Array.isArray(raw) ? raw : raw.attractions;
     if (!Array.isArray(rows)) continue;
-    let added = 0;
-    for (const r of rows) {
-      if (seen.has(r.name)) continue; // 同名景区跨批次去重，先到先得
-      seen.set(r.name, f);
-      merged.push({ ...r, _batch: f });
-      added++;
+    if (f === registryFile) {
+      registry = rows;
+    } else {
+      batches.push({ file: f, rows });
     }
-    console.log(`  ${f}：${rows.length} 条，新增 ${added} 条`);
   }
+
+  const byCore = new Map();
+  for (const r of registry) {
+    byCore.set(coreName(r.name), { ...r, _batch: registryFile });
+  }
+
+  let enriched = 0;
+  const extra = [];
+  for (const { file, rows } of batches) {
+    let kept = 0;
+    for (const r of rows) {
+      const key = coreName(r.name);
+      const base = byCore.get(key);
+      if (!base) {
+        extra.push({ ...r, _batch: file });
+        kept++;
+        continue;
+      }
+      // 合并：名录保留票价/等级/电话；核验批次补坐标/时间/分类/评分
+      const mergedRow = {
+        ...base,
+        longitude: base.longitude ?? r.longitude,
+        latitude: base.latitude ?? r.latitude,
+        coord_sys: base.coord_sys ?? r.coord_sys,
+        coord_note: r.coord_note || base.coord_note,
+        opening_time: r.opening_time ?? base.opening_time,
+        closing_time: r.closing_time ?? base.closing_time,
+        category: r.category || base.category,
+        description: r.description || base.description,
+        recommended_duration_min:
+          r.recommended_duration_min ?? base.recommended_duration_min,
+        best_season: r.best_season || base.best_season,
+        difficulty: r.difficulty ?? base.difficulty,
+        family_score: r.family_score ?? base.family_score,
+        elderly_score: r.elderly_score ?? base.elderly_score,
+        photography_score: r.photography_score ?? base.photography_score,
+        couple_score: r.couple_score ?? base.couple_score,
+        // 核验批次若拿到官方双来源，其状态与来源优先
+        verification_status:
+          r.verification_status === "verified" ? "verified" : base.verification_status,
+        source_url:
+          r.verification_status === "verified" ? r.source_url : base.source_url,
+        source_type:
+          r.verification_status === "verified" ? r.source_type : base.source_type,
+        confidence: Math.max(r.confidence ?? 0, base.confidence ?? 0),
+        alias: r.alias || base.alias,
+        district: r.district || base.district,
+        note: [base.note, r.note].filter(Boolean).join(" ｜ "),
+      };
+      byCore.set(key, mergedRow);
+      enriched++;
+      kept++;
+    }
+    console.log(`  ${file}：${rows.length} 条，并入名录 ${kept} 条`);
+  }
+
+  const merged = [...byCore.values(), ...extra];
+  console.log(
+    `  ${registryFile}：${registry.length} 条（价格权威），其中 ${enriched} 条被核验数据补强`
+  );
+  console.log(`  名录未收录的核验记录：${extra.length} 条`);
   return { merged, fileCount: files.length };
 }
 
@@ -53,10 +134,17 @@ function runValidator(file) {
   return { ok: r.status === 0, output: r.stdout || "" };
 }
 
-function runGeocoder(file, outFile) {
+function runGeocoder(file, outFile, limit) {
   const r = spawnSync(
     process.execPath,
-    [join(SCRIPT_DIR, "geocode.mjs"), file, "--out", outFile],
+    [
+      join(SCRIPT_DIR, "geocode.mjs"),
+      file,
+      "--out",
+      outFile,
+      "--limit",
+      String(limit),
+    ],
     { encoding: "utf8", env: process.env }
   );
   return { ok: r.status === 0, output: r.stdout || "" };
@@ -190,12 +278,28 @@ function main() {
   const workFile = join(DATA_DIR, ".work.json");
   writeFileSync(workFile, JSON.stringify(merged, null, 2), "utf8");
 
-  const missingBefore = merged.filter((a) => a.longitude == null).length;
+  // Nominatim 使用条款限制约 1 请求/秒，全量 500+ 条需半小时以上。
+  // 因此按 **5A→4A→3A** 优先级分批补全：顶级景区先拿到坐标，
+  // 剩下的留给后续增量运行（已补全的会写回源文件，不会重复消耗配额）。
+  const LIMIT = Number(process.env.GEOCODE_LIMIT || 120);
+  const RANK = { "5A": 0, "4A": 1, "3A": 2, "2A": 3, "1A": 4 };
+  const missing = merged.filter((a) => a.longitude == null);
+  missing.sort(
+    (a, b) => (RANK[a.level] ?? 9) - (RANK[b.level] ?? 9) || (b.confidence ?? 0) - (a.confidence ?? 0)
+  );
+  const missingBefore = missing.length;
   if (missingBefore > 0) {
-    console.log(`\n[阶段 1/4] 坐标补全 —— 缺失 ${missingBefore} 条`);
+    const batch = missing.slice(0, LIMIT);
+    console.log(
+      `\n[阶段 1/4] 坐标补全 —— 缺失 ${missingBefore} 条，本轮处理 ${batch.length} 条` +
+        `（按 5A→4A→3A 优先；剩余 ${missingBefore - batch.length} 条留待后续增量运行）`
+    );
+    merged.length = 0;
+    merged.push(...missing.filter((a) => !batch.includes(a)));
+    merged.push(...batch);
     // geocode 内部自带策略：有 AMAP_KEY 走高德（GCJ-02），否则回退
     // OpenStreetMap Nominatim（WGS-84），二者都会标注 coord_sys 供归一化判断。
-    const g = runGeocoder(workFile, workFile);
+    const g = runGeocoder(workFile, workFile, LIMIT);
     console.log(g.output.split("\n").map((l) => "  " + l).join("\n"));
   } else {
     console.log("\n[阶段 1/4] 坐标补全 —— 全部已有坐标");

@@ -109,7 +109,14 @@ const TOURISM_CLASSES = new Set([
  * 因此这里做三重过滤：行政区归属、类目、地物类型，任一不满足即丢弃该候选。
  * 返回 WGS-84，由 build-attraction-seed.mjs 折算为 GCJ-02 后再入库。
  */
+let nominatimBlockedUntil = 0;
+
 async function queryNominatim(keyword, city) {
+  // 被限流时先退避，避免把 429 当成「无结果」写进缓存
+  const waitMs = nominatimBlockedUntil - Date.now();
+  if (waitMs > 0) {
+    await sleep(Math.min(waitMs, 60000));
+  }
   const tried = [];
   for (const q of [keyword, `${keyword} ${city}`, coreName(keyword)]) {
     const url =
@@ -123,6 +130,14 @@ async function queryNominatim(keyword, city) {
         headers: { "User-Agent": "youpji-data-collector/0.1 (tourism seed import)" },
         signal: AbortSignal.timeout(12000),
       });
+      if (res.status === 429) {
+        // Nominatim 限流：整体封顶冷却，本次不再继续试其他关键词
+        nominatimBlockedUntil = Date.now() + 10 * 60 * 1000;
+        return {
+          ok: false,
+          reason: "Nominatim 限流(429)，已冷却 10 分钟；批量补坐标请配置 AMAP_KEY",
+        };
+      }
       if (!res.ok) {
         tried.push(`${q} → HTTP ${res.status}`);
         continue;
@@ -199,6 +214,8 @@ async function main() {
   }
   const outIdx = args.indexOf("--out");
   const outPath = outIdx >= 0 ? args[outIdx + 1] : null;
+  const limitIdx = args.indexOf("--limit");
+  const limit = limitIdx >= 0 ? Number(args[limitIdx + 1]) : Infinity;
 
   const raw = JSON.parse(readFileSync(file, "utf8"));
   const rows = Array.isArray(raw) ? raw : raw.attractions;
@@ -207,14 +224,27 @@ async function main() {
     process.exit(2);
   }
 
-  const needGeo = rows.filter(
+  const allMissing = rows.filter(
     (a) => a.longitude === null || a.longitude === undefined
   );
+  // --limit 限制本轮实际联网查询的条数（已缓存的仍全部回填）
+  const cache0 = loadCache();
+  const cacheHas = (c, a) => Object.prototype.hasOwnProperty.call(c, `${a.city ?? ""}|${a.name}`);
+  const needGeo = limit === 0
+    ? []
+    : [
+        ...allMissing.filter((a) => cacheHas(cache0, a)),
+        ...allMissing.filter((a) => !cacheHas(cache0, a)),
+      ].slice(0, limit);
+  const deferred = allMissing.length - needGeo.length;
+  if (deferred > 0) {
+    console.log(`本轮查询 ${needGeo.length} 条，其余 ${deferred} 条留待后续增量运行`);
+  }
   console.log(`\n坐标解析 · ${file}`);
   console.log("─".repeat(46));
   console.log(`总数          ${rows.length}`);
-  console.log(`缺坐标        ${needGeo.length}`);
-  console.log(`已有坐标      ${rows.length - needGeo.length}`);
+  console.log(`缺坐标        ${allMissing.length}`);
+  console.log(`已有坐标      ${rows.length - allMissing.length}`);
 
   if (needGeo.length === 0) {
     console.log("\n无需解析。\n");
@@ -243,6 +273,7 @@ async function main() {
       result = await resolvePoint(key, a.name, a.city);
       cache[cacheKey] = result;
       miss++;
+      saveCache(cache); // 增量落盘：批量任务被中断也不丢已完成部分
       if (!result.ok) failed.push({ name: a.name, city: a.city, reason: result.reason });
     } else {
       hit++;
