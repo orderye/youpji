@@ -122,28 +122,51 @@ function haversineKm(aLng, aLat, bLng, bLat) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-/** 把所有非 GCJ-02 的坐标折算到 GCJ-02，返回转换条数。 */
+/** 推断记录声明的坐标系：显式 coord_sys 优先，其次从 coord_note 文本推断 */
+function declaredCoordSys(a) {
+  const explicit = (a.coord_sys || "").toLowerCase().replace(/[-_\s]/g, "");
+  if (explicit) return explicit;
+  const note = (a.coord_note || "").toLowerCase();
+  if (/gcj[-_ ]?0?2/.test(note)) return "gcj02";
+  if (/wgs[-_ ]?84/.test(note) || /nominatim|openstreetmap|\bosm\b/.test(note)) {
+    return "wgs84";
+  }
+  return "";
+}
+
+/**
+ * 把所有非 GCJ-02 的坐标折算到 GCJ-02。
+ * 返回 { converted, unknown }：unknown 是**坐标系无法判定**的记录，
+ * 这类记录一律不折算也不入库（DESIGN §4.2 禁止混用，宁缺毋滥）。
+ */
 function normalizeCoords(rows) {
   let converted = 0;
+  const unknown = [];
   for (const a of rows) {
     if (a.longitude == null || a.latitude == null) continue;
-    const sys = (a.coord_sys || "").toLowerCase();
+    const sys = declaredCoordSys(a);
     if (sys === "gcj02" || sys === "gcj-02") {
       a.coord_sys = "gcj02";
       continue;
     }
-    // 未知或明确 WGS84 → 一律按 WGS84 折算（保守：宁可有偏移，不可直接混用）
+    if (!sys) {
+      // 无法判定来源坐标系 —— 标出来并在后续坐标关卡剔除
+      a.coord_sys = "unknown";
+      unknown.push(a);
+      continue;
+    }
+    // 明确为 WGS-84 等其他坐标系 → 折算
     const [lng, lat] = wgs84ToGcj02(a.longitude, a.latitude);
     const shift = haversineKm(a.longitude, a.latitude, lng, lat);
     a.coord_note =
-      `${a.coord_note || ""}｜入库前由 ${(sys || "unknown").toUpperCase()} 折算为 GCJ-02` +
+      `${a.coord_note || ""}｜入库前由 ${sys.toUpperCase()} 折算为 GCJ-02` +
       `（原值 ${a.longitude},${a.latitude} → ${lng.toFixed(6)},${lat.toFixed(6)}，偏移 ${shift.toFixed(3)} km）`;
     a.longitude = Number(lng.toFixed(6));
     a.latitude = Number(lat.toFixed(6));
     a.coord_sys = "gcj02";
     converted++;
   }
-  return converted;
+  return { converted, unknown };
 }
 
 function main() {
@@ -170,19 +193,34 @@ function main() {
   const missingBefore = merged.filter((a) => a.longitude == null).length;
   if (missingBefore > 0) {
     console.log(`\n[阶段 1/4] 坐标补全 —— 缺失 ${missingBefore} 条`);
-    if (process.env.AMAP_KEY) {
-      const g = runGeocoder(workFile, workFile);
-      console.log(g.output.split("\n").map((l) => "  " + l).join("\n"));
-    } else {
-      console.log(
-        "  未设置 AMAP_KEY，跳过。缺坐标的记录将无法入库（见下方「坐标完整性」关卡）。"
-      );
-    }
+    // geocode 内部自带策略：有 AMAP_KEY 走高德（GCJ-02），否则回退
+    // OpenStreetMap Nominatim（WGS-84），二者都会标注 coord_sys 供归一化判断。
+    const g = runGeocoder(workFile, workFile);
+    console.log(g.output.split("\n").map((l) => "  " + l).join("\n"));
   } else {
     console.log("\n[阶段 1/4] 坐标补全 —— 全部已有坐标");
   }
 
   const rows = JSON.parse(readFileSync(workFile, "utf8"));
+
+  // 把补全到的坐标写回各自批次源文件：让坐标成为可审计、可入 git 的数据，
+  // 而不是每次重跑都重新查询（结果不会随临时文件一起消失）。
+  if (missingBefore > 0) {
+    const byBatch = new Map();
+    for (const a of rows) {
+      if (!a._batch) continue;
+      if (!byBatch.has(a._batch)) byBatch.set(a._batch, []);
+      byBatch.get(a._batch).push(a);
+    }
+    for (const [file, list] of byBatch) {
+      writeFileSync(
+        join(DATA_DIR, file),
+        JSON.stringify(list.map(({ _batch, ...rest }) => rest), null, 2),
+        "utf8"
+      );
+    }
+    console.log(`  坐标已写回 ${byBatch.size} 个批次源文件`);
+  }
 
   // 阶段 1.5：坐标系归一化（WGS-84 → GCJ-02），DESIGN §4.2 要求全局统一
   console.log("\n[阶段 1.5/4] 坐标系归一化");
@@ -196,12 +234,19 @@ function main() {
       ].join(", ")}），正在折算…`
     );
   }
-  const converted = normalizeCoords(rows);
+  const { converted, unknown } = normalizeCoords(rows);
   console.log(
     converted > 0
       ? `  已折算 ${converted} 条为 GCJ-02（原值与偏移量记录在 coord_note）`
       : "  无需折算，全部已是 GCJ-02"
   );
+  if (unknown.length > 0) {
+    console.log(
+      `  ⚠ ${unknown.length} 条坐标系无法判定，将被坐标关卡剔除：${unknown
+        .map((a) => a.name)
+        .join("、")}`
+    );
+  }
   writeFileSync(workFile, JSON.stringify(rows, null, 2), "utf8");
 
   // 阶段 2：事实校验
@@ -228,8 +273,12 @@ function main() {
 
   // 阶段 3：坐标完整性关卡
   console.log("\n[阶段 3/4] 坐标完整性关卡");
-  const usable = rows.filter((a) => a.longitude != null && a.latitude != null);
-  const rejected = rows.filter((a) => a.longitude == null || a.latitude == null);
+  const usable = rows.filter(
+    (a) => a.longitude != null && a.latitude != null && a.coord_sys === "gcj02"
+  );
+  const rejected = rows.filter(
+    (a) => a.longitude == null || a.latitude == null || a.coord_sys !== "gcj02"
+  );
   console.log(`  可入库      ${usable.length}`);
   console.log(`  无坐标剔除  ${rejected.length}`);
   if (rejected.length > 0) {
