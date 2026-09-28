@@ -11,3 +11,4 @@ build/
 .dart_tool/
 .sqlx/
 
+youpji/data/attractions/.geocode-cache.json

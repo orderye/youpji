@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "seed": "node scripts/seed.mjs",
+    "attractions:check": "node scripts/build-attraction-seed.mjs",
+    "attractions:build": "node scripts/build-attraction-seed.mjs --emit",
     "check:backend": "cd youpji/backend && cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace --all-targets"
   },
   "dependencies": {

@@ -1,0 +1,283 @@
+/**
+ * 景区种子构建流水线：合并 → 校验 → 补坐标 → 复校验 → 只保留合规项 → 生成 SQL。
+ *
+ * 关卡（任一不通过即拒绝产出）：
+ *   1. 事实校验    —— 复用 import-attractions.mjs 的规则（verified 必有 source_url 等）
+ *   2. 坐标完整性  —— **无坐标不入库**。路线引擎的召回/就近/距离矩阵全依赖
+ *                     PostGIS 经纬度；没坐标的景区进了库也进不了候选池，
+ *                     反而会污染景点数量指标。
+ *   3. 目标数量    —— 低于 100 时只告警，不阻断（铁律要求 100–300）
+ *
+ * 用法：
+ *   node scripts/build-attraction-seed.mjs                  # 试跑，只出报告
+ *   AMAP_KEY=xxx node scripts/build-attraction-seed.mjs      # 先补坐标再出 SQL
+ *   AMAP_KEY=xxx node scripts/build-attraction-seed.mjs --out path.sql
+ */
+import { readFileSync, writeFileSync, readdirSync } from "fs";
+import { join, dirname, resolve } from "path";
+import { fileURLToPath } from "url";
+import { spawnSync } from "child_process";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = resolve(__dirname, "..", "youpji", "data", "attractions");
+const SCRIPT_DIR = __dirname;
+
+function loadAll(dir) {
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith(".json") && !f.startsWith("."))
+    .sort();
+  const merged = [];
+  const seen = new Map();
+  for (const f of files) {
+    const raw = JSON.parse(readFileSync(join(dir, f), "utf8"));
+    const rows = Array.isArray(raw) ? raw : raw.attractions;
+    if (!Array.isArray(rows)) continue;
+    let added = 0;
+    for (const r of rows) {
+      if (seen.has(r.name)) continue; // 同名景区跨批次去重，先到先得
+      seen.set(r.name, f);
+      merged.push({ ...r, _batch: f });
+      added++;
+    }
+    console.log(`  ${f}：${rows.length} 条，新增 ${added} 条`);
+  }
+  return { merged, fileCount: files.length };
+}
+
+function runValidator(file) {
+  const r = spawnSync(
+    process.execPath,
+    [join(SCRIPT_DIR, "import-attractions.mjs"), file],
+    { encoding: "utf8" }
+  );
+  return { ok: r.status === 0, output: r.stdout || "" };
+}
+
+function runGeocoder(file, outFile) {
+  const r = spawnSync(
+    process.execPath,
+    [join(SCRIPT_DIR, "geocode.mjs"), file, "--out", outFile],
+    { encoding: "utf8", env: process.env }
+  );
+  return { ok: r.status === 0, output: r.stdout || "" };
+}
+
+// ---------------------------------------------------------------------------
+// 坐标系归一化：WGS84 → GCJ-02
+//
+// 为什么必须做：DESIGN §4.2 要求全局统一 GCJ-02 且**禁止混用**。
+// 高德 POI 接口返回 GCJ-02，OpenStreetMap/Nominatim 返回 WGS-84，
+// 两者在中国境内相差约 300–600 米。混存会让：
+//   1. PostGIS ST_DWithin 就近查询产生数百米误差；
+//   2. 高德驾车矩阵收到错误坐标，路线时间整体偏移。
+// 因此在入库前统一折算到 GCJ-02，并在 coord_note 保留原始坐标系与原值。
+// ---------------------------------------------------------------------------
+const GCJ_A = 6378245.0;
+const GCJ_EE = 0.00669342162296594323;
+
+function outOfChina(lng, lat) {
+  return !(lng > 72.004 && lng < 137.8347 && lat > 0.8293 && lat < 55.8271);
+}
+
+function transformLat(x, y) {
+  let ret =
+    -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += ((20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0) / 3.0;
+  ret += ((20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin((y / 3.0) * Math.PI)) * 2.0) / 3.0;
+  ret += ((160.0 * Math.sin((y / 12.0) * Math.PI) + 320 * Math.sin((y * Math.PI) / 30.0)) * 2.0) / 3.0;
+  return ret;
+}
+
+function transformLng(x, y) {
+  let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += ((20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0) / 3.0;
+  ret += ((20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin((x / 3.0) * Math.PI)) * 2.0) / 3.0;
+  ret += ((150.0 * Math.sin((x / 12.0) * Math.PI) + 300.0 * Math.sin((x / 30.0) * Math.PI)) * 2.0) / 3.0;
+  return ret;
+}
+
+function wgs84ToGcj02(lng, lat) {
+  if (outOfChina(lng, lat)) return [lng, lat];
+  let dLat = transformLat(lng - 105.0, lat - 35.0);
+  let dLng = transformLng(lng - 105.0, lat - 35.0);
+  const radLat = (lat / 180.0) * Math.PI;
+  let magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  const sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / (((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic)) * Math.PI);
+  dLng =
+    (dLng * 180.0) / ((GCJ_A / sqrtMagic) * Math.cos(radLat) * Math.PI);
+  return [lng + dLng, lat + dLat];
+}
+
+function haversineKm(aLng, aLat, bLng, bLat) {
+  const R = 6371.0;
+  const dLat = ((bLat - aLat) * Math.PI) / 180;
+  const dLng = ((bLng - aLng) * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((aLat * Math.PI) / 180) *
+      Math.cos((bLat * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/** 把所有非 GCJ-02 的坐标折算到 GCJ-02，返回转换条数。 */
+function normalizeCoords(rows) {
+  let converted = 0;
+  for (const a of rows) {
+    if (a.longitude == null || a.latitude == null) continue;
+    const sys = (a.coord_sys || "").toLowerCase();
+    if (sys === "gcj02" || sys === "gcj-02") {
+      a.coord_sys = "gcj02";
+      continue;
+    }
+    // 未知或明确 WGS84 → 一律按 WGS84 折算（保守：宁可有偏移，不可直接混用）
+    const [lng, lat] = wgs84ToGcj02(a.longitude, a.latitude);
+    const shift = haversineKm(a.longitude, a.latitude, lng, lat);
+    a.coord_note =
+      `${a.coord_note || ""}｜入库前由 ${(sys || "unknown").toUpperCase()} 折算为 GCJ-02` +
+      `（原值 ${a.longitude},${a.latitude} → ${lng.toFixed(6)},${lat.toFixed(6)}，偏移 ${shift.toFixed(3)} km）`;
+    a.longitude = Number(lng.toFixed(6));
+    a.latitude = Number(lat.toFixed(6));
+    a.coord_sys = "gcj02";
+    converted++;
+  }
+  return converted;
+}
+
+function main() {
+  const args = process.argv.slice(2);
+  const outIdx = args.indexOf("--out");
+  const outPath =
+    outIdx >= 0 ? args[outIdx + 1] : "youpji/data/seed/attractions.generated.sql";
+  const dryRun = !args.includes("--emit");
+
+  console.log("\n景区种子构建流水线");
+  console.log("═".repeat(46));
+
+  const { merged, fileCount } = loadAll(DATA_DIR);
+  if (merged.length === 0) {
+    console.log("\ndata/attractions 下没有可合并的 JSON，结束。\n");
+    return;
+  }
+  console.log(`\n合并完成：${fileCount} 个批次，共 ${merged.length} 条`);
+
+  // 阶段 1：补坐标
+  const workFile = join(DATA_DIR, ".work.json");
+  writeFileSync(workFile, JSON.stringify(merged, null, 2), "utf8");
+
+  const missingBefore = merged.filter((a) => a.longitude == null).length;
+  if (missingBefore > 0) {
+    console.log(`\n[阶段 1/4] 坐标补全 —— 缺失 ${missingBefore} 条`);
+    if (process.env.AMAP_KEY) {
+      const g = runGeocoder(workFile, workFile);
+      console.log(g.output.split("\n").map((l) => "  " + l).join("\n"));
+    } else {
+      console.log(
+        "  未设置 AMAP_KEY，跳过。缺坐标的记录将无法入库（见下方「坐标完整性」关卡）。"
+      );
+    }
+  } else {
+    console.log("\n[阶段 1/4] 坐标补全 —— 全部已有坐标");
+  }
+
+  const rows = JSON.parse(readFileSync(workFile, "utf8"));
+
+  // 阶段 1.5：坐标系归一化（WGS-84 → GCJ-02），DESIGN §4.2 要求全局统一
+  console.log("\n[阶段 1.5/4] 坐标系归一化");
+  const mixed = rows.filter(
+    (a) => a.coord_sys && !/^gcj-?0?2$/i.test(a.coord_sys) && a.longitude != null
+  );
+  if (mixed.length > 0) {
+    console.log(
+      `  检出 ${mixed.length} 条非 GCJ-02 坐标（${[
+        ...new Set(mixed.map((a) => a.coord_sys)),
+      ].join(", ")}），正在折算…`
+    );
+  }
+  const converted = normalizeCoords(rows);
+  console.log(
+    converted > 0
+      ? `  已折算 ${converted} 条为 GCJ-02（原值与偏移量记录在 coord_note）`
+      : "  无需折算，全部已是 GCJ-02"
+  );
+  writeFileSync(workFile, JSON.stringify(rows, null, 2), "utf8");
+
+  // 阶段 2：事实校验
+  console.log("\n[阶段 2/4] 事实校验");
+  const v = runValidator(workFile);
+  if (!v.ok) {
+    console.log("  校验未通过，列出问题：");
+    const errLine = v.output.indexOf("错误");
+    console.log(
+      (errLine >= 0 ? v.output.slice(errLine) : v.output)
+        .split("\n")
+        .slice(0, 20)
+        .map((l) => "  " + l)
+        .join("\n")
+    );
+  } else {
+    const m = v.output.match(/verified\s+(\d+)/);
+    const p = v.output.match(/pending\s+(\d+)/);
+    const u = v.output.match(/unverified\s+(\d+)/);
+    console.log(
+      `  通过 · verified=${m?.[1] ?? 0} pending=${p?.[1] ?? 0} unverified=${u?.[1] ?? 0}`
+    );
+  }
+
+  // 阶段 3：坐标完整性关卡
+  console.log("\n[阶段 3/4] 坐标完整性关卡");
+  const usable = rows.filter((a) => a.longitude != null && a.latitude != null);
+  const rejected = rows.filter((a) => a.longitude == null || a.latitude == null);
+  console.log(`  可入库      ${usable.length}`);
+  console.log(`  无坐标剔除  ${rejected.length}`);
+  if (rejected.length > 0) {
+    const sample = rejected.slice(0, 8).map((a) => `${a.city ?? ""}${a.name}`);
+    console.log(`  剔除样例    ${sample.join("、")}${rejected.length > 8 ? " …" : ""}`);
+  }
+
+  console.log("\n" + "─".repeat(46));
+  console.log(`最终可入库    ${usable.length} 条`);
+  console.log(`铁律目标      100–300 条`);
+  if (usable.length < 100) {
+    console.log(
+      `⚠  距铁律下限还差 ${100 - usable.length} 条。` +
+        (process.env.AMAP_KEY
+          ? "已提供 AMAP_KEY，缺口来自事实核验而非坐标。"
+          : "配置 AMAP_KEY 后可自动补全坐标，缺口会显著收窄。")
+    );
+  }
+  if (usable.length === 0) {
+    console.log("\n没有任何带坐标的记录，本次不产出 SQL。\n");
+    return;
+  }
+
+  if (dryRun) {
+    console.log("\n试跑模式：未写文件。加 --emit 生成 SQL。\n");
+    return;
+  }
+
+  // 只把通过坐标关卡的行交给 SQL 生成器，避免把关卡结果又放回去
+  const finalFile = join(DATA_DIR, ".final.json");
+  writeFileSync(finalFile, JSON.stringify(usable, null, 2), "utf8");
+
+  const r = spawnSync(
+    process.execPath,
+    [
+      join(SCRIPT_DIR, "import-attractions.mjs"),
+      finalFile,
+      "--out",
+      outPath,
+    ],
+    { encoding: "utf8" }
+  );
+  if (r.status !== 0) {
+    console.log(r.stdout || r.stderr);
+    console.log("生成 SQL 失败：残留行未通过事实校验。\n");
+    return;
+  }
+  console.log(`\n已生成 → ${outPath}（含 ${usable.length} 条，均已通过坐标与事实校验）\n`);
+}
+
+main();
