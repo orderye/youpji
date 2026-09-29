@@ -1160,6 +1160,18 @@ const I = {
 /* ==========================================================
    数据层（mock：字段对齐 DESIGN.md 事实契约）
    ========================================================== */
+const CITIES = [
+  { id:'guiyang', name:'贵阳市', short:'贵阳', weather:'晴 22°C', icon:'☀️', desc:'林城贵阳 · 省会枢纽 · 人文生态', spots:32 },
+  { id:'anshun', name:'安顺市', short:'安顺', weather:'多云 21°C', icon:'⛅', desc:'瀑乡安顺 · 黄果树 · 龙宫 · 屯堡文化', spots:24 },
+  { id:'zunyi', name:'遵义市', short:'遵义', weather:'晴 23°C', icon:'☀️', desc:'红色圣地 · 遵义会议 · 赤水丹霞', spots:28 },
+  { id:'qiandongnan', name:'黔东南州', short:'黔东南', weather:'阴 20°C', icon:'☁️', desc:'千户苗寨 · 肇兴侗寨 · 民族风情', spots:30 },
+  { id:'qiannan', name:'黔南州', short:'黔南', weather:'多云 22°C', icon:'⛅', desc:'荔波小七孔 · 中国天眼 FAST', spots:22 },
+  { id:'qianxinan', name:'黔西南州', short:'黔西南', weather:'晴 24°C', icon:'☀️', desc:'万峰林 · 马岭河峡谷 · 户外胜地', spots:19 },
+  { id:'bijie', name:'毕节市', short:'毕节', weather:'阴 18°C', icon:'☁️', desc:'百里杜鹃 · 织金洞 · 韭菜坪', spots:21 },
+  { id:'tongren', name:'铜仁市', short:'铜仁', weather:'小雨 21°C', icon:'🌧️', desc:'梵净山 · 佛光圣境 · 锦江风光', spots:18 },
+  { id:'liupanshui', name:'六盘水市', short:'六盘水', weather:'晴 17°C', icon:'☀️', desc:'中国凉都 · 乌蒙大草原 · 避暑胜地', spots:16 }
+];
+
 const SPOTS = [
   { id:'hgs', name:'黄果树景区', sub:'大瀑布 + 陡坡塘，喀斯特地貌标杆', theme:'a',
     price:160, priceText:'¥160', open:'07:00–18:00', dur:'2.5h', dist:'128 km',
@@ -1255,9 +1267,21 @@ const TRIPS = [
    ========================================================== */
 const state = {
   stack:[{ name:'home' }],
+  city: CITIES[0],
   explore:{ filter:'推荐', q:'' },
   guide:{ filter:'为你推荐' },
-  plan:{ interests:new Set(['自然风光','亲子']), tier:'标准', mode:'标准', budget:1500, people:2 },
+  plan:{
+    origin:'贵阳',
+    dest:'安顺',
+    startDate:'9/26',
+    endDate:'9/27',
+    days:2,
+    interests:new Set(['自然风光','亲子']),
+    tier:'标准',
+    mode:'标准',
+    budget:1500,
+    people:2
+  },
   detail:{ day:0, view:'list' },
   favs:new Set(['hgs']),
   generating:false,
@@ -1265,6 +1289,19 @@ const state = {
   login:false,
   sheet:null
 };
+
+function calcEndDate(startStr, days) {
+  const parts = (startStr || '9/26').split('/').map(Number);
+  if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return startStr;
+  const year = 2026;
+  const d = new Date(year, parts[0] - 1, parts[1] + (Number(days) - 1));
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function updateEndDateFormat() {
+  state.plan.endDate = calcEndDate(state.plan.startDate, state.plan.days);
+}
+
 const go = (n,p)=>{ state.stack.push(p?{name:n,...p}:{name:n}); render(); };
 const back = ()=>{ if(state.stack.length>1) state.stack.pop(); closeSheet(); render(); };
 const cur = ()=> state.stack[state.stack.length-1];
@@ -1289,11 +1326,11 @@ const spotById = id => SPOTS.find(s=>s.id===id);
    01 首页
    ========================================================== */
 const homeHTML = () => `
-  <div class="hero press" data-act="spot:qygz">
+  <div class="hero press" data-act="sheet:city">
     <div class="hero__body">
       <p class="hero__eyebrow">贵州 · 当前定位</p>
-      <h1 class="hero__title">贵阳出发</h1>
-      <p class="hero__meta">${I.pin}<span>32 个已核验景区 · 数据更新至 9/18</span></p>
+      <h1 class="hero__title">${state.city.short}出发</h1>
+      <p class="hero__meta">${I.pin}<span>${state.city.spots} 个已核验景区 · 数据更新至 9/28</span></p>
     </div>
   </div>
 
@@ -1303,9 +1340,9 @@ const homeHTML = () => `
         <span class="field__lb">想去哪</span>
         <span class="field__vl">安顺 <span class="faint">2 天</span> ${I.chevron}</span>
       </div>
-      <div class="field press" data-act="go:plan">
+      <div class="field press" data-act="sheet:city">
         <span class="field__lb">出发</span>
-        <span class="field__vl">贵阳 · 自驾 ${I.chevron}</span>
+        <span class="field__vl">${state.city.short} · 自驾 ${I.chevron}</span>
       </div>
       <div class="field press" data-act="go:plan">
         <span class="field__lb">预算上限</span>
@@ -1386,13 +1423,13 @@ const planHTML = () => {
 
   <div class="section">
     <div class="card" style="padding:4px var(--padding-card)">
-      <div class="field press" data-act="toast:目的地选择器">
+      <div class="field press" data-act="sheet:route">
         <span class="field__lb">出发 → 目的地</span>
-        <span class="field__vl">贵阳 → 安顺 ${I.chevron}</span>
+        <span class="field__vl">${p.origin} → ${p.dest} ${I.chevron}</span>
       </div>
-      <div class="field press" data-act="toast:日期选择器">
+      <div class="field press" data-act="sheet:date">
         <span class="field__lb">日期</span>
-        <span class="field__vl">9/26 – 9/27 · 2 天 ${I.chevron}</span>
+        <span class="field__vl">${p.startDate} – ${p.endDate} · ${p.days} 天 ${I.chevron}</span>
       </div>
       <div class="field">
         <span class="field__lb">出行人数</span>
@@ -1825,7 +1862,7 @@ const spotHTML = (id) => {
       <h3 style="margin:0 0 10px;font-size:17px">位置与交通</h3>
       <div class="row" style="gap:8px;margin-bottom:10px">
         <span style="color:var(--text-tertiary);width:16px;height:16px;flex:none">${I.pin}</span>
-        <span style="font-size:14px;color:var(--text-primary)">距贵阳 ${s.dist} · 安顺方向</span>
+        <span style="font-size:14px;color:var(--text-primary)">距${state.city.short} ${s.dist} · 安顺方向</span>
       </div>
       <div class="row" style="gap:8px">
         <span style="color:var(--text-tertiary);width:16px;height:16px;flex:none">${I.car}</span>
@@ -2079,9 +2116,9 @@ const meHTML = () => `
         <span class="field__lb">默认预算</span>
         <span class="field__vl">¥${state.plan.budget.toLocaleString()} / 人 ${I.chevron}</span>
       </div>
-      <div class="field press" data-act="prefs:city">
+      <div class="field press" data-act="sheet:city">
         <span class="field__lb">常住出发地</span>
-        <span class="field__vl">贵阳 ${I.chevron}</span>
+        <span class="field__vl">${state.city.short} ${I.chevron}</span>
       </div>
       <div class="field press" data-act="prefs:tier">
         <span class="field__lb">住宿档位</span>
@@ -2223,7 +2260,21 @@ const SHEETS = {
     { a:'do:share', ic:I.link,   lb:'分享给同行', d:'生成只读链接' },
     { a:'do:export',ic:I.layers, lb:'导出为日历', d:'写入系统日历' },
     { a:'do:report',ic:I.alert,  lb:'上报数据问题', d:'票价或时间有误' }
-  ]})
+  ]}),
+  city:()=>({
+    title:'切换定位城市',
+    sub:'支持贵州 9 大市州，将自动为您计算周边景点距离与推荐自驾路线',
+    items:[
+      ...CITIES.map(c=>({
+        a:`city:${c.id}`,
+        ic:state.city.id===c.id?I.check:I.pin,
+        lb:`${c.name} · ${c.weather}`,
+        d:`${c.desc}（${c.spots} 个已核验景区）`,
+        highlight:state.city.id===c.id
+      })),
+      { a:'city:gps', ic:I.pin, lb:'重新自动定位 (GPS)', d:'使用高精度 GPS 自动识别所在城市基准', plain:true }
+    ]
+  })
 };
 
 /* ==========================================================
@@ -2269,8 +2320,8 @@ function render(){
   let titleHTML = `<span class="nav-bar__title">${page.title}</span>`;
   if (c.name === 'home') {
     titleHTML = `
-      <div class="nav-bar__loc press" data-act="toast:切换定位城市">
-        ${I.pin}<span>贵阳市 · 晴 22°C</span>
+      <div class="nav-bar__loc press" data-act="sheet:city">
+        ${I.pin}<span>${state.city.name} · ${state.city.weather}</span>
         <span style="display:inline-block;transform:rotate(90deg);font-size:11px;opacity:.6">›</span>
       </div>`;
   }
@@ -2318,11 +2369,14 @@ function render(){
       ${cfg.sub?`<p class="sheet__sub">${cfg.sub}</p>`:''}
       <div class="sheet__list">
         ${cfg.items.map(it=>`
-          <button class="field press ${it.plain?'':''}" data-act="${it.a}" style="width:100%;background:none;border:none;text-align:left;font:inherit;padding:13px 0">
+          <button class="field press ${it.plain?'':''}" data-act="${it.a}" style="width:100%;background:${it.highlight?'var(--bg-fill)':'none'};border:none;border-radius:${it.highlight?'12px':'0'};text-align:left;font:inherit;padding:${it.highlight?'11px 10px':'13px 0'};margin-bottom:${it.highlight?'4px':'0'}">
             <span class="row" style="gap:11px;width:100%">
-              <span style="color:${it.danger?'#FF453A':'var(--accent-primary)'};width:19px;height:19px;flex:none;display:block">${it.ic}</span>
+              <span style="color:${it.danger?'#FF453A':(it.highlight?'var(--ok)':'var(--accent-primary)')};width:19px;height:19px;flex:none;display:block">${it.ic}</span>
               <span style="flex:1;min-width:0">
-                <span style="display:block;font-size:16px;font-weight:500;color:${it.danger?'#FF453A':'var(--text-primary)'}">${it.lb}</span>
+                <span style="display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:${it.highlight?'600':'500'};color:${it.danger?'#FF453A':'var(--text-primary)'}">
+                  <span>${it.lb}</span>
+                  ${it.highlight ? `<span style="font-size:12px;color:var(--ok);font-weight:600">当前</span>` : ''}
+                </span>
                 ${it.d?`<span style="display:block;font-size:12.5px;color:var(--text-secondary);margin-top:1px">${it.d}</span>`:''}
               </span>
             </span>
@@ -2420,7 +2474,26 @@ document.getElementById('stage').addEventListener('click', (e)=>{
       if (arg==='done'){ toast('已完成行程回顾属 V0.2'); return; }
       return;
 
-    case 'prefs': toast(arg+' 设置'); return;
+    case 'prefs':
+      if (arg==='city'){ openSheet('city'); render(); return; }
+      toast(arg+' 设置'); return;
+    case 'city':{
+      if (arg==='gps'){
+        state.city = CITIES[0]; // 贵阳市
+        state.plan.origin = state.city.short;
+        closeSheet(); render();
+        toast('GPS 定位成功：已更新至贵阳市基准');
+        return;
+      }
+      const found = CITIES.find(c=>c.id===arg);
+      if (found){
+        state.city = found;
+        state.plan.origin = found.short;
+        closeSheet(); render();
+        toast(`已切换定位至 ${found.name} · ${found.weather}`);
+      }
+      return;
+    }
     case 'toggle':{
       const sw = el.getAttribute('aria-checked')==='true';
       el.setAttribute('aria-checked', sw?'false':'true');
