@@ -27,6 +27,27 @@ class TravelService {
     String? naturalInput,
     bool save = true,
   }) async {
+    final normalizedInterests = interests.map((tag) {
+      switch (tag) {
+        case '文博场馆/博物院':
+        case '文博场馆':
+        case '博物院':
+        case '博物馆':
+          return 'museum';
+        case '自然风光':
+          return 'nature';
+        case '历史文化':
+        case '古镇古寨':
+          return 'history';
+        case '特色美食':
+          return 'food';
+        case '亲子休闲':
+          return 'family';
+        default:
+          return tag;
+      }
+    }).toSet().toList();
+
     final body = {
       'origin': origin,
       'destination': destination,
@@ -36,7 +57,7 @@ class TravelService {
       'people': people,
       'budget': budget,
       'transport': transport,
-      'interests': interests,
+      'interests': normalizedInterests,
       'avoid': [],
       'intensity': intensity,
       'mode': mode,

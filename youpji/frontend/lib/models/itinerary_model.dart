@@ -37,6 +37,7 @@ class ItineraryItem {
   final String? reason;
   final String? notice;
   final String? verificationStatus; // verified | pending | unverified
+  final String? coverImageUrl;
 
   ItineraryItem({
     required this.itemType,
@@ -53,6 +54,7 @@ class ItineraryItem {
     this.reason,
     this.notice,
     this.verificationStatus,
+    this.coverImageUrl,
   });
 
   factory ItineraryItem.fromJson(Map<String, dynamic> json) {
@@ -71,6 +73,7 @@ class ItineraryItem {
       reason: json['reason']?.toString(),
       notice: json['notice']?.toString(),
       verificationStatus: json['verification_status']?.toString() ?? 'verified',
+      coverImageUrl: json['cover_image_url']?.toString(),
     );
   }
 
@@ -89,6 +92,7 @@ class ItineraryItem {
         if (reason != null) 'reason': reason,
         if (notice != null) 'notice': notice,
         if (verificationStatus != null) 'verification_status': verificationStatus,
+        if (coverImageUrl != null) 'cover_image_url': coverImageUrl,
       };
 }
 
@@ -326,6 +330,7 @@ class CuratedBenchmarkRoutes {
             cost: 90,
             reason: '明初朱元璋调北征南屯军后裔聚居地，石板房筑堡，保存完整的明代服饰与地戏非遗演艺。',
             verificationStatus: 'verified',
+            coverImageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
           ),
           ItineraryItem(
             itemType: 'meal',
@@ -336,6 +341,7 @@ class CuratedBenchmarkRoutes {
             cost: 90,
             reason: '安顺地道屯堡军屯菜，肉质鲜嫩，酸辣开胃。',
             verificationStatus: 'verified',
+            coverImageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
           ),
           ItineraryItem(
             itemType: 'transit',
@@ -355,6 +361,7 @@ class CuratedBenchmarkRoutes {
             cost: 260,
             reason: '地下溶洞暗河泛舟，集溶洞、瀑布、峡谷、峰林与绝美喀斯特于一体。',
             verificationStatus: 'verified',
+            coverImageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
           ),
           ItineraryItem(
             itemType: 'hotel',
@@ -365,6 +372,7 @@ class CuratedBenchmarkRoutes {
             cost: 360,
             reason: '靠近儒林路文化街区，方便品尝安顺夜市名小吃。',
             verificationStatus: 'verified',
+            coverImageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
           ),
           ItineraryItem(
             itemType: 'meal',
@@ -375,6 +383,7 @@ class CuratedBenchmarkRoutes {
             cost: 80,
             reason: '安顺被誉为贵州小吃之都，地道老街夜宵体验。',
             verificationStatus: 'verified',
+            coverImageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80',
           ),
         ],
       ),
@@ -401,6 +410,7 @@ class CuratedBenchmarkRoutes {
             cost: 530,
             reason: '亚洲第一大瀑布，穿行水帘洞近距离感受飞瀑轰鸣，探索天星桥奇石秀水。',
             verificationStatus: 'verified',
+            coverImageUrl: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80',
           ),
           ItineraryItem(
             itemType: 'meal',
@@ -411,6 +421,7 @@ class CuratedBenchmarkRoutes {
             cost: 160,
             reason: '地道红酸汤现煮野生江团，酸辣爽口解乏。',
             verificationStatus: 'verified',
+            coverImageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80',
           ),
           ItineraryItem(
             itemType: 'attraction',
@@ -421,6 +432,7 @@ class CuratedBenchmarkRoutes {
             cost: 0,
             reason: '86版《西游记》片尾曲师徒四人牵马走过的壮丽瀑顶实景。',
             verificationStatus: 'verified',
+            coverImageUrl: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80',
           ),
           ItineraryItem(
             itemType: 'transit',
@@ -814,9 +826,135 @@ class CuratedBenchmarkRoutes {
     ],
   );
 
+  /// 路线 5：贵阳文博与历史地标 1 日文化博览游（博物院专项行程）
+  static final ItineraryPlanResponse guiyangMuseumOneDay = ItineraryPlanResponse(
+    itineraryId: 'curated-guiyang-museum-1day-005',
+    summary: PlanSummary(
+      title: '贵阳文博与历史地标 1 日文化博览游',
+      origin: '贵阳',
+      destination: '贵阳',
+      days: 1,
+      people: 2,
+      mode: 'standard',
+      totalDistanceKm: 38.0,
+      driveHours: 1.2,
+      ticketCost: 0,
+    ),
+    budget: BudgetBreakdown(
+      limit: 500,
+      transport: 50,
+      lodging: 0,
+      tickets: 0,
+      food: 180,
+      parking: 20,
+      other: 0,
+      reserve: 50,
+      total: 300,
+    ),
+    warnings: [
+      WarningItem(
+        code: 'W_MUSEUM_RESERVATION',
+        message: '贵州省博物馆与贵州省地质博物馆周一闭馆（法定节假日除外），均实行实名制分时预约，请提前在官方公众号预约免费参观券。',
+      ),
+      WarningItem(
+        code: 'W_MUSEUM_ENTRY_TIME',
+        message: '场馆 16:00 停止检票入馆，17:00 准时闭馆，请合理规划各展厅参观节奏。',
+      ),
+    ],
+    algoVersion: 'v0.1.0-rules',
+    days: [
+      ItineraryDay(
+        dayIndex: 1,
+        date: '2026-10-01',
+        title: 'Day 1: 双博览馆古生物民族珍品与南明甲秀古韵',
+        items: [
+          ItineraryItem(
+            itemType: 'transit',
+            startTime: '08:30',
+            endTime: '09:00',
+            title: '出发前往观山湖区贵州省博物馆',
+            distanceKm: 12.0,
+            durationMin: 30,
+            cost: 0,
+            notice: '可自驾至地下停车场，或乘贵阳地铁1号线国际生态会议中心站直达',
+          ),
+          ItineraryItem(
+            itemType: 'attraction',
+            startTime: '09:00',
+            endTime: '11:30',
+            title: '贵州省博物馆 (国家一级博物馆)',
+            location: '贵阳市观山湖区林城东路107号',
+            cost: 0,
+            reason: '藏品逾8万件，馆藏东汉铜车马、海百合巨型化石，常设贵州通史与十二个少数民族服饰银饰非遗珍品。',
+            verificationStatus: 'verified',
+          ),
+          ItineraryItem(
+            itemType: 'meal',
+            startTime: '11:45',
+            endTime: '12:45',
+            title: '观山湖黔味午餐（生态酸汤鱼、雷家豆腐圆子）',
+            location: '金融城特色美食街',
+            cost: 90,
+            reason: '品尝现点现烹的贵州红酸汤与外酥里嫩传统名小吃，提神小憩。',
+            verificationStatus: 'verified',
+          ),
+          ItineraryItem(
+            itemType: 'transit',
+            startTime: '12:45',
+            endTime: '13:00',
+            title: '自驾前往贵州省地质博物馆',
+            distanceKm: 6.0,
+            durationMin: 15,
+            cost: 0,
+          ),
+          ItineraryItem(
+            itemType: 'attraction',
+            startTime: '13:00',
+            endTime: '15:00',
+            title: '贵州省地质博物馆 (古生物王国与矿产瑰宝)',
+            location: '贵阳市观山湖区云潭南路与兴筑路交汇处',
+            cost: 0,
+            reason: '全国古生物科教胜地，展示珍稀贵州龙、海百合、鱼龙等远古化石群，喀斯特地质地貌沉浸式科普。',
+            verificationStatus: 'verified',
+          ),
+          ItineraryItem(
+            itemType: 'transit',
+            startTime: '15:00',
+            endTime: '15:45',
+            title: '沿中环路自驾前往南明河老城区',
+            distanceKm: 18.0,
+            durationMin: 45,
+            cost: 0,
+          ),
+          ItineraryItem(
+            itemType: 'attraction',
+            startTime: '15:45',
+            endTime: '17:30',
+            title: '甲秀楼与翠微园 (3A · 全国重点文物保护单位)',
+            location: '贵阳市南明区翠微巷8号',
+            cost: 0,
+            reason: '明代古楼独峙南明河巨石之上，浮玉桥长廊石雕碑刻，刘玉山清代长联，傍晚赏落日与沿河亮灯夜景。',
+            verificationStatus: 'verified',
+          ),
+          ItineraryItem(
+            itemType: 'meal',
+            startTime: '17:45',
+            endTime: '19:00',
+            title: '南明河畔特色晚餐（老贵阳肠旺面、玫瑰冰粉）',
+            location: '甲秀楼周边老字号小吃街',
+            cost: 90,
+            reason: '血嫩面脆、辣香浓郁的肠旺面配清甜解腻的红糖玫瑰冰粉，圆满结束文博之旅。',
+            verificationStatus: 'verified',
+          ),
+        ],
+      ),
+    ],
+  );
+
   static final List<ItineraryPlanResponse> all = [
     anshunBenchmark,
     guiyangOneDay,
+    guiyangMuseumOneDay,
     liboXijiangThreeDay,
     zunyiChishuiTwoDay,
   ];

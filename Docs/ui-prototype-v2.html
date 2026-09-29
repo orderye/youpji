@@ -1218,6 +1218,11 @@ const SPOTS = [
     verify:'ok', verifyText:'已核验', tier:'一级来源',
     src:'贵阳市湿地办', srcDate:'9/08', score:4.3, hot:'',
     tags:['自然风光','轻松','亲子','免票'], desc:'国家城市湿地公园，阿哈湖水系绿道环绕，空气清新人少舒适。' },
+  { id:'gzsbwg', city:'贵阳', name:'贵州省博物馆', sub:'国家一级馆，通史与民族文物常设展', theme:'d',
+    price:0, priceText:'免费', open:'09:00–17:00 (周一闭馆)', dur:'2.5h', dist:'12 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'省博官方预约平台', srcDate:'9/28', score:4.8, hot:'文博必打卡',
+    tags:['文博/场馆','人文','历史','亲子','免票'], desc:'藏品8万余件，馆藏东汉铜车马、海百合巨型化石与十二个少数民族服饰银饰非遗珍宝。' },
 
   // 遵义
   { id:'zyhy', city:'遵义', name:'遵义会议会址', sub:'红色圣地核心，历史陈列展览', theme:'d',
@@ -1568,12 +1573,14 @@ let ITINERARY = generateItineraryPlan({
   interests: new Set(['自然风光','亲子'])
 }).itinerary;
 
-const TRIPS = [
+const DEFAULT_TRIPS = [
   { id:'it1', title:'贵阳 → 安顺 2 天', cover:'a', status:'ok', st:'进行中',
     date:'9/26 出发', stops:['黄果树','龙宫','天龙屯堡'], money:`¥${ITINERARY.budget} / 上限 ¥${ITINERARY.limit}` },
   { id:'it2', title:'贵阳周边 1 日游', cover:'b', status:'none', st:'草稿',
     date:'9/12 创建', stops:['黔灵山','青岩古镇'], money:'预算未定' }
 ];
+
+let TRIPS = JSON.parse(JSON.stringify(DEFAULT_TRIPS));
 
 /* ==========================================================
    状态
@@ -1597,6 +1604,7 @@ const state = {
   },
   detail:{ day:0, view:'list' },
   favs:new Set(['hgs']),
+  trips: TRIPS,
   generating:false,
   progress:0,
   login:false,
@@ -1668,16 +1676,17 @@ const homeHTML = () => `
     <button class="btn press" data-act="go:plan">${I.sparkle}<span>AI 帮我规划</span></button>
   </div>
 
+  ${state.trips.length ? `
   <div class="section" style="margin-top:var(--gap-card)">
-    <div class="card press" style="margin-bottom:0" data-act="go:detail">
+    <div class="card press" style="margin-bottom:0" data-act="trip:open:${state.trips[0].id}">
       <div class="row row--between">
         ${verified('ok','已保存')}
-        <span class="faint" style="font-size:12px">9/26</span>
+        <span class="faint" style="font-size:12px">${state.trips[0].date.split(' ')[0]}</span>
       </div>
-      <h3 style="margin:9px 0 2px;font-size:17px">${ITINERARY.title}</h3>
-      <p class="muted" style="margin:0;font-size:14px">${ITINERARY.title} · 预估支出 ¥${ITINERARY.budget.toLocaleString()} / 上限 ¥${ITINERARY.limit.toLocaleString()}</p>
+      <h3 style="margin:9px 0 2px;font-size:17px">继续上次行程</h3>
+      <p class="muted" style="margin:0;font-size:14px">${state.trips[0].title} · ${state.trips[0].money}</p>
     </div>
-  </div>
+  </div>` : ''}
 
   <div class="section">
     <div class="section__header"><h3>快捷入口</h3></div>
@@ -1721,7 +1730,7 @@ const homeHTML = () => `
    ========================================================== */
 const planHTML = () => {
   const p = state.plan;
-  const all = ['自然风光','人文','美食','亲子','避暑','轻松','避人多'];
+  const all = ['自然风光','人文','文博/场馆','美食','亲子','避暑','轻松','避人多'];
   return `
   <div class="page" style="padding-top:var(--gap-card)">
     <div class="card" style="background:var(--bg-fill);border:none">
@@ -2399,13 +2408,13 @@ const meHTML = () => `
       <span class="profile__av">${I.user}</span>
       <div class="stack" style="gap:0;min-width:0">
         <p class="profile__name">${state.login?'游友 8823':'未登录'}</p>
-        <p class="profile__sub">${state.login?'已同步 2 份行程 · 偏好已保存':'登录后可保存行程与偏好'}</p>
+        <p class="profile__sub">${state.login?`已同步 ${state.trips.length} 份行程 · 偏好已保存`:'登录后可保存行程与偏好'}</p>
       </div>
     </div>
 
     <div class="stat-row">
       <div class="stat press" data-act="me:trips">
-        <div class="stat__n">${state.login?2:0}</div><p class="stat__l">已存行程</p>
+        <div class="stat__n">${state.login?state.trips.length:0}</div><p class="stat__l">已存行程</p>
       </div>
       <div class="stat press" data-act="me:favs">
         <div class="stat__n">${state.favs.size}</div><p class="stat__l">收藏景区</p>
@@ -2421,8 +2430,8 @@ const meHTML = () => `
       <h3>我的行程</h3>
       <span class="link-btn press" data-act="me:trips">全部</span>
     </div>
-    ${TRIPS.map(t=>`
-      <div class="trip-card press" data-act="go:detail">
+    ${state.trips.length ? state.trips.map(t=>`
+      <div class="trip-card press" data-act="trip:open:${t.id}">
         <div class="trip-card__cover trip-card__cover--${t.cover}">
           <div style="position:absolute;left:12px;bottom:10px;display:flex;gap:6px">
             ${verified(t.status,t.st)}
@@ -2438,7 +2447,11 @@ const meHTML = () => `
           </div>
           <p class="muted" style="margin:8px 0 0;font-size:13px">${t.money}</p>
         </div>
-      </div>`).join('')}
+      </div>`).join('') : `
+      <div class="card" style="padding:22px 16px;text-align:center;color:var(--text-secondary);margin-bottom:0">
+        <p style="margin:0 0 10px;font-size:14px">暂无已保存行程</p>
+        <button class="btn btn--tinted btn--sm press" data-act="go:plan">立即定制行程</button>
+      </div>`}
   </div>
 
   <div class="section">
@@ -2513,10 +2526,13 @@ const favsHTML = () => {
 /* 行程列表 */
 const tripsHTML = () => `
   <div class="page" style="padding-top:var(--gap-card)">
-    ${TRIPS.map(t=>`
-      <div class="trip-card press" data-act="go:detail">
+    ${state.trips.map(t=>`
+      <div class="trip-card press" data-act="trip:open:${t.id}">
         <div class="trip-card__cover trip-card__cover--${t.cover}">
           <div style="position:absolute;left:12px;bottom:10px;display:flex;gap:6px">${verified(t.status,t.st)}</div>
+          <button class="press" data-act="trip:delete:${t.id}" title="删除行程" style="position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.36);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.22);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">
+            <span style="display:block;width:15px;height:15px">${I.trash}</span>
+          </button>
         </div>
         <div class="trip-card__body">
           <div class="row row--between">
@@ -2525,18 +2541,32 @@ const tripsHTML = () => `
           </div>
           <div class="trip-card__stops">${t.stops.map((s,i)=>`${i?'<i></i>':''}<span>${s}</span>`).join('')}</div>
           <p class="muted" style="margin:8px 0 0;font-size:13px">${t.money}</p>
-          <div class="row" style="gap:10px;margin-top:12px">
-            <button class="btn btn--tinted btn--sm press" data-act="trips:open">打开行程</button>
-            <button class="btn btn--sm press" data-act="trips:share" style="background:var(--bg-fill-strong);color:var(--accent-primary)">分享</button>
+          <div class="row" style="gap:10px;margin-top:12px;align-items:center">
+            <button class="btn btn--tinted btn--sm press" data-act="trip:open:${t.id}">打开行程</button>
+            <button class="btn btn--sm press" data-act="trip:share:${t.id}" style="background:var(--bg-fill-strong);color:var(--accent-primary)">分享</button>
+            <button class="btn btn--sm press" data-act="trip:delete:${t.id}" style="margin-left:auto;background:rgba(255,69,58,0.1);color:#FF453A;border:1px solid rgba(255,69,58,0.22)" title="删除行程">
+              <span style="display:inline-block;width:14px;height:14px;vertical-align:-2px">${I.trash}</span>
+              <span style="margin-left:3px">删除</span>
+            </button>
           </div>
         </div>
       </div>`).join('')}
+    ${state.trips.length ? `
     <div class="empty" style="padding:26px 24px">
       <div class="empty__ico">${I.cal}</div>
       <p class="empty__t">还想去哪</p>
       <p class="empty__d">让 AI 按预算和偏好排一条路线</p>
       <button class="btn btn--sm press" data-act="go:plan">新建行程</button>
-    </div>
+    </div>` : `
+    <div class="empty" style="padding:48px 24px">
+      <div class="empty__ico">${I.cal}</div>
+      <p class="empty__t">暂无已保存行程</p>
+      <p class="empty__d">所有行程均已移除。可让 AI 为你重新定制贵州路线</p>
+      <button class="btn btn--tinted btn--sm press" data-act="go:plan" style="margin-top:10px">新建行程</button>
+      <div style="margin-top:16px">
+        <button class="link-btn press" data-act="trip:restore" style="font-size:12.5px;color:var(--text-secondary)">恢复示例演示行程</button>
+      </div>
+    </div>`}
   </div>
   <div style="height:8px"></div>`;
 
@@ -2588,11 +2618,24 @@ const SHEETS = {
   searchg:()=>({ title:'搜索攻略', sub:'试试「避坑」「黄果树」', items:[
     ...GUIDES.map(g=>({ a:`guide:${g.id}`, ic:I.book, lb:g.title.slice(0,18)+'…', d:g.tier }))
   ]}),
-  more:()=>({ title:'更多操作', sub:'当前页面', items:[
+  more:()=>({ title:'更多操作', sub:'当前行程', items:[
     { a:'do:share', ic:I.link,   lb:'分享给同行', d:'生成只读链接' },
     { a:'do:export',ic:I.layers, lb:'导出为日历', d:'写入系统日历' },
-    { a:'do:report',ic:I.alert,  lb:'上报数据问题', d:'票价或时间有误' }
+    { a:'do:report',ic:I.alert,  lb:'上报数据问题', d:'票价或时间有误' },
+    { a:`trip:delete:${ITINERARY.id || (state.trips[0] ? state.trips[0].id : 'it1')}`, ic:I.trash, lb:'删除此行程', d:'彻底删除该行程并返回行程列表', danger:true }
   ]}),
+  tripDelete:(id)=>{
+    const trip = state.trips.find(t=>t.id===id) || state.trips[0];
+    const title = trip ? trip.title : '该行程';
+    return {
+      title:`删除行程「${title}」？`,
+      sub:'删除后将无法恢复，其中的自驾路线与景点安排将一并移除',
+      items:[
+        { a:`do:deleteTrip:${id}`, ic:I.trash, lb:'确认删除行程', d:'彻底移除此行程记录', danger:true },
+        { a:'close', ic:I.close, lb:'取消', d:'', plain:true }
+      ]
+    };
+  },
   city:()=>({
     title:'切换定位城市',
     sub:'支持贵州 9 大市州，将自动为您计算周边景点距离与推荐自驾路线',
@@ -2631,6 +2674,7 @@ const SHEETS = {
           <div class="row row--wrap" style="gap:7px">
             ${[
               ['贵阳','安顺','黄果树/龙宫/天龙屯堡'],
+              ['贵阳','贵阳文博','省博/地质博/甲秀楼'],
               ['贵阳','荔波','大小七孔/水上森林'],
               ['贵阳','西江苗寨','千户苗寨/镇远古城'],
               ['贵阳','梵净山','蘑菇石/红云金顶'],
@@ -2909,9 +2953,49 @@ document.getElementById('stage').addEventListener('click', (e)=>{
     case 'spot':  go('spot',{id:arg}); return;
     case 'guide': go('guideDetail',{id:arg}); return;
 
-    case 'sheet':
+    case 'sheet':{
+      const parts = act.split(':');
+      if (parts[1] === 'tripDelete'){
+        openSheet(SHEETS.tripDelete(parts[2]));
+        render(); return;
+      }
       openSheet(arg);
       render(); return;
+    }
+
+    case 'trip':{
+      const parts = act.split(':');
+      const action = parts[1];
+      const tripId = parts[2];
+      if (action === 'delete'){
+        openSheet(SHEETS.tripDelete(tripId));
+        render();
+        return;
+      }
+      if (action === 'open'){
+        go('detail');
+        return;
+      }
+      if (action === 'share'){
+        const t = state.trips.find(x => x.id === tripId);
+        toast(t ? `已复制「${t.title}」分享链接` : '已复制行程分享链接');
+        return;
+      }
+      if (action === 'restore'){
+        state.trips = JSON.parse(JSON.stringify(DEFAULT_TRIPS));
+        TRIPS = state.trips;
+        render();
+        toast('已恢复示例演示行程');
+        return;
+      }
+      return;
+    }
+
+    case 'trips':{
+      if (arg === 'open') { go('detail'); return; }
+      if (arg === 'share') { toast('已复制行程分享链接'); return; }
+      return;
+    }
 
     case 'fav': {
       const has = state.favs.has(arg);
@@ -3082,12 +3166,30 @@ document.getElementById('stage').addEventListener('click', (e)=>{
         : `已把「${moved.n}」提到最前，时间已重算`);
       return;
     }
-    case 'do':
+    case 'do':{
+      const parts = act.split(':');
+      if (parts[1] === 'deleteTrip'){
+        const tripId = parts[2];
+        const idx = state.trips.findIndex(t => t.id === tripId);
+        const name = idx >= 0 ? state.trips[idx].title : '行程';
+        if (idx >= 0) {
+          state.trips.splice(idx, 1);
+          TRIPS = state.trips;
+        }
+        closeSheet();
+        if (cur().name === 'detail') {
+          state.stack = [{ name: 'trips' }];
+        }
+        render();
+        toast(`已删除行程「${name}」`);
+        return;
+      }
       closeSheet(); render();
       toast(arg==='swap' ? '已替换并重算当天'
           : arg==='reset' ? '已恢复推荐顺序'
           : arg==='remove' ? '已移除并重算当天' : '已完成');
       return;
+    }
     case 'item':   openSheet(SHEETS.item(+arg)); render(); return;
   }
 });
@@ -3132,7 +3234,7 @@ function runGenerate(){
         } else {
           ITINERARY = res.itinerary;
           state.detail.day = 0;
-          TRIPS[0] = {
+          const generatedTrip = {
             id: ITINERARY.id,
             title: ITINERARY.title,
             cover: 'a',
@@ -3142,6 +3244,13 @@ function runGenerate(){
             stops: ITINERARY.days.flatMap(d => d.items.filter(i => i.spot).map(i => i.n.replace('景区','').replace('公园',''))),
             money: `¥${ITINERARY.budget.toLocaleString()} / 上限 ¥${ITINERARY.limit.toLocaleString()}`
           };
+          const existingIdx = state.trips.findIndex(t => t.id === ITINERARY.id || t.title === ITINERARY.title);
+          if (existingIdx >= 0) {
+            state.trips[existingIdx] = generatedTrip;
+          } else {
+            state.trips.unshift(generatedTrip);
+          }
+          TRIPS = state.trips;
           state.stack = [{name:'detail'}];
           render();
           if (res.level > 0) {

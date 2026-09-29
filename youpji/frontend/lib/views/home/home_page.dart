@@ -362,7 +362,7 @@ class HomePage extends ConsumerWidget {
                 ),
                 TextButton(
                   onPressed: () => context.push('/itineraries'),
-                  child: const Text('查看全部 4 条经典路线 >'),
+                  child: const Text('查看全部 5 条经典路线 >'),
                 ),
               ],
             ),

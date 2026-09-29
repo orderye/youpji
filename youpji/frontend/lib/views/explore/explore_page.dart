@@ -6,6 +6,7 @@ import '../../models/attraction_model.dart';
 import '../../models/location_model.dart';
 import '../../providers/api_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../widgets/entity_cover_image.dart';
 import '../../widgets/fact_badge.dart';
 
 class ExplorePage extends ConsumerStatefulWidget {
@@ -19,7 +20,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
   String _selectedFilter = '全部';
   String _selectedCityFilter = '全省';
 
-  final List<String> _filters = ['全部', '20km内', '50km内', '100km内', '5A景区'];
+  final List<String> _filters = ['全部', '20km内', '50km内', '100km内', '5A景区', '文博场馆'];
   final List<String> _cityFilters = ['全省', '贵阳', '安顺', '遵义', '黔东南', '黔南', '黔西南', '毕节', '铜仁', '六盘水'];
 
   bool _isLoading = false;
@@ -76,8 +77,10 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         id: 'huangguoshu-01',
         name: '黄果树风景名胜区',
         level: '5A',
+        category: '自然景观/瀑布',
         city: '安顺市',
         district: '镇宁/关岭',
+        coverImageUrl: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80',
         suggestedDurationMin: 300,
         tags: ['自然风光', '喀斯特瀑布', '水帘洞', '陡坡塘'],
         verificationStatus: 'verified',
@@ -88,8 +91,10 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         id: 'longgong-02',
         name: '龙宫风景名胜区',
         level: '5A',
+        category: '自然景观/溶洞',
         city: '安顺市',
         district: '西秀区',
+        coverImageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
         suggestedDurationMin: 180,
         tags: ['溶洞暗河', '喀斯特', '地下游船'],
         verificationStatus: 'verified',
@@ -100,8 +105,10 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         id: 'tianlong-03',
         name: '平坝天龙屯堡古镇',
         level: '4A',
+        category: '历史文化/古镇',
         city: '安顺市',
         district: '平坝区',
+        coverImageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
         suggestedDurationMin: 120,
         tags: ['历史文化', '大明屯堡', '地戏非遗'],
         verificationStatus: 'verified',
@@ -112,8 +119,10 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         id: 'getuhe-04',
         name: '紫云格凸河穿洞景区',
         level: '4A',
+        category: '自然景观/峡谷',
         city: '安顺市',
         district: '紫云县',
+        coverImageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
         suggestedDurationMin: 240,
         tags: ['蜘蛛人攀岩', '绝壁穿洞', '户外徒步'],
         verificationStatus: 'verified',
@@ -123,11 +132,41 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
 
       // 2. 贵阳市
       AttractionItem(
-        id: 'qianlingshan-05',
+        id: 'guizhou-museum-05',
+        name: '贵州省博物馆',
+        level: '4A',
+        category: '文化场馆/博物馆',
+        city: '贵阳市',
+        district: '观山湖区',
+        coverImageUrl: 'https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?auto=format&fit=crop&w=800&q=80',
+        suggestedDurationMin: 150,
+        tags: ['国家一级博物馆', '文博场馆', '贵州通史', '民族文物'],
+        verificationStatus: 'verified',
+        price: 0,
+        distanceMeters: notifier.distanceTo(26.647556, 106.64264) * 1000,
+      ),
+      AttractionItem(
+        id: 'geology-museum-06',
+        name: '贵州省地质博物馆',
+        level: '4A',
+        category: '文化场馆/博物馆',
+        city: '贵阳市',
+        district: '观山湖区',
+        coverImageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80',
+        suggestedDurationMin: 120,
+        tags: ['古生物王国', '文博场馆', '贵州龙化石', '地质科普'],
+        verificationStatus: 'verified',
+        price: 0,
+        distanceMeters: notifier.distanceTo(26.634125, 106.612451) * 1000,
+      ),
+      AttractionItem(
+        id: 'qianlingshan-07',
         name: '黔灵山公园',
         level: '4A',
+        category: '自然景观/森林公园',
         city: '贵阳市',
         district: '云岩区',
+        coverImageUrl: 'https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=800&q=80',
         suggestedDurationMin: 150,
         tags: ['林城公园', '弘福寺', '野生灵猴'],
         verificationStatus: 'verified',
@@ -138,8 +177,10 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         id: 'jiaxiulou-06',
         name: '甲秀楼',
         level: '3A',
+        category: '历史文化/古迹',
         city: '贵阳市',
         district: '南明区',
+        coverImageUrl: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=800&q=80',
         suggestedDurationMin: 90,
         tags: ['历史文化', '南明河畔', '夜景地标'],
         verificationStatus: 'verified',
@@ -150,8 +191,10 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         id: 'qingyan-07',
         name: '花溪青岩古镇',
         level: '5A',
+        category: '历史文化/古镇',
         city: '贵阳市',
         district: '花溪区',
+        coverImageUrl: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80',
         suggestedDurationMin: 180,
         tags: ['古镇风貌', '状元故居', '状元蹄美食'],
         verificationStatus: 'verified',
@@ -162,8 +205,10 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         id: 'tianhetan-08',
         name: '花溪天河潭风景区',
         level: '4A',
+        category: '自然景观/山水',
         city: '贵阳市',
         district: '花溪区',
+        coverImageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
         suggestedDurationMin: 180,
         tags: ['水天一色', '溶洞游船', '高空缆车'],
         verificationStatus: 'verified',
@@ -427,12 +472,17 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         }
       }
 
-      // 距离与级别过滤
+      // 距离与级别与主题过滤
       final distKm = (it.distanceMeters ?? 0) / 1000.0;
       if (_selectedFilter == '20km内') return distKm <= 20;
       if (_selectedFilter == '50km内') return distKm <= 50;
       if (_selectedFilter == '100km内') return distKm <= 100;
       if (_selectedFilter == '5A景区') return it.level == '5A';
+      if (_selectedFilter == '文博场馆') {
+        return it.name.contains('博物') ||
+            (it.tags != null &&
+                it.tags!.any((t) => t.contains('博物') || t.contains('文博') || t.contains('文化')));
+      }
       return true;
     }).toList();
   }
@@ -625,50 +675,81 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                         itemBuilder: (context, idx) {
                           final it = displayedList[idx];
                           return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            clipBehavior: Clip.antiAlias,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                EntityCoverImage(
+                                  imageUrl: it.coverImageUrl,
+                                  category: it.isMuseum ? 'museum' : (it.category ?? 'attraction'),
+                                  height: 140,
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            if (it.level != null) ...[
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                decoration: BoxDecoration(
-                                                  color: AppTheme.gold.withValues(alpha: 0.15),
-                                                  borderRadius: BorderRadius.circular(4),
-                                                ),
-                                                child: Text(
-                                                  it.level!,
-                                                  style: const TextStyle(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: AppTheme.gold,
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                if (it.isMuseum) ...[
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFF9333EA).withValues(alpha: 0.15),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: const Text(
+                                                      '🏛️ 博物馆',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Color(0xFF9333EA),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                ],
+                                                if (it.level != null) ...[
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: AppTheme.gold.withValues(alpha: 0.15),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: Text(
+                                                      it.level!,
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: AppTheme.gold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                ],
+                                                Flexible(
+                                                  child: Text(
+                                                    it.name,
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: AppTheme.darkInk,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                            ],
-                                            Flexible(
-                                              child: Text(
-                                                it.name,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppTheme.darkInk,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
-                                      ),
+                                          ),
                                       // 距离标记
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

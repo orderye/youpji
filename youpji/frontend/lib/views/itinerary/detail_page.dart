@@ -4,6 +4,7 @@ import '../../core/constants/theme_constants.dart';
 import '../../models/itinerary_model.dart';
 import '../../providers/itinerary_provider.dart';
 import '../../widgets/budget_bar.dart';
+import '../../widgets/entity_cover_image.dart';
 import '../../widgets/fact_badge.dart';
 import '../../widgets/warning_banner.dart';
 import 'reorder_day_dialog.dart';

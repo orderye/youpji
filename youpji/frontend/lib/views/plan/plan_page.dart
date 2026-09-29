@@ -33,7 +33,15 @@ class _PlanPageState extends ConsumerState<PlanPage> {
   final String _transport = 'self_drive';
   final List<String> _selectedInterests = ['自然风光', '历史文化'];
 
-  final List<String> _allInterests = ['自然风光', '历史文化', '喀斯特溶洞', '特色美食', '古镇古寨', '亲子休闲'];
+  final List<String> _allInterests = [
+    '自然风光',
+    '历史文化',
+    '文博场馆/博物院',
+    '喀斯特溶洞',
+    '特色美食',
+    '古镇古寨',
+    '亲子休闲',
+  ];
 
   @override
   void initState() {
@@ -181,14 +189,23 @@ class _PlanPageState extends ConsumerState<PlanPage> {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: ['安顺', '荔波', '西江千户苗寨', '遵义', '赤水', '兴义万峰林', '梵净山'].map((dest) {
+                      children: ['安顺', '贵阳文博', '荔波', '西江千户苗寨', '遵义', '赤水', '兴义万峰林', '梵净山'].map((dest) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 6),
                           child: ActionChip(
                             label: Text(dest, style: const TextStyle(fontSize: 11)),
                             visualDensity: VisualDensity.compact,
                             onPressed: () {
-                              _destCtrl.text = dest;
+                              if (dest == '贵阳文博') {
+                                _destCtrl.text = '贵阳';
+                                if (!_selectedInterests.contains('文博场馆/博物院')) {
+                                  setState(() {
+                                    _selectedInterests.add('文博场馆/博物院');
+                                  });
+                                }
+                              } else {
+                                _destCtrl.text = dest;
+                              }
                             },
                           ),
                         );
@@ -348,7 +365,7 @@ class _PlanPageState extends ConsumerState<PlanPage> {
               controller: _naturalCtrl,
               maxLines: 2,
               decoration: const InputDecoration(
-                hintText: '如：想去看黄果树瀑布和龙宫，不想太早起床，喜欢吃屯堡家常菜...',
+                hintText: '如：想去贵州省博物馆和地质博物馆看古生物化石，不想太早起床，喜欢吃酸汤鱼...',
                 border: OutlineInputBorder(),
               ),
             ),
