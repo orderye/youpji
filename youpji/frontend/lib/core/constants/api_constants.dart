@@ -10,10 +10,15 @@ class ApiConstants {
   static const String travelPlan = '/api/v1/travel/plan';
   static const String travelReplan = '/api/v1/travel/replan';
 
-  // 行程生命周期与反馈
+  // 行程列表与管理
+  static const String itineraries = '/api/v1/itineraries';
   static String itineraryDetail(String id) => '/api/v1/itineraries/$id';
   static String itineraryStart(String id) => '/api/v1/itineraries/$id/start';
   static String itineraryFeedback(String id) => '/api/v1/itineraries/$id/feedback';
+
+  // 景区数据与周边检索
+  static const String attractions = '/api/v1/attractions';
+  static String attractionDetail(String id) => '/api/v1/attractions/$id';
 
   // AI 会话
   static const String aiChat = '/api/v1/ai/chat';

@@ -3,6 +3,7 @@ import '../core/network/api_client.dart';
 import '../models/itinerary_model.dart';
 import '../models/replan_model.dart';
 import '../models/feedback_model.dart';
+import '../models/attraction_model.dart';
 
 class TravelService {
   final ApiClient client;
@@ -76,6 +77,27 @@ class TravelService {
     return ItineraryPlanResponse.fromJson(resp.data as Map<String, dynamic>);
   }
 
+  /// 获取当前登录用户的行程列表 GET /api/v1/itineraries
+  Future<List<Map<String, dynamic>>> getMyItineraries() async {
+    try {
+      final resp = await client.dio.get(ApiConstants.itineraries);
+      final list = resp.data as List<dynamic>? ?? [];
+      return list.map((e) => e as Map<String, dynamic>).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// 删除行程 DELETE /api/v1/itineraries/:id
+  Future<bool> deleteItinerary(String id) async {
+    try {
+      final resp = await client.dio.delete(ApiConstants.itineraryDetail(id));
+      return resp.statusCode == 200 || resp.statusCode == 204;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// 启动行程 POST /api/v1/itineraries/:id/start
   Future<bool> startItinerary(String id) async {
     final resp = await client.dio.post(ApiConstants.itineraryStart(id));
@@ -89,5 +111,29 @@ class TravelService {
       data: feedback.toJson(),
     );
     return resp.data['feedback_id']?.toString();
+  }
+
+  /// 查询景区列表（支持经纬度距离排序与周边筛选） GET /api/v1/attractions
+  Future<List<AttractionItem>> getAttractions({
+    double? lng,
+    double? lat,
+    String? sortBy,
+    String? city,
+    int limit = 20,
+  }) async {
+    final queryParams = <String, dynamic>{
+      'limit': limit,
+      if (lng != null) 'lng': lng,
+      if (lat != null) 'lat': lat,
+      if (sortBy != null) 'sort_by': sortBy,
+      if (city != null) 'city': city,
+    };
+
+    final resp = await client.dio.get(
+      ApiConstants.attractions,
+      queryParameters: queryParams,
+    );
+    final list = resp.data as List<dynamic>? ?? [];
+    return list.map((e) => AttractionItem.fromJson(e as Map<String, dynamic>)).toList();
   }
 }

@@ -39,6 +39,9 @@ pub struct AttractionRow {
     pub last_verified: Option<chrono::DateTime<chrono::Utc>>,
     pub source_type: String,
     pub source_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[sqlx(default)]
+    pub distance_meters: Option<f64>,
 }
 
 #[derive(Debug, FromRow, Serialize)]
@@ -103,12 +106,14 @@ pub struct ListQuery {
     pub lng: Option<f64>,
     pub lat: Option<f64>,
     pub radius_km: Option<f64>,
+    pub sort_by: Option<String>,
 }
 
 pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<AttractionRow>> {
     let limit = q.page.limit();
     let offset = q.page.offset();
     let radius_m = q.radius_km.unwrap_or(50.0) * 1000.0;
+    let sort_by = q.sort_by.unwrap_or_default();
 
     let rows: Vec<AttractionRow> = sqlx::query_as(
         r#"SELECT a.id, a.destination_id, a.name, a.alias, a.province, a.city, a.district,
@@ -117,7 +122,10 @@ pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<AttractionR
                   a.difficulty, a.family_score, a.elderly_score, a.photography_score,
                   a.couple_score, a.indoor, a.popularity, a.status, a.parking, a.transport,
                   a.verification_status::text AS verification_status, a.confidence,
-                  a.last_verified, a.source_type::text AS source_type, a.source_url
+                  a.last_verified, a.source_type::text AS source_type, a.source_url,
+                  CASE WHEN $6::float8 IS NOT NULL THEN
+                    ST_Distance(a.geog, ST_SetSRID(ST_MakePoint($7::float8, $8::float8), 4326)::geography)
+                  ELSE NULL END AS distance_meters
            FROM attractions a
            WHERE ($1::text IS NULL OR a.city = $1)
              AND ($2::text IS NULL OR a.category = $2)
@@ -129,7 +137,11 @@ pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<AttractionR
              AND ($6::float8 IS NULL OR ST_DWithin(
                    a.geog, ST_SetSRID(ST_MakePoint($7::float8, $8::float8), 4326)::geography, $9::float8
              ))
-           ORDER BY a.popularity DESC, a.name
+           ORDER BY
+             CASE WHEN $12::text = 'distance' AND $6::float8 IS NOT NULL THEN
+               ST_Distance(a.geog, ST_SetSRID(ST_MakePoint($7::float8, $8::float8), 4326)::geography)
+             ELSE NULL END ASC NULLS LAST,
+             a.popularity DESC, a.name
            LIMIT $10 OFFSET $11"#,
     )
     .bind(&q.city)
@@ -143,11 +155,9 @@ pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<AttractionR
     .bind(radius_m)
     .bind(limit)
     .bind(offset)
+    .bind(sort_by)
     .fetch_all(&state.pool)
     .await?;
-
-    // tag filter uses tag_key — if caller passed Chinese label, map it
-    // (simplified: already bound as text; seed uses keys)
 
     Ok(Paged::new(rows, &q.page))
 }

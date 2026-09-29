@@ -62,7 +62,10 @@ pub fn build_router(config: Config, state: AppState) -> Router {
         .route("/api/v1/travel/parse", post(travel_parse))
         .route("/api/v1/travel/plan", post(travel_plan))
         .route("/api/v1/travel/replan", post(travel_replan))
-        .route("/api/v1/itineraries/{id}", get(itinerary_get))
+        .route(
+            "/api/v1/itineraries/{id}",
+            get(itinerary_get).delete(itinerary_delete),
+        )
         .route("/api/v1/itineraries/{id}/start", post(itinerary_start))
         .route(
             "/api/v1/itineraries/{id}/feedback",
@@ -514,6 +517,16 @@ async fn itinerary_get(
     let d = itinerary::get(&state, id).await?;
     itinerary::ensure_owner(d.itinerary.user_id, u.user_id, &u.role)?;
     Ok(Json(serde_json::to_value(d).unwrap_or_default()))
+}
+
+async fn itinerary_delete(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    headers: HeaderMap,
+) -> ApiResult<StatusCode> {
+    let u = current_user(&state, &headers).await?;
+    itinerary::delete_itinerary(&state, id, u.user_id, &u.role).await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 async fn itinerary_list(

@@ -2,18 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/theme_constants.dart';
+import '../../models/location_model.dart';
 import '../../providers/itinerary_provider.dart';
+import '../../providers/location_provider.dart';
+import '../../services/location_service.dart';
 
 class PlanPage extends ConsumerStatefulWidget {
-  const PlanPage({super.key});
+  final String? initialOrigin;
+  final String? initialDestination;
+
+  const PlanPage({
+    super.key,
+    this.initialOrigin,
+    this.initialDestination,
+  });
 
   @override
   ConsumerState<PlanPage> createState() => _PlanPageState();
 }
 
 class _PlanPageState extends ConsumerState<PlanPage> {
-  final TextEditingController _originCtrl = TextEditingController(text: '贵阳');
-  final TextEditingController _destCtrl = TextEditingController(text: '安顺');
+  late TextEditingController _originCtrl;
+  late TextEditingController _destCtrl;
   final TextEditingController _naturalCtrl = TextEditingController();
 
   int _days = 2;
@@ -25,16 +35,64 @@ class _PlanPageState extends ConsumerState<PlanPage> {
   final List<String> _allInterests = ['自然风光', '历史文化', '喀斯特溶洞', '特色美食', '古镇古寨', '亲子休闲'];
 
   @override
+  void initState() {
+    super.initState();
+    final defaultOrigin = widget.initialOrigin ?? ref.read(locationProvider).currentCity.shortName;
+    _originCtrl = TextEditingController(text: defaultOrigin);
+    _destCtrl = TextEditingController(text: widget.initialDestination ?? '安顺');
+
+    _originCtrl.addListener(_onRouteChanged);
+    _destCtrl.addListener(_onRouteChanged);
+  }
+
+  void _onRouteChanged() {
+    setState(() {});
+  }
+
+  @override
   void dispose() {
+    _originCtrl.removeListener(_onRouteChanged);
+    _destCtrl.removeListener(_onRouteChanged);
     _originCtrl.dispose();
     _destCtrl.dispose();
     _naturalCtrl.dispose();
     super.dispose();
   }
 
+  /// 计算出发地与目的地之间的估算距离和耗时
+  Map<String, dynamic> _computeRouteEstimate() {
+    final originCity = GuizhouCities.findByName(_originCtrl.text.trim());
+    final destCity = GuizhouCities.findByName(_destCtrl.text.trim());
+
+    if (originCity.name == destCity.name) {
+      return {
+        'distance_km': 30.0,
+        'duration_text': '市内自驾约 40 分钟',
+        'is_same_city': true,
+      };
+    }
+
+    final roadKm = LocationService.estimateDrivingDistanceKm(
+      originCity.latitude,
+      originCity.longitude,
+      destCity.latitude,
+      destCity.longitude,
+    );
+    final hours = LocationService.estimateDrivingHours(roadKm);
+
+    return {
+      'distance_km': roadKm,
+      'duration_text': LocationService.formatDrivingTime(hours),
+      'is_same_city': false,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final itineraryState = ref.watch(itineraryProvider);
+    final routeEstimate = _computeRouteEstimate();
+    final double distKm = routeEstimate['distance_km'] as double;
+    final String durText = routeEstimate['duration_text'] as String;
 
     return Scaffold(
       appBar: AppBar(title: const Text('定制 AI 旅游规划')),
@@ -43,30 +101,97 @@ class _PlanPageState extends ConsumerState<PlanPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 出发与目的地
+            // 出发与目的地输入
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _originCtrl,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: '出发地',
-                      prefixIcon: Icon(Icons.trip_origin),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.trip_origin, color: AppTheme.primaryBlue),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.my_location, size: 18),
+                        tooltip: '使用当前定位城市',
+                        onPressed: () {
+                          final currentCity = ref.read(locationProvider).currentCity;
+                          _originCtrl.text = currentCity.shortName;
+                        },
+                      ),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Icon(Icons.arrow_forward, color: AppTheme.mutedGray),
+                IconButton(
+                  icon: const Icon(Icons.swap_horiz, color: AppTheme.primaryBlue),
+                  tooltip: '对调出发地与目的地',
+                  onPressed: () {
+                    final temp = _originCtrl.text;
+                    _originCtrl.text = _destCtrl.text;
+                    _destCtrl.text = temp;
+                  },
                 ),
                 Expanded(
                   child: TextField(
                     controller: _destCtrl,
                     decoration: const InputDecoration(
                       labelText: '目的地',
-                      prefixIcon: Icon(Icons.location_on),
+                      prefixIcon: Icon(Icons.location_on, color: AppTheme.dangerRed),
                       border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // 实时自驾距离与耗时预估卡片
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlue.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.directions_car, size: 18, color: AppTheme.primaryBlue),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '自驾预估：约 ${distKm.toStringAsFixed(0)} km · $durText · 官方高速路线',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryBlue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // 快捷目的地快选
+            Row(
+              children: [
+                const Text('热门目的地：', style: TextStyle(fontSize: 12, color: AppTheme.mutedGray)),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: ['安顺', '荔波', '西江千户苗寨', '遵义', '赤水', '兴义万峰林', '梵净山'].map((dest) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ActionChip(
+                            label: Text(dest, style: const TextStyle(fontSize: 11)),
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {
+                              _destCtrl.text = dest;
+                            },
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
                 ),
@@ -122,7 +247,7 @@ class _PlanPageState extends ConsumerState<PlanPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('总预算预算上限', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text('总预算上限', style: TextStyle(fontWeight: FontWeight.w600)),
                 Text(
                   '¥${_budget.toInt()}',
                   style: const TextStyle(

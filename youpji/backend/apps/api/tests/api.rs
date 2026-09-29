@@ -347,3 +347,19 @@ async fn auth_delete_me_without_token_is_401() {
     assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
     assert_eq!(json_of(resp).await["code"], "UNAUTHORIZED");
 }
+
+#[tokio::test]
+async fn itinerary_delete_without_token_is_401() {
+    let resp = test_app()
+        .oneshot(
+            Request::builder()
+                .method("DELETE")
+                .uri("/api/v1/itineraries/00000000-0000-0000-0000-000000000001")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(json_of(resp).await["code"], "UNAUTHORIZED");
+}

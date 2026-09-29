@@ -1054,3 +1054,19 @@ pub async fn submit_feedback(
     .await?;
     Ok(fid)
 }
+
+/// 删除行程（级联清理 days, items 与 route_plans）
+pub async fn delete_itinerary(
+    state: &AppState,
+    id: Uuid,
+    user_id: Uuid,
+    role: &str,
+) -> ApiResult<()> {
+    let owner = owner_of(state, id).await?;
+    ensure_owner(owner, user_id, role)?;
+    sqlx::query("DELETE FROM itineraries WHERE id = $1")
+        .bind(id)
+        .execute(&state.pool)
+        .await?;
+    Ok(())
+}

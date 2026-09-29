@@ -6,16 +6,16 @@
 <title>游迹 App · UI 原型 V0.1</title>
 <style>
 /* ============================================================
-   Ocean Mist 雾海蓝 — 浅色模式
+   Apple Liquid Glass (iOS 26) — 浅色模式 (Ocean Mist 雾海蓝)
    #06425C / #4A90A4 / #A8D5BA / #F4F1DE
    ============================================================ */
 html[data-theme="light"]{
   --bg-primary:#FFFFFF;
-  --bg-secondary:#F2F6F8;
+  --bg-secondary:#F3F7F9;
   --bg-elevated:#FFFFFF;
   --bg-tint:#F4F1DE;
-  --bg-fill:rgba(6,66,92,.08);
-  --bg-fill-strong:rgba(6,66,92,.14);
+  --bg-fill:rgba(6,66,92,.06);
+  --bg-fill-strong:rgba(6,66,92,.12);
 
   --accent-primary:#06425C;
   --accent-secondary:#4A90A4;
@@ -23,42 +23,64 @@ html[data-theme="light"]{
   --on-accent:#FFFFFF;
 
   --text-primary:#0C1F29;
-  --text-secondary:#5A6B75;
-  --text-tertiary:#93A1A9;
+  --text-secondary:#526570;
+  --text-tertiary:#8A9AA3;
   --text-inverse:#FFFFFF;
 
-  --separator:rgba(60,60,67,.16);
-  --separator-strong:rgba(60,60,67,.29);
+  --separator:rgba(6,66,92,.10);
+  --separator-strong:rgba(6,66,92,.18);
 
-  --ok:#1E7A4D;      --ok-bg:rgba(46,167,110,.12);
+  --ok:#1E7A4D;      --ok-bg:rgba(46,167,110,.14);
   --warn:#A8630B;    --warn-bg:rgba(255,159,10,.14);
-  --dispute:#A03246; --dispute-bg:rgba(255,59,48,.10);
-  --none:#7B8790;    --none-bg:rgba(120,120,128,.10);
+  --dispute:#A03246; --dispute-bg:rgba(255,59,48,.12);
+  --none:#7B8790;    --none-bg:rgba(120,120,128,.12);
 
   --hero-from:#0A506B;
   --hero-to:#06425C;
   --hero-title:#FFFFFF;
-  --hero-sub:rgba(255,255,255,.72);
+  --hero-sub:rgba(255,255,255,.78);
 
-  --shadow-sm:0 1px 3px rgba(6,26,36,.06);
-  --shadow-md:0 6px 20px -4px rgba(6,26,36,.12);
-  --shadow-nav:0 .5px 0 0 var(--separator);
+  /* --- Apple Liquid Glass Tokens (Light) --- */
+  --glass-bg:rgba(255,255,255,.70);
+  --glass-bg-subtle:rgba(255,255,255,.45);
+  --glass-bg-elevated:rgba(255,255,255,.88);
+  --glass-border:rgba(255,255,255,.75);
+  --glass-border-subtle:rgba(255,255,255,.45);
+  --glass-specular:inset 0 1px 1px 0 rgba(255,255,255,.95), inset 0 -1px 1px 0 rgba(6,66,92,.04);
+  --glass-shadow:0 10px 32px -4px rgba(6,42,60,.09), 0 2px 8px -2px rgba(6,42,60,.04);
+  --glass-hover-specular:inset 0 1.5px 1.5px 0 #ffffff, inset 0 -1px 1px 0 rgba(6,66,92,.06);
+  --glass-hover-shadow:0 16px 42px -6px rgba(6,42,60,.14), 0 4px 14px -2px rgba(6,42,60,.06);
+  --glass-blur:blur(28px) saturate(190%);
 
-  --page-bg:#12232B;
+  --glass-dock-bg:rgba(255,255,255,.78);
+  --glass-dock-border:rgba(255,255,255,.85);
+  --glass-dock-specular:inset 0 1.2px 1.5px 0 #ffffff, inset 0 -1px 1px 0 rgba(6,66,92,.05);
+  --glass-dock-shadow:0 14px 44px -8px rgba(6,42,60,.18), 0 2px 12px rgba(6,42,60,.06);
+  --glass-dock-blur:blur(36px) saturate(210%);
+
+  --glass-prominent-bg:linear-gradient(145deg,rgba(6,66,92,.94),rgba(10,80,107,.98));
+  --glass-prominent-border:rgba(255,255,255,.35);
+  --glass-prominent-specular:inset 0 1.5px 1px 0 rgba(255,255,255,.55), inset 0 -1.5px 2px 0 rgba(0,0,0,.25);
+  --glass-prominent-shadow:0 10px 28px -4px rgba(6,66,92,.35), 0 3px 10px rgba(6,66,92,.20);
+
+  --glass-btn-tinted-bg:rgba(255,255,255,.65);
+  --glass-inset-bg:rgba(6,66,92,.06);
+
+  --page-bg:#0F1C23;
   --page-fg:#E6EEF2;
   --page-muted:#8FA6B0;
 }
 
 /* ============================================================
-   Ocean Mist 雾海蓝 — 深色模式（背景反转，accent 提亮）
+   Apple Liquid Glass (iOS 26) — 深色模式 (Ocean Mist 雾海蓝)
    ============================================================ */
 html[data-theme="dark"]{
   --bg-primary:#08161C;
-  --bg-secondary:#0F2530;
-  --bg-elevated:#122C38;
-  --bg-tint:#1B3A45;
-  --bg-fill:rgba(127,196,217,.12);
-  --bg-fill-strong:rgba(127,196,217,.20);
+  --bg-secondary:#0B1E26;
+  --bg-elevated:#112833;
+  --bg-tint:#163540;
+  --bg-fill:rgba(127,196,217,.10);
+  --bg-fill-strong:rgba(127,196,217,.18);
 
   --accent-primary:#7FC4D9;
   --accent-secondary:#5FA8BC;
@@ -66,30 +88,52 @@ html[data-theme="dark"]{
   --on-accent:#06222D;
 
   --text-primary:#EAF2F5;
-  --text-secondary:#9FB4BE;
-  --text-tertiary:#6B818C;
+  --text-secondary:#9AB0BA;
+  --text-tertiary:#667D87;
   --text-inverse:#08161C;
 
-  --separator:rgba(235,235,245,.12);
-  --separator-strong:rgba(235,235,245,.22);
+  --separator:rgba(235,235,245,.14);
+  --separator-strong:rgba(235,235,245,.24);
 
-  --ok:#4AD98C;      --ok-bg:rgba(74,217,140,.14);
-  --warn:#FFB340;    --warn-bg:rgba(255,179,64,.14);
-  --dispute:#FF7B85; --dispute-bg:rgba(255,123,133,.14);
-  --none:#8A979F;    --none-bg:rgba(138,151,159,.12);
+  --ok:#4AD98C;      --ok-bg:rgba(74,217,140,.16);
+  --warn:#FFB340;    --warn-bg:rgba(255,179,64,.16);
+  --dispute:#FF7B85; --dispute-bg:rgba(255,123,133,.16);
+  --none:#8A979F;    --none-bg:rgba(138,151,159,.14);
 
-  --hero-from:#0E4459;
-  --hero-to:#0A2E3C;
+  --hero-from:#0B3A4D;
+  --hero-to:#082531;
   --hero-title:#FFFFFF;
-  --hero-sub:rgba(255,255,255,.70);
+  --hero-sub:rgba(255,255,255,.72);
 
-  --shadow-sm:0 1px 3px rgba(0,0,0,.30);
-  --shadow-md:0 6px 20px -4px rgba(0,0,0,.45);
-  --shadow-nav:0 .5px 0 0 var(--separator);
+  /* --- Apple Liquid Glass Tokens (Dark) --- */
+  --glass-bg:rgba(18,44,56,.56);
+  --glass-bg-subtle:rgba(13,33,42,.45);
+  --glass-bg-elevated:rgba(24,56,70,.72);
+  --glass-border:rgba(127,196,217,.22);
+  --glass-border-subtle:rgba(127,196,217,.14);
+  --glass-specular:inset 0 1px 1px 0 rgba(255,255,255,.26), inset 0 -1px 1px 0 rgba(0,0,0,.40);
+  --glass-shadow:0 12px 38px -6px rgba(0,0,0,.55), 0 2px 10px rgba(0,0,0,.35);
+  --glass-hover-specular:inset 0 1.5px 1.5px 0 rgba(255,255,255,.38), inset 0 -1px 1px 0 rgba(0,0,0,.45);
+  --glass-hover-shadow:0 18px 46px -8px rgba(0,0,0,.68), 0 4px 14px rgba(0,0,0,.40);
+  --glass-blur:blur(28px) saturate(200%);
 
-  --page-bg:#E9EFF2;
-  --page-fg:#12232B;
-  --page-muted:#5A6B75;
+  --glass-dock-bg:rgba(15,38,48,.72);
+  --glass-dock-border:rgba(127,196,217,.30);
+  --glass-dock-specular:inset 0 1px 1.5px 0 rgba(255,255,255,.34), inset 0 -1px 1px 0 rgba(0,0,0,.45);
+  --glass-dock-shadow:0 16px 44px -8px rgba(0,0,0,.70), 0 2px 12px rgba(0,0,0,.40);
+  --glass-dock-blur:blur(40px) saturate(220%);
+
+  --glass-prominent-bg:linear-gradient(145deg,rgba(127,196,217,.94),rgba(74,144,164,.98));
+  --glass-prominent-border:rgba(255,255,255,.45);
+  --glass-prominent-specular:inset 0 1.5px 1px 0 rgba(255,255,255,.75), inset 0 -1.5px 2px 0 rgba(0,0,0,.25);
+  --glass-prominent-shadow:0 10px 30px -4px rgba(127,196,217,.35), 0 3px 12px rgba(127,196,217,.20);
+
+  --glass-btn-tinted-bg:rgba(127,196,217,.15);
+  --glass-inset-bg:rgba(127,196,217,.10);
+
+  --page-bg:#091217;
+  --page-fg:#E6EEF2;
+  --page-muted:#7C929E;
 }
 
 *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
@@ -103,13 +147,12 @@ body{
   transition:background .35s ease,color .35s ease;
 }
 
-/* ---------- 4pt grid / 移动端间距 token ---------- */
 :root{
   --margin-page:16px;
   --gap-card:12px;
   --padding-card:16px;
   --radius-card:20px;
-  --radius-sm:12px;
+  --radius-sm:14px;
   --radius-lg:28px;
   --tabbar-h:49px;
   --navbar-h:44px;
@@ -127,195 +170,285 @@ body{
 }
 .section__header h3{
   font-size:17px;font-weight:600;letter-spacing:-.43px;margin:0;
-  color:var(--text-primary);   /* 手机内跟随主题 token，舞台内由下方规则覆盖 */
+  color:var(--text-primary);
 }
 .stage .section__header h3{color:var(--page-fg)}
 
 /* ---------- 舞台 ---------- */
 .stage{
   min-height:100dvh;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:20px;padding:40px 20px 32px;
+  align-items:center;justify-content:center;gap:20px;padding:36px 20px 28px;
 }
 .stage__meta{text-align:center;max-width:430px}
 .stage__meta h1{font-size:20px;font-weight:600;letter-spacing:-.43px;margin:0 0 4px}
 .stage__meta p{font-size:13px;line-height:1.4;color:var(--page-muted);margin:0}
 
-/* ---------- 手机原型：直角矩形，固定 430×900 ---------- */
+/* ---------- 手机原型：旗舰曲面微框 + 硬件灵动岛 ---------- */
 .phone-mockup{
   width:430px;height:900px;flex:none;
   background:var(--bg-primary);
-  color:var(--text-primary);   /* 显式前景色：防止舞台深色对比底被继承进手机 */
-  border-radius:0;
+  color:var(--text-primary);
+  border-radius:54px;
   overflow:hidden;
   position:relative;
   display:flex;flex-direction:column;
-  box-shadow:0 20px 60px rgba(0,0,0,.28);
-  transition:background .35s ease;
+  box-shadow:0 35px 85px -15px rgba(0,0,0,.52), 0 0 0 1px rgba(255,255,255,.14), inset 0 0 0 1.5px rgba(255,255,255,.18);
+  border:8px solid #162028;
+  transition:background .35s ease, border-color .35s ease;
 }
+
+/* 硬件微孔：灵动岛 Dynamic Island */
+.dynamic-island{
+  position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:120px;height:30px;border-radius:999px;
+  background:#000000;z-index:45;
+  box-shadow:0 0 1px 1px rgba(255,255,255,.10);
+  pointer-events:none;
+  transition:width .3s var(--spring), height .3s var(--spring);
+}
+
+/* 底部 Home Indicator 触控条 */
+.home-indicator{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  width:134px;height:5px;border-radius:999px;
+  background:var(--text-primary);opacity:.22;
+  z-index:45;pointer-events:none;
+  transition:opacity .2s;
+}
+
+/* ---------- 动态环境光晕网格 (Liquid Canvas Mesh) ---------- */
+.app__ambient{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;
+}
+.ambient-orb{
+  position:absolute;border-radius:50%;filter:blur(65px);opacity:.30;
+  transition:opacity .35s ease;
+}
+.ambient-orb--1{
+  width:260px;height:260px;top:-40px;right:-50px;
+  background:radial-gradient(circle, var(--accent-secondary) 0%, transparent 70%);
+}
+.ambient-orb--2{
+  width:280px;height:280px;top:320px;left:-80px;
+  background:radial-gradient(circle, var(--accent-tertiary) 0%, transparent 70%);
+  opacity:.22;
+}
+.ambient-orb--3{
+  width:240px;height:240px;bottom:80px;right:-40px;
+  background:radial-gradient(circle, var(--accent-primary) 0%, transparent 70%);
+  opacity:.25;
+}
+html[data-theme="dark"] .ambient-orb{opacity:.20}
+
+/* ---------- 滚动容器 ---------- */
 .app__scroll{
   flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
   scrollbar-width:none;
-  background:var(--bg-secondary);
-  padding-top:var(--navbar-h);   /* 导航栏为悬浮层，滚动区让出高度 */
+  background:color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  padding-top:calc(44px + var(--navbar-h));
+  padding-bottom:calc(var(--tabbar-h) + 54px);
+  position:relative;z-index:10;
 }
-/* 沉浸式：Hero 顶到导航栏下沿（导航栏浮在其上） */
-.app__scroll.is-immersive{padding-top:0;background:var(--bg-primary)}
+.app__scroll.is-immersive{
+  padding-top:0;
+  background:color-mix(in srgb, var(--bg-primary) 40%, transparent);
+}
 .app__scroll.is-immersive .spot-hero{margin-top:0}
-/* 有吸底操作栏的页面，尾部留出安全高度 */
-.app__scroll.has-dock{padding-bottom:calc(var(--tabbar-h) + 34px + 78px)}
+/* 有吸底操作栏且无底部标签栏时，尾部让出合适距离 */
+.app__scroll.has-dock{padding-bottom:96px}
 .app__scroll::-webkit-scrollbar{display:none}
 
 /* ---------- 状态栏（双击切主题） ---------- */
 .status-bar{
   height:44px;flex:none;
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px 0 24px;
-  font-size:13px;font-weight:600;letter-spacing:-.08px;
+  padding:0 22px;
+  font-size:14px;font-weight:600;letter-spacing:-.1px;
   color:var(--text-primary);
-  background:var(--bg-primary);
+  background:transparent;
   cursor:pointer;user-select:none;-webkit-user-select:none;
   position:relative;z-index:30;
-  transition:background .35s ease,color .35s ease;
+  transition:color .35s ease;
 }
 .status-bar__time{font-variant-numeric:tabular-nums;min-width:52px}
 .status-bar__right{display:flex;align-items:center;gap:5px}
+
+/* 状态栏双击提示：仅在桌面端悬停状态栏时优雅浮现，绝不阻挡导航标题 */
 .status-bar::after{
-  content:'双击状态栏切换深色';
-  position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);
-  padding:5px 12px;background:var(--accent-primary);color:var(--on-accent);
+  content:'双击状态栏切换深浅色';
+  position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);
+  padding:4px 10px;background:rgba(12,31,41,.88);color:#fff;
+  border:1px solid rgba(255,255,255,.2);
   font-size:11px;font-weight:600;border-radius:999px;white-space:nowrap;
-  pointer-events:none;opacity:0;z-index:60;
-  box-shadow:0 4px 12px rgba(0,0,0,.22);
-  animation:hintFade 4.8s ease-out .6s 1 both;
+  pointer-events:none;z-index:60;
+  box-shadow:0 4px 14px rgba(0,0,0,.25);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  opacity:0;transition:opacity .2s ease;
 }
-html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'}
-@keyframes hintFade{
-  0%{opacity:0;transform:translate(-50%,-4px)}
-  14%{opacity:1;transform:translate(-50%,0)}
-  78%{opacity:1;transform:translate(-50%,0)}
-  100%{opacity:0;transform:translate(-50%,-4px)}
-}
+.status-bar:hover::after{opacity:1}
 
 /* ---------- 导航栏 44pt + 毛玻璃 ---------- */
 .nav-bar{
   height:var(--navbar-h);flex:none;
-  display:flex;align-items:center;gap:8px;padding:0 12px;
+  display:flex;align-items:center;gap:8px;padding:0 14px;
   position:absolute;left:0;right:0;top:44px;z-index:25;
-  background:color-mix(in srgb,var(--bg-primary) 72%,transparent);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  backdrop-filter:saturate(180%) blur(20px);
-  box-shadow:var(--shadow-nav);
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  border-bottom:1px solid var(--glass-border-subtle);
+  box-shadow:var(--glass-specular);
   transition:background .35s ease,color .35s ease;
 }
-/* 沉浸式页：导航栏压深色 Hero，文字转浅色 */
+/* 沉浸式页（景区实景）：导航栏半透明 */
 .phone-mockup:has(.is-immersive) .nav-bar{
-  background:transparent;box-shadow:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.45) 0%,transparent 100%);
+  box-shadow:none;border-bottom-color:transparent;
   -webkit-backdrop-filter:none;backdrop-filter:none;
   color:#fff;
 }
 .phone-mockup:has(.is-immersive) .nav-bar__title{color:#fff}
-.phone-mockup:has(.is-immersive) .nav-btn{color:#fff}
 .nav-bar__title{
   flex:1;text-align:center;font-size:17px;font-weight:600;letter-spacing:-.43px;
-  color:var(--text-primary);
+  color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.nav-btn{
-  width:38px;height:38px;flex:none;
-  display:flex;align-items:center;justify-content:center;
-  border:none;background:transparent;cursor:pointer;
-  color:var(--accent-primary);border-radius:var(--radius-sm);
-  transition:transform .18s var(--spring),opacity .18s;
+/* 首页地点天气胶囊 */
+.nav-bar__loc{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 12px;border-radius:999px;
+  background:var(--glass-bg-subtle);border:1px solid var(--glass-border-subtle);
+  margin:0 auto;font-size:13px;font-weight:600;color:var(--text-primary);
+  cursor:pointer;transition:transform .18s var(--spring);
 }
-.nav-btn:active{transform:scale(.9);opacity:.6}
-.nav-btn svg{width:20px;height:20px}
-.nav-btn--ph{width:38px;flex:none}
+.nav-bar__loc:active{transform:scale(.95)}
+.nav-bar__loc svg{width:13px;height:13px;color:var(--accent-primary)}
 
-/* ---------- Tab Bar：flex 兄弟节点，非 absolute ---------- */
+/* 导航按钮：圆润微晶玻璃键，保证在图片与白底下均清晰 */
+.nav-btn{
+  width:36px;height:36px;flex:none;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--glass-border);
+  background:var(--glass-bg-elevated);cursor:pointer;
+  color:var(--text-primary);
+  box-shadow:var(--glass-specular), 0 2px 8px rgba(0,0,0,.08);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  transition:transform .18s var(--spring),opacity .18s,background .2s;
+}
+.phone-mockup:has(.is-immersive) .nav-btn{
+  background:rgba(0,0,0,.42);
+  border-color:rgba(255,255,255,.32);
+  color:#fff;
+  box-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+.nav-btn:active{transform:scale(.90)}
+.nav-btn svg{width:18px;height:18px;display:block}
+.nav-btn--ph{width:36px;flex:none}
+
+/* ---------- 悬浮液态玻璃标签栏 (Floating Glass Capsule) ---------- */
 .tab-bar{
-  flex:none;min-height:calc(var(--tabbar-h) + 34px);
-  padding:6px 0 34px;
+  position:absolute;
+  left:20px;right:20px;bottom:22px;z-index:35;
+  height:62px;
+  padding:4px 6px;
+  border-radius:999px;
   display:grid;grid-template-columns:repeat(5,1fr);
-  background:color-mix(in srgb,var(--bg-primary) 78%,transparent);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  backdrop-filter:saturate(180%) blur(20px);
-  box-shadow:0 -.5px 0 0 var(--separator);
-  transition:background .35s ease;
+  background:var(--glass-dock-bg);
+  -webkit-backdrop-filter:var(--glass-dock-blur);
+  backdrop-filter:var(--glass-dock-blur);
+  border:1px solid var(--glass-dock-border);
+  box-shadow:var(--glass-dock-specular), var(--glass-dock-shadow);
+  transition:background .35s ease,border-color .35s ease,transform .3s var(--spring),opacity .25s;
 }
 .tab-bar__item{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   border:none;background:transparent;cursor:pointer;
-  color:var(--text-tertiary);font-size:10px;font-weight:500;letter-spacing:.07px;
-  padding:4px 0;transition:color .2s,transform .18s var(--spring);
+  color:var(--text-secondary);font-size:10.5px;font-weight:500;letter-spacing:.08px;
+  padding:3px 0;border-radius:999px;
+  transition:color .2s,transform .18s var(--spring),background .25s ease;
 }
-.tab-bar__item:active{transform:scale(.92)}
-.tab-bar__item.is-active{color:var(--accent-primary)}
-.tab-bar__item svg{width:23px;height:23px}
+.tab-bar__item:active{transform:scale(.90)}
+.tab-bar__item.is-active{
+  color:var(--accent-primary);
+  background:rgba(6,66,92,.08);
+  font-weight:700;
+}
+html[data-theme="dark"] .tab-bar__item.is-active{
+  background:rgba(127,196,217,.16);
+}
+.tab-bar__item svg{width:21px;height:21px}
 
 /* ---------- Hero：full-bleed 贴边，0 圆角 ---------- */
 .hero{
   margin:0 0 var(--gap-card);
   width:100%;
   aspect-ratio:16/9.5;
-  max-height:300px;
+  max-height:290px;
   border-radius:0;
   position:relative;overflow:hidden;
   background:linear-gradient(165deg,var(--hero-from),var(--hero-to));
   display:flex;flex-direction:column;justify-content:flex-end;
   padding:20px var(--margin-page) 18px;
+  cursor:pointer;
 }
 .hero::before{
   content:'';position:absolute;top:-30px;right:-30px;
   width:0;height:0;
   border-left:110px solid transparent;
   border-right:110px solid transparent;
-  border-bottom:190px solid rgba(255,255,255,.055);
+  border-bottom:190px solid rgba(255,255,255,.05);
+  pointer-events:none;
 }
 .hero::after{
-  content:'';position:absolute;bottom:-20px;left:28px;
+  content:'';position:absolute;bottom:0;right:20px;
   width:0;height:0;
   border-left:80px solid transparent;
   border-right:80px solid transparent;
-  border-bottom:130px solid rgba(168,213,186,.05);
+  border-bottom:130px solid rgba(255,255,255,.07);
+  pointer-events:none;
 }
-.hero__body{position:relative;z-index:2}
+.hero__body{position:relative;z-index:2;color:var(--hero-title)}
 .hero__eyebrow{
-  font-size:12px;font-weight:600;letter-spacing:.4px;
-  color:var(--hero-sub);text-transform:uppercase;margin:0 0 4px;
+  font-size:12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--hero-sub);margin:0 0 4px;
 }
 .hero__title{
-  font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;
-  color:var(--hero-title);margin:0 0 6px;
+  font-size:28px;font-weight:700;letter-spacing:.36px;line-height:1.2;
+  margin:0 0 6px;color:var(--hero-title);
 }
-.hero__meta{
-  font-size:13px;color:var(--hero-sub);margin:0;
-  display:flex;align-items:center;gap:6px;
-}
-.hero__meta svg{width:13px;height:13px;flex:none}
+.hero__meta{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--hero-sub);margin:0}
+.hero__meta svg{width:14px;height:14px;flex:none}
 
-/* ---------- 卡片 ---------- */
+/* ---------- 卡片：Apple Liquid Glass 材质 ---------- */
 .card{
   border-radius:var(--radius-card);
   padding:var(--padding-card);
-  background:var(--bg-elevated);
-  border:1px solid var(--separator);
-  box-shadow:var(--shadow-sm);
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular), var(--glass-shadow);
   margin-bottom:var(--gap-card);
-  transition:transform .2s var(--spring),box-shadow .2s;
+  transition:transform .2s var(--spring),box-shadow .25s ease,background .25s ease;
+  position:relative;
 }
 .card--tap{cursor:pointer;display:block;width:100%;text-align:left;font:inherit;color:inherit}
-.card--tap:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.card--tap:active{transform:scale(.985)}
+.card--tap:hover{
+  transform:translateY(-2px);
+  background:var(--glass-bg-elevated);
+  box-shadow:var(--glass-hover-specular), var(--glass-hover-shadow);
+}
+.card--tap:active{transform:scale(.982)}
 .card--feature{
   background:linear-gradient(150deg,var(--accent-primary),var(--hero-from));
-  border:none;color:var(--hero-title);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:inset 0 1.5px 1px 0 rgba(255,255,255,.45), 0 12px 36px -4px rgba(6,66,92,.35);
+  color:var(--hero-title);
 }
-.card--tint{background:var(--bg-tint);border-color:transparent}
-/* 标题显式前景色：深浅模式各自跟随 token，避免继承舞台色 */
-.card h3,.card .stack h3{color:var(--text-primary)}
-.card--feature h3{color:var(--hero-title)}
-.phone-mockup .section__header h3{color:var(--text-primary)}
-.phone-mockup .stat__l,.phone-mockup .field__lb,.phone-mockup .field__vl{color:var(--text-secondary)}
+.card--tint{
+  background:color-mix(in srgb, var(--bg-tint) 65%, transparent);
+  border-color:var(--glass-border);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+}
 
 .row{display:flex;align-items:center;gap:8px}
 .row--between{justify-content:space-between}
@@ -324,130 +457,93 @@ html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'
 .muted{color:var(--text-secondary)}
 .faint{color:var(--text-tertiary)}
 
-/* ---------- 按钮 ---------- */
+/* ---------- 按钮：Apple Liquid Glass 材质 ---------- */
 .btn{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  width:100%;min-height:50px;padding:13px 20px;
-  border:none;border-radius:14px;cursor:pointer;
-  font-family:inherit;font-size:17px;font-weight:600;letter-spacing:-.43px;
-  background:var(--accent-primary);color:var(--on-accent);
-  transition:transform .18s var(--spring),opacity .18s,filter .18s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;min-height:48px;padding:12px 20px;
+  border:1px solid var(--glass-prominent-border);border-radius:18px;cursor:pointer;
+  font-family:inherit;font-size:16px;font-weight:600;letter-spacing:-.35px;
+  background:var(--glass-prominent-bg);color:var(--on-accent);
+  box-shadow:var(--glass-prominent-specular), var(--glass-prominent-shadow);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  position:relative;overflow:hidden;
+  transition:transform .18s var(--spring),opacity .18s,box-shadow .2s;
 }
-.btn:active{transform:scale(.975);opacity:.88}
-.btn--tinted{background:var(--bg-fill-strong);color:var(--accent-primary)}
-.btn--sm{min-height:38px;padding:8px 16px;font-size:15px;border-radius:11px;width:auto}
+.btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.24) 0%,transparent 55%);
+  pointer-events:none;border-radius:inherit;
+}
+.btn:hover{box-shadow:var(--glass-prominent-specular), 0 14px 34px -4px rgba(6,66,92,.45)}
+.btn:active{transform:scale(.972);opacity:.92}
+
+.btn--tinted{
+  background:var(--glass-btn-tinted-bg);color:var(--accent-primary);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular), 0 4px 14px rgba(0,0,0,.04);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+}
+.btn--tinted::before{display:none}
+.btn--tinted:hover{background:var(--glass-bg-elevated);box-shadow:var(--glass-hover-specular), 0 6px 18px rgba(0,0,0,.06)}
+
+.btn--sm{min-height:36px;padding:7px 15px;font-size:13.5px;border-radius:12px;width:auto}
 .btn svg{width:18px;height:18px}
 
-/* ---------- Chips / 分段控件 ---------- */
+/* ---------- Chips / 分段控件：液态玻璃胶囊 ---------- */
 .seg{
-  display:flex;padding:2px;border-radius:11px;background:var(--bg-fill);
+  display:flex;padding:3px;border-radius:14px;
+  background:var(--glass-inset-bg);
+  border:1px solid var(--glass-border-subtle);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.06);
   position:relative;
 }
 .seg__btn{
   flex:1;min-height:34px;border:none;background:transparent;cursor:pointer;
   font-family:inherit;font-size:13px;font-weight:600;letter-spacing:-.08px;
-  color:var(--text-secondary);border-radius:9px;
-  transition:background .22s,color .22s,box-shadow .22s;
+  color:var(--text-secondary);border-radius:11px;
+  transition:background .22s,color .22s,box-shadow .22s,transform .16s var(--spring);
 }
 .seg__btn.is-active{
-  background:var(--bg-elevated);color:var(--accent-primary);box-shadow:var(--shadow-sm);
+  background:var(--glass-bg-elevated);color:var(--accent-primary);
+  box-shadow:var(--glass-specular), 0 3px 10px rgba(0,0,0,.07);
 }
 .chip{
-  display:inline-flex;align-items:center;gap:4px;
-  min-height:34px;padding:6px 13px;border-radius:999px;
-  background:var(--bg-elevated);border:1px solid var(--separator);
-  font-size:14px;font-weight:500;color:var(--text-primary);cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;
+  min-height:34px;padding:6px 14px;border-radius:999px;
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular);
+  font-size:13.5px;font-weight:500;color:var(--text-primary);cursor:pointer;
   font-family:inherit;
-  transition:transform .16s var(--spring),background .2s,border-color .2s;
+  transition:transform .16s var(--spring),background .2s,border-color .2s,box-shadow .2s;
 }
+.chip:hover{background:var(--glass-bg-elevated);transform:translateY(-1px)}
 .chip:active{transform:scale(.94)}
-.chip.is-on{background:var(--accent-primary);color:var(--on-accent);border-color:transparent}
+.chip.is-on{
+  background:var(--glass-prominent-bg);color:var(--on-accent);
+  border-color:var(--glass-prominent-border);
+  box-shadow:var(--glass-prominent-specular), 0 4px 14px rgba(6,66,92,.28);
+}
 
-/* ---------- 核验徽章 ---------- */
+/* ---------- 核验徽章：微晶体胶囊 ---------- */
 .verified{
-  display:inline-flex;align-items:center;gap:4px;flex:none;
-  height:22px;padding:0 8px;border-radius:999px;
+  display:inline-flex;align-items:center;gap:5px;flex:none;
+  height:24px;padding:0 9px;border-radius:999px;
   font-size:11px;font-weight:600;letter-spacing:-.08px;
+  border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:inset 0 1px 1px 0 rgba(255,255,255,.6), 0 2px 6px rgba(0,0,0,.04);
 }
-.verified__dot{width:5px;height:5px;border-radius:50%;flex:none}
+html[data-theme="dark"] .verified{
+  border-color:rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 1px 0 rgba(255,255,255,.2), 0 2px 6px rgba(0,0,0,.2);
+}
+.verified__dot{width:6px;height:6px;border-radius:50%;flex:none;box-shadow:0 0 6px currentColor}
 .verified--ok{background:var(--ok-bg);color:var(--ok)}
-.verified--ok .verified__dot{background:var(--ok)}
 .verified--warn{background:var(--warn-bg);color:var(--warn)}
-.verified--warn .verified__dot{background:var(--warn)}
 .verified--dispute{background:var(--dispute-bg);color:var(--dispute)}
-.verified--dispute .verified__dot{background:var(--dispute)}
 .verified--none{background:var(--none-bg);color:var(--none)}
-.verified--none .verified__dot{background:var(--none)}
-
-/* ---------- 预算条 ---------- */
-.budget{margin-top:10px}
-.budget__nums{
-  display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;
-}
-.budget__val{font-size:20px;font-weight:700;letter-spacing:-.43px;color:var(--text-primary)}
-.budget__cap{font-size:12px;color:var(--text-secondary)}
-.budget__track{height:8px;border-radius:4px;background:var(--bg-fill);overflow:hidden}
-.budget__fill{height:100%;border-radius:4px;background:var(--accent-primary);width:0;transition:width .7s var(--spring)}
-
-/* ---------- 时间轴 ---------- */
-.timeline{position:relative;padding-left:22px}
-.timeline::before{
-  content:'';position:absolute;left:5px;top:8px;bottom:14px;width:2px;
-  background:var(--separator-strong);border-radius:1px;
-}
-.tl-item{position:relative;margin-bottom:var(--gap-card)}
-.tl-item::before{
-  content:'';position:absolute;left:-22px;top:17px;
-  width:12px;height:12px;border-radius:50%;
-  background:var(--accent-primary);
-  box-shadow:0 0 0 3px var(--bg-secondary);
-}
-.tl-item--muted::before{background:var(--bg-fill-strong)}
-.tl-time{
-  font-size:12px;font-weight:600;letter-spacing:-.08px;
-  color:var(--text-tertiary);font-variant-numeric:tabular-nums;margin:0 0 5px;
-}
-
-/* ---------- 交通段 ---------- */
-.transit{
-  display:flex;align-items:center;gap:7px;
-  padding:0 0 12px 0;margin:0;
-  font-size:12px;color:var(--text-secondary);
-}
-.transit svg{width:14px;height:14px;flex:none;color:var(--text-tertiary)}
-
-/* ---------- 提醒 ---------- */
-.alert{
-  display:flex;gap:10px;align-items:flex-start;
-  border-radius:var(--radius-sm);padding:12px 14px;
-  background:var(--warn-bg);margin-bottom:var(--gap-card);
-  font-size:13px;line-height:1.4;color:var(--text-primary);
-}
-.alert svg{width:16px;height:16px;flex:none;color:var(--warn);margin-top:1px}
-.alert b{color:var(--warn);font-weight:600}
-
-/* ---------- 滚动容器：置于 .section 内 ---------- */
-.product-scroll{
-  display:flex;gap:var(--gap-card);overflow-x:auto;
-  padding-bottom:4px;scrollbar-width:none;
-  margin-bottom:var(--gap-card);
-}
-.product-scroll::-webkit-scrollbar{display:none}
-.p-card{
-  flex:none;width:150px;border-radius:var(--radius-card);
-  background:var(--bg-elevated);border:1px solid var(--separator);
-  box-shadow:var(--shadow-sm);overflow:hidden;cursor:pointer;
-  transition:transform .2s var(--spring);
-}
-.p-card:active{transform:scale(.97)}
-.p-card__img{width:100%;aspect-ratio:4/3;position:relative}
-.p-card__img--a{background:linear-gradient(150deg,#3E7F8C,#1E5666)}
-.p-card__img--b{background:linear-gradient(150deg,#4E8A6E,#2C5B47)}
-.p-card__img--c{background:linear-gradient(150deg,#8A7355,#5C4A33)}
-.p-card__img--d{background:linear-gradient(150deg,#6A7FA0,#41506B)}
-.p-card__cap{padding:9px 11px 11px}
-.p-card__name{font-size:14px;font-weight:600;color:var(--text-primary);margin:0}
-.p-card__meta{font-size:11px;color:var(--text-secondary);margin:2px 0 0}
 
 /* ---------- 快速入口 4 列 ---------- */
 .quick-grid{
@@ -459,63 +555,100 @@ html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'
   border:none;background:none;cursor:pointer;font-family:inherit;padding:0;
 }
 .quick__ico{
-  width:100%;aspect-ratio:1;border-radius:var(--radius-sm);
-  background:var(--bg-elevated);border:1px solid var(--separator);
+  width:100%;aspect-ratio:1;border-radius:18px;
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
   display:flex;align-items:center;justify-content:center;color:var(--accent-primary);
-  box-shadow:var(--shadow-sm);
+  box-shadow:var(--glass-specular), 0 4px 14px rgba(6,42,60,.06);
+  transition:transform .18s var(--spring),background .2s,box-shadow .2s;
 }
+.quick:hover .quick__ico{
+  background:var(--glass-bg-elevated);
+  transform:translateY(-2px);
+  box-shadow:var(--glass-hover-specular), 0 8px 20px rgba(6,42,60,.10);
+}
+.quick:active .quick__ico{transform:scale(.92)}
 .quick__ico svg{width:20px;height:20px}
 .quick__lb{font-size:11px;color:var(--text-secondary);line-height:1.2;text-align:center}
 
 /* ---------- 表单行 ---------- */
 .field{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
-  min-height:50px;padding:6px 0;
+  min-height:48px;padding:10px 0;
+  border-bottom:1px solid var(--separator);
 }
-.field + .field{border-top:1px solid var(--separator)}
-.field__lb{font-size:15px;color:var(--text-primary);flex:none}
-.field__vl{font-size:15px;color:var(--text-secondary);text-align:right;display:flex;align-items:center;gap:5px}
-.field__vl svg{width:15px;height:15px;color:var(--text-tertiary)}
-
-/* ---------- diff 卡片 ---------- */
-.diff{border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--separator)}
-.diff__row{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:11px 14px;background:var(--bg-elevated);
-  font-size:14px;color:var(--text-primary);
+.field:last-child{border-bottom:none}
+.field__lb{font-size:16px;color:var(--text-primary)}
+.field__vl{
+  font-size:16px;color:var(--text-secondary);
+  display:flex;align-items:center;gap:6px;
 }
-.diff__row + .diff__row{border-top:1px solid var(--separator)}
-.diff__row--muted{background:var(--bg-secondary);color:var(--text-secondary)}
+.field__vl svg{width:16px;height:16px;color:var(--text-tertiary)}
 
-/* ---------- 搜索框 ---------- */
-.search{
-  display:flex;align-items:center;gap:8px;
-  height:38px;padding:0 12px;border-radius:11px;
-  background:var(--bg-fill);color:var(--text-secondary);
-  font-size:16px;
+/* ---------- 实时交互搜索框 ---------- */
+.search-box{
+  display:flex;align-items:center;gap:10px;
+  height:42px;padding:0 14px;border-radius:14px;
+  background:var(--glass-bg-elevated);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular), var(--glass-shadow);
+  margin-bottom:var(--gap-card);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
 }
-.search svg{width:16px;height:16px;flex:none;color:var(--text-tertiary)}
+.search-box__ico{width:16px;height:16px;color:var(--text-tertiary);flex:none;display:flex;align-items:center}
+.search-box__ico svg{width:100%;height:100%}
+.search-box__input{
+  flex:1;min-width:0;border:none;background:transparent;
+  font:inherit;font-size:14.5px;color:var(--text-primary);outline:none;
+}
+.search-box__input::placeholder{color:var(--text-tertiary)}
+.search-box__clear{
+  width:22px;height:22px;border-radius:999px;background:var(--bg-fill);
+  border:none;color:var(--text-tertiary);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;
+  transition:transform .15s var(--spring);
+}
+.search-box__clear:active{transform:scale(.88)}
+.search-box__clear svg{width:13px;height:13px}
 
-/* ---------- 横向筛选条 ---------- */
+/* ---------- 横向满宽平滑滚动 (Full-bleed) ---------- */
 .filter-scroll{
   display:flex;gap:8px;overflow-x:auto;
-  padding-bottom:4px;scrollbar-width:none;
-  margin-bottom:var(--gap-card);
+  margin:0 calc(-1 * var(--margin-page)) var(--gap-card);
+  padding:2px var(--margin-page) 6px;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
 }
 .filter-scroll::-webkit-scrollbar{display:none}
+
+.product-scroll{
+  display:flex;gap:12px;overflow-x:auto;
+  margin:0 calc(-1 * var(--margin-page)) var(--gap-card);
+  padding:4px var(--margin-page) 10px;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.product-scroll::-webkit-scrollbar{display:none}
 
 /* ---------- 列表卡：图左文右 ---------- */
 .list-card{
   display:flex;gap:12px;align-items:stretch;
   border-radius:var(--radius-card);padding:10px;
-  background:var(--bg-elevated);border:1px solid var(--separator);
-  box-shadow:var(--shadow-sm);margin-bottom:var(--gap-card);
-  width:100%;text-align:left;font:inherit;color:inherit;border-width:1px;
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular), var(--glass-shadow);
+  margin-bottom:var(--gap-card);
+  width:100%;text-align:left;font:inherit;color:inherit;
   cursor:pointer;
-  transition:transform .2s var(--spring),box-shadow .2s;
+  transition:transform .2s var(--spring),box-shadow .25s ease,background .25s ease;
 }
-.list-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.list-card:active{transform:scale(.985)}
+.list-card:hover{
+  transform:translateY(-2px);
+  background:var(--glass-bg-elevated);
+  box-shadow:var(--glass-hover-specular), var(--glass-hover-shadow);
+}
+.list-card:active{transform:scale(.982)}
 .list-card__img{
   width:92px;flex:none;border-radius:14px;overflow:hidden;position:relative;
 }
@@ -527,7 +660,7 @@ html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'
   padding:2px 7px;border-radius:999px;
 }
 .list-card__body{flex:1;min-width:0;display:flex;flex-direction:column;padding:2px 2px 2px 0}
-.list-card__name{font-size:17px;font-weight:600;letter-spacing:-.43px;margin:0 0 2px;color:var(--text-primary)}
+.list-card__name{font-size:16.5px;font-weight:600;letter-spacing:-.43px;margin:0 0 2px;color:var(--text-primary)}
 .list-card__desc{
   font-size:13px;line-height:1.4;color:var(--text-secondary);margin:0 0 8px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
@@ -539,8 +672,18 @@ html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'
 /* ---------- 攻略卡 ---------- */
 .guide-card{
   border-radius:var(--radius-card);padding:var(--padding-card);
-  background:var(--bg-elevated);border:1px solid var(--separator);
-  box-shadow:var(--shadow-sm);margin-bottom:var(--gap-card);
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular), var(--glass-shadow);
+  margin-bottom:var(--gap-card);
+  transition:transform .2s var(--spring),box-shadow .25s ease,background .25s ease;
+}
+.guide-card.press:hover{
+  transform:translateY(-2px);
+  background:var(--glass-bg-elevated);
+  box-shadow:var(--glass-hover-specular), var(--glass-hover-shadow);
 }
 .guide-card__src{
   display:flex;align-items:center;gap:6px;margin-bottom:9px;
@@ -548,19 +691,17 @@ html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'
 }
 .guide-card__src b{font-weight:600;color:var(--text-secondary)}
 .guide-card__title{
-  font-size:17px;font-weight:600;letter-spacing:-.43px;line-height:1.35;
+  font-size:16.5px;font-weight:600;letter-spacing:-.43px;line-height:1.35;
   margin:0 0 6px;color:var(--text-primary);
 }
 .guide-card__sum{
-  font-size:14px;line-height:1.5;color:var(--text-secondary);margin:0 0 11px;
+  font-size:13.5px;line-height:1.5;color:var(--text-secondary);margin:0 0 11px;
 }
 .extract{
   border-radius:var(--radius-sm);padding:11px 13px;
-  background:var(--bg-secondary);margin-bottom:11px;
-}
-.extract__lb{
-  font-size:11px;font-weight:600;letter-spacing:.4px;
-  color:var(--text-tertiary);margin:0 0 7px;
+  background:var(--glass-inset-bg);
+  border:1px solid var(--glass-border-subtle);
+  margin-bottom:11px;
 }
 .extract__row{display:flex;gap:8px;font-size:13px;line-height:1.45;color:var(--text-primary)}
 .extract__row + .extract__row{margin-top:5px}
@@ -581,61 +722,200 @@ html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'
   background:var(--bg-fill-strong);color:var(--accent-primary);
 }
 
-/* ---------- 我的：资料头 ---------- */
+/* ---------- 行程列表卡 ---------- */
+.trip-card{
+  border-radius:var(--radius-card);overflow:hidden;
+  border:1px solid var(--glass-border);
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  box-shadow:var(--glass-specular), var(--glass-shadow);
+  margin-bottom:var(--gap-card);
+  width:100%;text-align:left;font:inherit;padding:0;cursor:pointer;
+  transition:transform .2s var(--spring),box-shadow .25s ease,background .25s ease;
+}
+.trip-card:hover{
+  transform:translateY(-2px);
+  background:var(--glass-bg-elevated);
+  box-shadow:var(--glass-hover-specular), var(--glass-hover-shadow);
+}
+.trip-card__cover{width:100%;height:86px;position:relative}
+.trip-card__body{padding:var(--padding-card)}
+.trip-card__stops{
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:9px;
+  font-size:12px;color:var(--text-secondary);
+}
+.trip-card__stops i{
+  width:4px;height:4px;border-radius:50%;background:var(--text-tertiary);font-style:normal;
+}
+
+/* ---------- 我的：资料头与统计 ---------- */
 .profile{
   display:flex;align-items:center;gap:14px;
-  padding:var(--padding-card);margin-bottom:var(--gap-card);
-  border-radius:var(--radius-lg);
-  background:linear-gradient(150deg,var(--accent-primary),var(--hero-from));
-  color:var(--hero-title);
+  padding:14px var(--padding-card);
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-card);
+  box-shadow:var(--glass-specular), var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  margin-bottom:var(--gap-card);cursor:pointer;
+  transition:transform .2s var(--spring);
 }
+.profile:hover{transform:translateY(-1px);background:var(--glass-bg-elevated)}
 .profile__av{
-  width:56px;height:56px;flex:none;border-radius:50%;
-  background:rgba(255,255,255,.18);
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;color:#fff;
+  width:52px;height:52px;border-radius:999px;
+  background:linear-gradient(145deg,var(--accent-primary),var(--accent-secondary));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(6,66,92,.25);flex:none;
 }
-.profile__av svg{width:28px;height:28px}
-.profile__name{font-size:19px;font-weight:700;letter-spacing:-.23px;margin:0 0 2px}
-.profile__sub{font-size:13px;margin:0;color:var(--hero-sub)}
-.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap-card);margin-bottom:var(--gap-card)}
+.profile__av svg{width:26px;height:26px}
+.profile__name{font-size:18px;font-weight:700;letter-spacing:-.43px;color:var(--text-primary);margin:0 0 2px}
+.profile__sub{font-size:12.5px;color:var(--text-secondary);margin:0}
+
+.stat-row{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin-bottom:var(--gap-card);
+}
 .stat{
-  text-align:center;padding:13px 8px;border-radius:var(--radius-sm);
-  background:var(--bg-elevated);border:1px solid var(--separator);
+  padding:12px 8px;text-align:center;
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-sm);
+  box-shadow:var(--glass-specular), var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  cursor:pointer;transition:transform .18s var(--spring);
 }
-.stat__n{font-size:20px;font-weight:700;letter-spacing:-.43px;color:var(--text-primary);font-variant-numeric:tabular-nums}
-.stat__l{font-size:11px;color:var(--text-secondary);margin:1px 0 0}
+.stat:hover{transform:translateY(-1px);background:var(--glass-bg-elevated)}
+.stat__n{font-size:20px;font-weight:700;color:var(--accent-primary);font-variant-numeric:tabular-nums}
+.stat__l{font-size:11.5px;color:var(--text-secondary);margin:2px 0 0;font-weight:500}
 
-/* ---------- 可点击反馈 ---------- */
-[role="button"],[data-act]{cursor:pointer}
-.press{transition:transform .16s var(--spring)}
-.press:active{transform:scale(.97)}
+/* ---------- 浮动回顶按钮 ---------- */
+.fab{
+  position:absolute;right:22px;bottom:94px;z-index:32;
+  width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--glass-border);
+  cursor:pointer;
+  background:var(--glass-bg-elevated);color:var(--accent-primary);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:var(--glass-specular), 0 8px 24px rgba(0,0,0,.15);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transform:translateY(8px);
+  transition:opacity .28s,transform .28s var(--spring),background .2s;
+}
+.fab.is-show{opacity:1;pointer-events:auto;transform:translateY(0)}
+.fab:hover{transform:translateY(-1px);box-shadow:var(--glass-hover-specular), 0 12px 28px rgba(0,0,0,.2)}
+.fab:active{transform:scale(.92)}
+.fab svg{width:19px;height:19px}
 
-/* ---------- 开关 ---------- */
+/* ---------- 吸底操作栏：悬浮液态玻璃岛 ---------- */
+.action-dock{
+  position:absolute;left:20px;right:20px;bottom:22px;z-index:36;
+  padding:10px 14px;
+  border-radius:26px;
+  background:var(--glass-dock-bg);
+  -webkit-backdrop-filter:var(--glass-dock-blur);
+  backdrop-filter:var(--glass-dock-blur);
+  border:1px solid var(--glass-dock-border);
+  box-shadow:var(--glass-dock-specular), var(--glass-dock-shadow);
+  transition:transform .3s var(--spring),opacity .25s;
+}
+.action-dock .btn{min-height:46px;padding:10px 18px}
+
+/* ---------- 时间轴与过路段 ---------- */
+.timeline{margin:0 0 var(--gap-card)}
+.tl-item{
+  display:flex;gap:12px;position:relative;
+  padding-bottom:14px;
+}
+.tl-item::before{
+  content:'';position:absolute;left:13px;top:28px;bottom:0;
+  width:2px;background:var(--separator);
+}
+.tl-item:last-child::before{display:none}
+.tl-item__dot{
+  width:28px;height:28px;border-radius:50%;flex:none;
+  background:var(--glass-bg-elevated);border:1px solid var(--glass-border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--accent-primary);
+  box-shadow:var(--glass-specular), 0 2px 6px rgba(0,0,0,.06);
+  z-index:2;
+}
+.tl-item__cnt{flex:1;min-width:0}
+.transit{
+  margin:4px 0 12px 38px;padding:6px 12px;border-radius:999px;
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--glass-inset-bg);border:1px solid var(--glass-border-subtle);
+  font-size:12px;color:var(--text-secondary);
+}
+.transit svg{width:14px;height:14px;color:var(--accent-primary)}
+
+/* ---------- 预算条与对比块 ---------- */
+.budget{margin-top:10px}
+.budget__nums{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.budget__val{font-size:22px;font-weight:700;color:var(--text-primary);letter-spacing:-.43px}
+.budget__cap{font-size:12px;color:var(--text-secondary)}
+.budget__track{
+  height:7px;border-radius:999px;background:var(--glass-inset-bg);
+  overflow:hidden;position:relative;border:1px solid var(--glass-border-subtle);
+}
+.budget__fill{
+  height:100%;background:linear-gradient(90deg,var(--accent-secondary),var(--accent-primary));
+  border-radius:999px;transition:width .4s ease;
+}
+.diff{
+  border-radius:var(--radius-sm);overflow:hidden;
+  border:1px solid var(--glass-border);background:var(--glass-bg);
+}
+.diff__row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;border-bottom:1px solid var(--separator);
+  font-size:14px;color:var(--text-primary);
+}
+.diff__row:last-child{border-bottom:none}
+.diff__row--muted{opacity:.6}
+
+/* ---------- 提示气泡 ---------- */
+.alert{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px 14px;border-radius:var(--radius-sm);
+  background:rgba(255,159,10,.12);border:1px solid rgba(255,159,10,.25);
+  color:var(--warn);font-size:13px;line-height:1.45;margin-bottom:var(--gap-card);
+}
+.alert svg{width:18px;height:18px;flex:none;margin-top:1px}
+
+/* ---------- 开关 & 步进器 ---------- */
 .switch{
-  position:relative;width:51px;height:31px;flex:none;
-  border:none;border-radius:999px;cursor:pointer;padding:0;
-  background:var(--bg-fill-strong);
-  transition:background .28s var(--spring);
+  position:relative;width:52px;height:32px;flex:none;
+  border:1px solid var(--glass-border-subtle);border-radius:999px;cursor:pointer;padding:0;
+  background:var(--glass-inset-bg);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.1);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  transition:background .28s var(--spring),border-color .28s;
 }
 .switch::after{
   content:'';position:absolute;top:2px;left:2px;
-  width:27px;height:27px;border-radius:50%;background:#fff;
-  box-shadow:0 2px 5px rgba(0,0,0,.2);
+  width:26px;height:26px;border-radius:50%;background:#fff;
+  box-shadow:0 3px 8px rgba(0,0,0,.25), inset 0 1px 1px rgba(255,255,255,.9);
   transition:transform .28s var(--spring);
 }
-.switch[aria-checked="true"]{background:var(--accent-primary)}
+.switch[aria-checked="true"]{
+  background:var(--glass-prominent-bg);
+  border-color:var(--glass-prominent-border);
+  box-shadow:var(--glass-prominent-specular), 0 2px 10px rgba(6,66,92,.25);
+}
 .switch[aria-checked="true"]::after{transform:translateX(20px)}
 
-/* ---------- 步进器 ---------- */
 .stepper{display:flex;align-items:center;gap:14px}
 .stepper__btn{
   width:32px;height:32px;flex:none;border-radius:50%;
-  border:1px solid var(--separator);background:var(--bg-elevated);
+  border:1px solid var(--glass-border);background:var(--glass-bg);
   color:var(--accent-primary);cursor:pointer;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:var(--glass-specular), 0 2px 6px rgba(0,0,0,.04);
   display:flex;align-items:center;justify-content:center;
-  transition:transform .16s var(--spring),opacity .2s;
+  transition:transform .16s var(--spring),opacity .2s,background .2s;
 }
+.stepper__btn:hover{background:var(--glass-bg-elevated)}
 .stepper__btn:active{transform:scale(.88)}
 .stepper__btn[disabled]{opacity:.3;cursor:default}
 .stepper__btn svg{width:15px;height:15px}
@@ -648,25 +928,28 @@ html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'
 /* ---------- 底部 Sheet ---------- */
 .sheet-mask{
   position:absolute;inset:0;z-index:50;
-  background:rgba(0,0,0,.35);
+  background:rgba(0,0,0,.38);
   opacity:0;pointer-events:none;transition:opacity .3s;
 }
 .sheet-mask.is-open{opacity:1;pointer-events:auto}
 .sheet{
   position:absolute;left:0;right:0;bottom:0;z-index:60;
-  background:var(--bg-elevated);
-  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
-  padding:10px 0 34px;
+  background:var(--glass-dock-bg);
+  -webkit-backdrop-filter:var(--glass-dock-blur);
+  backdrop-filter:var(--glass-dock-blur);
+  border-top:1px solid var(--glass-dock-border);
+  box-shadow:var(--glass-dock-specular), 0 -12px 48px rgba(0,0,0,.3);
+  border-radius:36px 36px 0 0;
+  padding:12px 0 38px;
   transform:translateY(100%);
   transition:transform .38s var(--spring);
-  max-height:76%;overflow-y:auto;scrollbar-width:none;
-  box-shadow:0 -8px 30px rgba(0,0,0,.2);
+  max-height:80%;overflow-y:auto;scrollbar-width:none;
 }
 .sheet::-webkit-scrollbar{display:none}
 .sheet.is-open{transform:translateY(0)}
 .sheet__grab{
   width:36px;height:5px;border-radius:3px;background:var(--separator-strong);
-  margin:0 auto 14px;
+  margin:0 auto 14px;opacity:.6;
 }
 .sheet__title{
   font-size:17px;font-weight:600;letter-spacing:-.43px;
@@ -677,86 +960,48 @@ html[data-theme="dark"] .status-bar::after{content:'双击状态栏切换浅色'
 
 /* ---------- Toast ---------- */
 .toast{
-  position:absolute;left:50%;bottom:calc(var(--tabbar-h) + 46px);
+  position:absolute;left:50%;bottom:calc(var(--tabbar-h) + 54px);
   z-index:70;transform:translate(-50%,14px);
-  padding:10px 18px;border-radius:999px;
-  background:rgba(28,28,30,.9);color:#fff;
-  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  padding:11px 20px;border-radius:999px;
+  background:rgba(24,38,48,.86);color:#fff;
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 1px 0 rgba(255,255,255,.4), 0 12px 36px rgba(0,0,0,.35);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  backdrop-filter:blur(24px) saturate(180%);
   font-size:14px;font-weight:500;white-space:nowrap;
   opacity:0;pointer-events:none;
   transition:opacity .26s,transform .26s var(--spring);
 }
-html[data-theme="dark"] .toast{background:rgba(240,240,245,.92);color:#0C1F29}
+html[data-theme="dark"] .toast{
+  background:rgba(235,245,250,.92);color:#0C1F29;
+  border:1px solid rgba(255,255,255,.6);
+  box-shadow:inset 0 1px 1px 0 #ffffff, 0 12px 36px rgba(0,0,0,.5);
+}
 .toast.is-show{opacity:1;transform:translate(-50%,0)}
 
 /* ---------- 景区详情 Hero ---------- */
 .spot-hero{
-  position:relative;width:100%;aspect-ratio:4/3;
-  border-radius:0;overflow:hidden;margin:0 0 var(--gap-card);
+  width:100%;height:320px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:24px var(--margin-page) 20px;
 }
-.spot-hero--a{background:linear-gradient(155deg,#3E7F8C,#164C5C)}
-.spot-hero--b{background:linear-gradient(155deg,#4E8A6E,#26543F)}
-.spot-hero--c{background:linear-gradient(155deg,#8A7355,#57452E)}
-.spot-hero--d{background:linear-gradient(155deg,#6A7FA0,#3B4A64)}
-.spot-hero--e{background:linear-gradient(155deg,#5E8C8C,#2F5252)}
-.spot-hero::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(to top,rgba(8,22,28,.72) 0%,rgba(8,22,28,.12) 42%,transparent 62%);
-}
-.spot-hero__body{
-  position:absolute;left:0;right:0;bottom:0;z-index:2;
-  padding:0 var(--margin-page) var(--padding-card);
-}
+.spot-hero__body{position:relative;z-index:2;color:#fff}
 .spot-hero__name{
-  font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;
-  color:#fff;margin:0 0 7px;
+  font-size:30px;font-weight:700;letter-spacing:.38px;line-height:1.2;
+  margin:0 0 8px;color:#fff;
 }
-.spot-hero__tags{display:flex;gap:6px;flex-wrap:wrap}
-.spot-hero__tags .chip{
-  background:rgba(255,255,255,.2);border-color:transparent;
-  color:#fff;font-size:12px;min-height:26px;padding:2px 10px;
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-}
+.spot-hero__tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 
-/* ---------- 浮动回顶按钮 ---------- */
-.fab{
-  position:absolute;right:16px;bottom:calc(var(--tabbar-h) + 44px);z-index:30;
-  width:42px;height:42px;border-radius:50%;
-  border:none;cursor:pointer;
-  background:var(--bg-elevated);color:var(--accent-primary);
-  box-shadow:0 6px 18px rgba(0,0,0,.16);
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transform:translateY(8px);
-  transition:opacity .28s,transform .28s var(--spring);
-}
-.fab.is-show{opacity:1;pointer-events:auto;transform:translateY(0)}
-.fab svg{width:19px;height:19px}
-
-/* ---------- 行程列表卡（我的/行程 Tab） ---------- */
-.trip-card{
-  border-radius:var(--radius-card);overflow:hidden;
-  border:1px solid var(--separator);background:var(--bg-elevated);
-  box-shadow:var(--shadow-sm);margin-bottom:var(--gap-card);
-  width:100%;text-align:left;font:inherit;padding:0;cursor:pointer;
-  transition:transform .2s var(--spring),box-shadow .2s;
-}
-.trip-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.trip-card__cover{width:100%;height:86px;position:relative}
-.trip-card__cover--a{background:linear-gradient(135deg,#2F6F72,#0F3F48)}
-.trip-card__cover--b{background:linear-gradient(135deg,#5B7A5E,#2C4433)}
-.trip-card__body{padding:var(--padding-card)}
-.trip-card__stops{
-  display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:9px;
-  font-size:12px;color:var(--text-secondary);
-}
-.trip-card__stops i{
-  width:4px;height:4px;border-radius:50%;background:var(--text-tertiary);font-style:normal;
-}
+/* ---------- 封面渐变底 ---------- */
+.p-card__img--hgs,.trip-card__cover--a,.spot-hero--hgs{background:linear-gradient(135deg,#06425C,#2F6F72,#1E7A4D)}
+.p-card__img--lg,.trip-card__cover--b,.spot-hero--lg{background:linear-gradient(135deg,#0A506B,#4A90A4,#2C4433)}
+.p-card__img--tb,.spot-hero--tb{background:linear-gradient(135deg,#4B3F38,#7D6B5D,#A8630B)}
+.p-card__img--qy,.spot-hero--qy{background:linear-gradient(135deg,#1E2D3B,#3E5062,#667D87)}
 
 /* ---------- 空状态 ---------- */
 .empty{
-  display:flex;flex-direction:column;align-items:center;
-  padding:44px 24px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:36px var(--margin-page);text-align:center;
 }
 .empty__ico{
   width:64px;height:64px;border-radius:20px;margin-bottom:14px;
@@ -767,62 +1012,72 @@ html[data-theme="dark"] .toast{background:rgba(240,240,245,.92);color:#0C1F29}
 .empty__t{font-size:17px;font-weight:600;color:var(--text-primary);margin:0 0 5px}
 .empty__d{font-size:14px;line-height:1.5;color:var(--text-secondary);margin:0 0 18px;max-width:30ch}
 
-/* ---------- 骨架屏 ---------- */
-.sk{background:var(--bg-fill);border-radius:8px;position:relative;overflow:hidden}
-.sk::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
-  animation:shimmer 1.4s infinite;
-}
-html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)}
-@keyframes shimmer{100%{transform:translateX(100%)}}
-
-/* ---------- 加载进度（生成中） ---------- */
+/* ---------- 进度条 ---------- */
 .progress{height:6px;border-radius:3px;background:var(--bg-fill);overflow:hidden;margin-top:10px}
 .progress__bar{height:100%;width:0;background:var(--accent-primary);border-radius:3px;transition:width .5s ease}
-
-/* ---------- 吸底操作栏 ---------- */
-.action-dock{
-  position:absolute;left:0;right:0;bottom:calc(var(--tabbar-h) + 34px);z-index:28;
-  padding:10px var(--margin-page);
-  background:color-mix(in srgb,var(--bg-primary) 82%,transparent);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  backdrop-filter:saturate(180%) blur(20px);
-  box-shadow:0 -.5px 0 0 var(--separator);
-}
-.action-dock .btn{min-height:48px;padding:12px 18px}
-
-/* ---------- 行程时间轴紧凑态（D2） ---------- */
-.timeline--compact .tl-item{margin-bottom:var(--gap-card)}
 
 /* ---------- 页面级切换（桌面用，App 外） ---------- */
 .stage__nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .stage__nav button{
-  border:1px solid var(--page-muted);background:transparent;
+  border:1px solid var(--glass-border);
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  box-shadow:var(--glass-specular);
   color:var(--page-fg);font-family:inherit;font-size:13px;font-weight:500;
   padding:7px 15px;border-radius:999px;cursor:pointer;
-  transition:background .2s,color .2s,border-color .2s;
+  transition:background .2s,color .2s,border-color .2s,transform .16s var(--spring);
 }
-.stage__nav button.is-on{background:var(--page-fg);color:var(--page-bg);border-color:var(--page-fg)}
+.stage__nav button:hover{
+  background:var(--glass-bg-elevated);
+  transform:translateY(-1px);
+}
+.stage__nav button.is-on{
+  background:var(--glass-prominent-bg);
+  color:var(--on-accent);
+  border-color:var(--glass-prominent-border);
+  box-shadow:var(--glass-prominent-specular), 0 4px 16px rgba(0,0,0,.25);
+}
 .stage__note{font-size:12px;color:var(--page-muted);text-align:center;margin:0}
 
-@media (max-width:520px){
-  .stage{padding:20px 0}
-  .stage__meta,.stage__nav,.stage__note{padding:0 16px}
-  .phone-mockup{width:100vw;max-width:430px;box-shadow:none}
+/* ---------- 响应式移动端自适应 (Mobile Full-Bleed) ---------- */
+@media (max-width:520px), (max-height:920px){
+  html,body{overflow:hidden}
+  .stage{
+    padding:0;
+    min-height:100dvh;height:100dvh;
+    justify-content:flex-start;
+  }
+  .stage__meta,.stage__nav,.stage__note{display:none}
+  .phone-mockup{
+    width:100vw;height:100dvh;max-width:100%;
+    border-radius:0;border:none;box-shadow:none;
+  }
+  .dynamic-island{top:8px}
+  .tab-bar{left:14px;right:14px;bottom:18px}
+  .action-dock{left:14px;right:14px;bottom:18px}
 }
 </style>
 </head>
 <body>
-
   <div class="stage" id="stage">
 
   <div class="stage__meta">
     <h1 class="stage__meta-h" id="stageTitle">游迹 App · 行程详情</h1>
-    <p>底部 5 个标签可自由切换 · 双击状态栏切换深浅色</p>
+    <p>Apple Liquid Glass 设计体系 · 双击状态栏切换深浅色</p>
   </div>
 
   <div class="phone-mockup" id="phone">
+    <!-- 硬件元素：灵动岛 Dynamic Island -->
+    <div class="dynamic-island" id="dynamicIsland"></div>
+
+    <!-- 动态环境光晕网格 (Liquid Canvas Mesh) -->
+    <div class="app__ambient" aria-hidden="true">
+      <div class="ambient-orb ambient-orb--1"></div>
+      <div class="ambient-orb ambient-orb--2"></div>
+      <div class="ambient-orb ambient-orb--3"></div>
+    </div>
+
+    <!-- 状态栏 -->
     <div class="status-bar" id="statusBar">
       <span class="status-bar__time">9:41</span>
       <span class="status-bar__right">
@@ -850,12 +1105,15 @@ html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,
     <div class="sheet-mask" id="sheetMask"></div>
     <div class="sheet" id="sheet"></div>
 
+    <!-- 底部 Home Indicator 触控条 -->
+    <div class="home-indicator" aria-hidden="true"></div>
+
     <!-- Toast -->
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="alert" aria-live="polite"></div>
   </div>
 
   <div class="stage__nav" id="stageNav"></div>
-  <p class="stage__note">双击手机状态栏可切换浅色 / 深色</p>
+  <p class="stage__note">双击手机状态栏可切换浅色 / 深色 · 点击底部标签栏或上方按钮切换页面</p>
 
 </div>
 <script>
@@ -1279,21 +1537,119 @@ const itemHTML = (o, idx) => `  <div class="tl-item">
 
 const detailHTML = () => {
   const d = ITINERARY;
-  const day = d.days[state.detail.day];
+  const day = d.days[state.detail.day] || d.days[0];
   const v = state.detail.view;
-  if (v==='map')   return mapHTML(day);
-  if (v==='budget')return budgetHTML(d);
+
+  // 常驻顶部非消失切换分段器：平滑切换时间轴、地图与预算
+  const segHTML = `
+    <div class="seg" style="margin-bottom:var(--gap-card)">
+      ${d.days.map((x,i)=>`<button class="seg__btn press ${v==='list'&&state.detail.day===i?'is-active':''}" data-act="day:${i}">${x.d} · ${x.date}</button>`).join('')}
+      <button class="seg__btn press ${v==='map'?'is-active':''}" data-act="view:map">地图</button>
+      <button class="seg__btn press ${v==='budget'?'is-active':''}" data-act="view:budget">预算</button>
+    </div>`;
+
+  if (v === 'map') {
+    return `
+    <div class="page" style="padding-top:var(--gap-card)">
+      ${segHTML}
+      <div class="card" style="padding:0;overflow:hidden;height:300px;position:relative;background:linear-gradient(165deg,var(--bg-fill),var(--bg-secondary));border:1px solid var(--glass-border)">
+        <div style="position:absolute;left:14px;top:14px;z-index:2;display:flex;gap:6px">
+          ${verified('ok',`${day.d} · 沿线路网已核验`)}
+        </div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:24px">
+          ${day.items.filter(i=>i.spot).map((i,idx)=>`
+            <div class="press" data-act="spot:${i.spot}" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--glass-bg-elevated);border:1px solid var(--glass-border);box-shadow:var(--glass-specular), 0 4px 14px rgba(0,0,0,.08);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)">
+              <span style="font-size:12px;font-weight:700;color:var(--accent-primary)">${idx+1}</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-primary)">${i.n}</span>
+            </div>`).join('')}
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 14px;background:linear-gradient(to top,var(--glass-dock-bg),transparent);font-size:11px;color:var(--text-tertiary);text-align:center">
+          高德地图 SDK 占位 · 离线矢量拓扑路网
+        </div>
+      </div>
+
+      <div class="section__header" style="padding:14px 0 var(--gap-card)">
+        <h3>当日游览顺序</h3><span class="faint" style="font-size:12px">${day.items.filter(i=>i.spot).length} 个景区</span>
+      </div>
+      ${day.items.map((o,i)=>o.spot?`
+        <div class="list-card press" data-act="spot:${o.spot}" style="margin-bottom:12px">
+          <span class="list-card__img p-card__img--${spotById(o.spot).theme}">
+            <i>${String(i+1).padStart(2,'0')}</i>
+          </span>
+          <span class="list-card__body">
+            <span class="list-card__name">${o.n}</span>
+            <span class="list-card__desc">${o.m}</span>
+            <span class="list-card__foot">
+              <span class="list-card__price">${o.t.split(' ')[0]}</span>
+              ${verified(o.v,o.vt)}
+            </span>
+          </span>
+        </div>`:'').join('')}
+      <button class="btn btn--tinted press" data-act="view:list" style="margin-top:6px">返回行程时间轴</button>
+    </div>
+    <div style="height:12px"></div>`;
+  }
+
+  if (v === 'budget') {
+    const rows = [
+      ['门票', 870, '黄果树 160×3 + 龙宫 130×3 + 天龙屯堡 65×3'],
+      ['交通', 430, '自驾油费 + 停车，高德驾车矩阵'],
+      ['住宿', 438, '安顺市区标准档 1 晚'],
+      ['餐饮', 300, '3 正餐 + 早餐，按人均估算'],
+      ['其他', 120, '景区接驳车 + 零食']
+    ];
+    const sum = rows.reduce((a,r)=>a+r[1],0);
+    return `
+    <div class="page" style="padding-top:var(--gap-card)">
+      ${segHTML}
+      <div class="card">
+        <div class="row row--between">
+          <div>
+            <span class="faint" style="font-size:12px">预估总支出 (2 人)</span>
+            <div class="budget__val" style="font-size:24px;margin-top:2px">¥${sum.toLocaleString()}</div>
+          </div>
+          ${verified('ok','单价已核验')}
+        </div>
+        <p class="muted" style="margin:8px 0 0;font-size:13px">已分配 / 上限 ¥${d.limit.toLocaleString()} · 结余约 ¥${(d.limit-sum).toLocaleString()}</p>
+        <div class="budget" style="margin-top:10px">
+          <div class="budget__track"><div class="budget__fill" data-w="${(sum/d.limit*100).toFixed(0)}"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" style="padding-top:0">
+      ${rows.map(r=>`
+        <div class="card" style="padding:13px var(--padding-card)">
+          <div class="row row--between" style="margin-bottom:4px">
+            <span style="font-size:15px;font-weight:600;color:var(--text-primary)">${r[0]}</span>
+            <span style="font-size:15px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums">¥${r[1]}</span>
+          </div>
+          <p class="faint" style="margin:0;font-size:11.5px;line-height:1.4">${r[2]}</p>
+        </div>`).join('')}
+    </div>
+
+    <div class="page" style="padding-top:0">
+      <div class="card" style="background:var(--glass-bg-subtle);border:1px solid var(--glass-border-subtle)">
+        <div class="row" style="gap:7px;align-items:flex-start">
+          <span style="color:var(--warn);flex:none;width:17px;height:17px">${I.alert}</span>
+          <p class="muted" style="margin:0;font-size:12.5px;line-height:1.45">
+            餐饮与住宿单价为二级来源估算，出发前可能变动；实际结算以现场为准。
+          </p>
+        </div>
+      </div>
+      <button class="btn btn--tinted press" data-act="view:list" style="margin-top:var(--gap-card)">返回行程时间轴</button>
+    </div>
+    <div style="height:12px"></div>`;
+  }
+
+  // list view (Day 1 / Day 2)
   return `
   <div class="page" style="padding-top:var(--gap-card)">
-    <div class="seg" style="margin-bottom:var(--gap-card)">
-      ${d.days.map((x,i)=>`<button class="seg__btn press ${state.detail.day===i?'is-active':''}" data-act="day:${i}">${x.d} · ${x.date}</button>`).join('')}
-      <button class="seg__btn press" data-act="view:map">地图</button>
-      <button class="seg__btn press" data-act="view:budget">预算</button>
-    </div>
+    ${segHTML}
 
     <div class="card">
       <div class="row row--between" style="margin-bottom:2px">
-        <h3 style="margin:0;font-size:17px">${day.d} 概览</h3>
+        <h3 style="margin:0;font-size:17px">${day.d} · 行程概览</h3>
         ${verified('ok','2 项已核验')}
       </div>
       <p class="muted" style="margin:6px 0 0;font-size:14px">${day.items[0].n} · 驾车往返 · 约 8.5 小时</p>
@@ -1315,15 +1671,15 @@ const detailHTML = () => {
   </div>
 
   <div class="page" style="padding-top:0">
-    <div class="timeline timeline--compact">
+    <div class="timeline">
       ${day.items.map((o,i)=>itemHTML(o,i) + (o.transit?`
-        <p class="transit"><span style="width:14px;height:14px;display:block">${I[o.transit.ic]}</span><span>${o.transit.m}</span></p>`:'')).join('')}
+        <p class="transit"><span style="width:14px;height:14px;display:block">${I[o.transit.ic]||I.car}</span><span>${o.transit.m}</span></p>`:'')).join('')}
     </div>
   </div>
 
   <div class="page" style="padding-top:0">
     <button class="btn btn--tinted press" data-act="sheet:replan" style="margin-bottom:var(--gap-card)">
-      ${I.sparkle}<span>调整这天</span>
+      ${I.sparkle}<span>调整这天（局部重算当天）</span>
     </button>
     <div class="section__header" style="padding:0 0 var(--gap-card)">
       <h3>重规划影响</h3><span class="faint" style="font-size:12px">局部生效</span>
@@ -1336,7 +1692,7 @@ const detailHTML = () => {
         <span>${day.d==='D1'?'D2':'D1'}</span>${verified('none','未变更')}
       </div>
     </div>
-    <div class="card" style="background:var(--bg-fill);border:none;margin-bottom:0">
+    <div class="card" style="background:var(--glass-bg-subtle);border:1px solid var(--glass-border-subtle);margin-bottom:0">
       <div class="row" style="gap:7px;align-items:flex-start">
         <span style="color:var(--accent-primary);flex:none;width:17px;height:17px">${I.alert}</span>
         <p class="muted" style="margin:0;font-size:12.5px;line-height:1.45">
@@ -1345,112 +1701,64 @@ const detailHTML = () => {
       </div>
     </div>
   </div>
-  <div style="height:8px"></div>`;
-};
-
-const mapHTML = (day) => `
-  <div class="page" style="padding-top:var(--gap-card)">
-    <div class="card" style="padding:0;overflow:hidden;height:290px;position:relative;
-      background:linear-gradient(165deg,var(--bg-fill),var(--bg-secondary))">
-      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;padding:20px">
-        ${day.items.filter(i=>i.spot).map((i,idx)=>`
-          <div class="press" data-act="spot:${i.spot}" style="display:flex;align-items:center;gap:6px;
-            padding:7px 12px;border-radius:999px;background:var(--bg-elevated);
-            border:1px solid var(--separator);box-shadow:var(--shadow-sm)">
-            <span style="color:var(--accent-primary);width:13px;height:13px;display:block">${I.pin}</span>
-            <span style="font-size:13px;font-weight:600;color:var(--text-primary)">${i.n}</span>
-          </div>`).join('')}
-      </div>
-      <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 12px;
-        background:linear-gradient(to top,var(--bg-elevated),transparent);
-        font-size:11px;color:var(--text-tertiary);text-align:center">
-        地图视图 · 实际渲染由高德 SDK 承担
-      </div>
-    </div>
-
-    <div class="section__header" style="padding:14px 0 var(--gap-card)">
-      <h3>当日路线顺序</h3><span class="faint" style="font-size:12px">${day.items.filter(i=>i.spot).length} 个景区</span>
-    </div>
-    ${day.items.map((o,i)=>o.spot?`
-      <div class="list-card press" data-act="spot:${o.spot}" style="margin-bottom:12px">
-        <span class="list-card__img p-card__img--${spotById(o.spot).theme}">
-          <i>${String(i+1).padStart(2,'0')}</i>
-        </span>
-        <span class="list-card__body">
-          <span class="list-card__name">${o.n}</span>
-          <span class="list-card__desc">${o.m}</span>
-          <span class="list-card__foot">
-            <span class="list-card__price">${o.t.split(' ')[0]}</span>
-            ${verified(o.v,o.vt)}
-          </span>
-        </span>
-      </div>`:'').join('')}
-    <button class="btn btn--tinted press" data-act="view:list" style="margin-top:6px">返回行程时间轴</button>
-  </div>
-  <div style="height:8px"></div>`;
-
-const budgetHTML = (d) => {
-  const rows = [
-    ['门票', 870, '黄果树 160×3 + 龙宫 130×3 + 天龙屯堡 65×3'],
-    ['交通', 430, '自驾油费 + 停车，高德驾车矩阵'],
-    ['住宿', 438, '安顺市区标准档 1 晚'],
-    ['餐饮', 300, '3 正餐 + 早餐，按人均估算'],
-    ['其他', 120, '门票接驳 + 零食']
-  ];
-  const sum = rows.reduce((a,r)=>a+r[1],0);
-  return `
-  <div class="page" style="padding-top:var(--gap-card)">
-    <div class="card">
-      <div class="row row--between">
-        <span class="budget__val">¥${sum.toLocaleString()}</span>
-        ${verified('ok','单价已核验')}
-      </div>
-      <p class="muted" style="margin:4px 0 0;font-size:13px">已分配 / 上限 ¥${d.limit.toLocaleString()} · 剩余 ¥${(d.limit-sum).toLocaleString()}</p>
-      <div class="budget" style="margin-top:8px">
-        <div class="budget__track"><div class="budget__fill" data-w="${(sum/d.limit*100).toFixed(0)}"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="page" style="padding-top:0">
-    ${rows.map(r=>`
-      <div class="card" style="padding:13px var(--padding-card)">
-        <div class="row row--between" style="margin-bottom:4px">
-          <span style="font-size:15px;font-weight:600;color:var(--text-primary)">${r[0]}</span>
-          <span style="font-size:15px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums">¥${r[1]}</span>
-        </div>
-        <p class="faint" style="margin:0;font-size:11.5px;line-height:1.4">${r[2]}</p>
-      </div>`).join('')}
-  </div>
-
-  <div class="page" style="padding-top:0">
-    <div class="card" style="background:var(--warn-bg);border:none">
-      <div class="row" style="gap:7px;align-items:flex-start">
-        <span style="color:var(--warn);flex:none;width:17px;height:17px">${I.alert}</span>
-        <p class="muted" style="margin:0;font-size:12.5px;line-height:1.45">
-          餐饮与住宿单价为二级来源估算，出发前可能变动。
-        </p>
-      </div>
-    </div>
-    <button class="btn press" data-act="view:list" style="margin-top:var(--gap-card)">返回行程时间轴</button>
-  </div>
-  <div style="height:8px"></div>`;
+  <div style="height:12px"></div>`;
 };
 
 /* ==========================================================
    04 探索
    ========================================================== */
-const exploreHTML = () => {
-  const f = state.explore.filter, q = state.explore.q.trim();
+const spotCardHTML = s => `
+  <div class="list-card press" data-act="spot:${s.id}">
+    <span class="list-card__img p-card__img--${s.theme}"><i>${s.dist}</i></span>
+    <span class="list-card__body">
+      <span class="list-card__name">${s.name}</span>
+      <span class="list-card__desc">${s.sub}</span>
+      <span class="list-card__foot">
+        <span class="row" style="gap:8px">
+          <span class="list-card__price">${s.priceText}</span>
+          ${verified(s.verify,s.verifyText)}
+        </span>
+        <span class="row" style="gap:8px">
+          <span class="list-card__dist">${I.star} ${s.score}</span>
+          <span class="press" data-act="fav:${s.id}">
+            <span style="display:block;width:17px;height:17px;color:${state.favs.has(s.id)?'var(--accent-primary)':'var(--text-tertiary)'}">
+              ${state.favs.has(s.id)?I.heartFill:I.heart}
+            </span>
+          </span>
+        </span>
+      </span>
+    </span>
+  </div>`;
+
+const exploreListItemsHTML = list => list.length ? list.map(spotCardHTML).join('') : `
+  <div class="empty">
+    <div class="empty__ico">${I.search}</div>
+    <p class="empty__t">没有匹配的景区</p>
+    <p class="empty__d">换个关键词，或把筛选条件放宽一些</p>
+    <button class="btn btn--tinted btn--sm press" data-act="eclear">清除筛选</button>
+  </div>`;
+
+const getFilteredSpots = () => {
+  const f = state.explore.filter, q = (state.explore.q || '').trim().toLowerCase();
   let list = SPOTS;
   if (f==='免票') list = list.filter(s=>s.price===0);
   else if (f!=='推荐') list = list.filter(s=>s.tags.includes(f));
-  if (q) list = list.filter(s=>s.name.includes(q)||s.sub.includes(q));
+  if (q) list = list.filter(s=>s.name.toLowerCase().includes(q)||s.sub.toLowerCase().includes(q)||s.desc.toLowerCase().includes(q));
+  return list;
+};
+
+const exploreHTML = () => {
+  const f = state.explore.filter;
+  const list = getFilteredSpots();
   const filters=['推荐','自然','避暑','亲子','人文','免票'];
 
   return `
   <div class="page" style="padding-top:var(--gap-card)">
-    <div class="search press" data-act="sheet:search">${I.search}<span>${q||'搜景区、目的地'}</span></div>
+    <div class="search-box">
+      <span class="search-box__ico">${I.search}</span>
+      <input type="text" class="search-box__input" id="exploreSearch" placeholder="搜索贵州景区、目的地 (如黄果树)" value="${state.explore.q||''}">
+      <button class="search-box__clear press" data-act="eclear" aria-label="清空搜索" style="display:${state.explore.q?'flex':'none'}">${I.close}</button>
+    </div>
     <div class="filter-scroll">
       ${filters.map(t=>`<button class="chip press ${f===t?'is-on':''}" data-act="efilter:${t}">${t}</button>`).join('')}
     </div>
@@ -1458,39 +1766,14 @@ const exploreHTML = () => {
 
   <div class="page" style="padding-top:0">
     <div class="row row--between" style="margin-bottom:var(--gap-card)">
-      <span class="faint" style="font-size:13px">贵阳周边 · ${list.length} 个结果</span>
+      <span class="faint" style="font-size:13px" id="exploreListCount">贵阳周边 · ${list.length} 个结果</span>
       <button class="link-btn press" data-act="sheet:filter">${I.filter}<span>筛选</span></button>
     </div>
-    ${list.length ? list.map(s=>`
-      <div class="list-card" data-act="spot:${s.id}">
-        <span class="list-card__img p-card__img--${s.theme}"><i>${s.dist}</i></span>
-        <span class="list-card__body">
-          <span class="list-card__name">${s.name}</span>
-          <span class="list-card__desc">${s.sub}</span>
-          <span class="list-card__foot">
-            <span class="row" style="gap:8px">
-              <span class="list-card__price">${s.priceText}</span>
-              ${verified(s.verify,s.verifyText)}
-            </span>
-            <span class="row" style="gap:8px">
-              <span class="list-card__dist">${I.star} ${s.score}</span>
-              <span class="press" data-act="fav:${s.id}">
-                <span style="display:block;width:17px;height:17px;color:${state.favs.has(s.id)?'var(--accent-primary)':'var(--text-tertiary)'}">
-                  ${state.favs.has(s.id)?I.heartFill:I.heart}
-                </span>
-              </span>
-            </span>
-          </span>
-        </span>
-      </div>`).join('')
-    : `<div class="empty">
-        <div class="empty__ico">${I.search}</div>
-        <p class="empty__t">没有匹配的景区</p>
-        <p class="empty__d">换个关键词，或把筛选条件放宽一些</p>
-        <button class="btn btn--tinted btn--sm press" data-act="eclear">清除筛选</button>
-      </div>`}
+    <div id="exploreList">
+      ${exploreListItemsHTML(list)}
+    </div>
   </div>
-  <div style="height:8px"></div>`;
+  <div style="height:12px"></div>`;
 };
 
 /* ==========================================================
@@ -1589,13 +1872,56 @@ const spotHTML = (id) => {
 /* ==========================================================
    06 攻略
    ========================================================== */
+const guideCardHTML = g => `
+  <div class="guide-card press" data-act="guide:${g.id}">
+    <div class="guide-card__src">
+      <span class="tier">${g.tier}</span><b>${g.from}</b><span>· 摘要 + 结构化提取，非原文</span>
+    </div>
+    <h3 class="guide-card__title">${g.title}</h3>
+    <p class="guide-card__sum">${g.sum}</p>
+    <div class="extract">
+      <p class="extract__lb">结构化提取</p>
+      ${g.extract.map(r=>`<div class="extract__row"><span>${r[0]}</span>${r[1]}</div>`).join('')}
+    </div>
+    <div class="guide-card__foot">
+      ${verified(g.verify,g.verifyText)}
+      <span class="row" style="gap:10px">
+        <span class="faint" style="font-size:12px">${g.likes} 有用</span>
+        <span class="link-btn">${I.link}<span>来源</span></span>
+      </span>
+    </div>
+  </div>`;
+
+const guideListItemsHTML = list => list.length ? list.map(guideCardHTML).join('') : `
+  <div class="empty">
+    <div class="empty__ico">${I.book}</div>
+    <p class="empty__t">该主题暂无攻略</p>
+    <p class="empty__d">换个主题看看，或等待采集管线收录</p>
+    <button class="btn btn--tinted btn--sm press" data-act="gclear">查看全部</button>
+  </div>`;
+
+const getFilteredGuides = () => {
+  const f = state.guide.filter, q = (state.guide.q || '').trim().toLowerCase();
+  let list = GUIDES;
+  if (f==='黄果树') list = list.filter(g=>g.spot==='hgs');
+  else if (f==='龙宫') list = list.filter(g=>g.spot==='lg');
+  else if (f==='避坑') list = list.filter(g=>g.title.includes('避坑')||g.sum.includes('坑')||g.sum.includes('排队'));
+  else if (f==='美食') list = list.filter(g=>g.title.includes('吃')||g.sum.includes('美食')||g.sum.includes('酸汤'));
+  if (q) list = list.filter(g=>g.title.toLowerCase().includes(q)||g.sum.toLowerCase().includes(q)||g.from.toLowerCase().includes(q));
+  return list;
+};
+
 const guideHTML = () => {
   const f = state.guide.filter;
-  const list = GUIDES.filter(g => f==='为你推荐' ? true
-    : g.title.includes(f) || g.sum.includes(f));
+  const list = getFilteredGuides();
+
   return `
   <div class="page" style="padding-top:var(--gap-card)">
-    <div class="search press" data-act="sheet:searchg">${I.search}<span>搜攻略、避坑经验</span></div>
+    <div class="search-box">
+      <span class="search-box__ico">${I.search}</span>
+      <input type="text" class="search-box__input" id="guideSearch" placeholder="搜索攻略、避坑经验 (如门票、自驾)" value="${state.guide.q||''}">
+      <button class="search-box__clear press" data-act="gclear" aria-label="清空搜索" style="display:${state.guide.q?'flex':'none'}">${I.close}</button>
+    </div>
     <div class="filter-scroll">
       ${['为你推荐','黄果树','龙宫','避坑','美食'].map(t=>`
         <button class="chip press ${f===t?'is-on':''}" data-act="gfilter:${t}">${t}</button>`).join('')}
@@ -1603,33 +1929,11 @@ const guideHTML = () => {
   </div>
 
   <div class="page" style="padding-top:0">
-    ${list.length ? list.map(g=>`
-      <div class="guide-card press" data-act="guide:${g.id}">
-        <div class="guide-card__src">
-          <span class="tier">${g.tier}</span><b>${g.from}</b><span>· 摘要 + 结构化提取，非原文</span>
-        </div>
-        <h3 class="guide-card__title">${g.title}</h3>
-        <p class="guide-card__sum">${g.sum}</p>
-        <div class="extract">
-          <p class="extract__lb">结构化提取</p>
-          ${g.extract.map(r=>`<div class="extract__row"><span>${r[0]}</span>${r[1]}</div>`).join('')}
-        </div>
-        <div class="guide-card__foot">
-          ${verified(g.verify,g.verifyText)}
-          <span class="row" style="gap:10px">
-            <span class="faint" style="font-size:12px">${g.likes} 有用</span>
-            <span class="link-btn">${I.link}<span>来源</span></span>
-          </span>
-        </div>
-      </div>`).join('')
-    : `<div class="empty">
-        <div class="empty__ico">${I.book}</div>
-        <p class="empty__t">该主题暂无攻略</p>
-        <p class="empty__d">换个主题看看，或等待采集管线收录</p>
-        <button class="btn btn--tinted btn--sm press" data-act="gclear">查看全部</button>
-      </div>`}
+    <div id="guideList">
+      ${guideListItemsHTML(list)}
+    </div>
 
-    <div class="card" style="background:var(--bg-fill);border:none;margin-bottom:0">
+    <div class="card" style="background:var(--glass-bg-subtle);border:1px solid var(--glass-border-subtle);margin-bottom:0">
       <div class="row" style="gap:7px;align-items:flex-start">
         <span style="color:var(--accent-primary);flex:none;width:17px;height:17px">${I.shield}</span>
         <p class="muted" style="margin:0;font-size:12.5px;line-height:1.45">
@@ -1638,7 +1942,7 @@ const guideHTML = () => {
       </div>
     </div>
   </div>
-  <div style="height:8px"></div>`;
+  <div style="height:12px"></div>`;
 };
 
 /* 攻略详情 */
@@ -1934,17 +2238,17 @@ const TABS = [
 ];
 
 const PAGES = {
-  home:   { title:'首页',       tab:'home',  render:()=>homeHTML() },
-  plan:   { title:'规划行程',    tab:'home',  render:()=>planHTML(),  push:true },
-  generating:{title:'正在规划',  tab:'home',  render:()=>generatingHTML(), push:true, noTab:true },
-  detail: { title:'贵阳 → 安顺', tab:'cal',   render:()=>detailHTML() },
-  explore:{ title:'探索',       tab:'ex',    render:()=>exploreHTML() },
-  spot:   { title:'景区详情',    tab:'ex',    render:()=>spotHTML(cur().id), immersive:true, dock:true },
-  guide:  { title:'攻略',       tab:'guide', render:()=>guideHTML() },
-  guideDetail:{ title:'攻略详情',tab:'guide', render:()=>guideDetailHTML(cur().id) },
-  me:     { title:'我的',       tab:'me',    render:()=>meHTML() },
-  favs:   { title:'收藏',       tab:'me',    render:()=>favsHTML() },
-  trips:  { title:'我的行程',    tab:'cal',   render:()=>tripsHTML() }
+  home:       { title:'首页',       tab:'home',  render:()=>homeHTML() },
+  plan:       { title:'定制行程',    tab:'home',  render:()=>planHTML(),        push:true, noTab:true },
+  generating: { title:'AI 规划中',  tab:'home',  render:()=>generatingHTML(),  push:true, noTab:true },
+  detail:     { title:'贵阳 → 安顺', tab:'cal',   render:()=>detailHTML() },
+  explore:    { title:'探索景区',    tab:'ex',    render:()=>exploreHTML() },
+  spot:       { title:'景区详情',    tab:'ex',    render:()=>spotHTML(cur().id), immersive:true, dock:true, noTab:true },
+  guide:      { title:'精选攻略',    tab:'guide', render:()=>guideHTML() },
+  guideDetail:{ title:'攻略摘要',    tab:'guide', render:()=>guideDetailHTML(cur().id), noTab:true },
+  me:         { title:'个人中心',    tab:'me',    render:()=>meHTML() },
+  favs:       { title:'我的收藏',    tab:'me',    render:()=>favsHTML(),        push:true, noTab:true },
+  trips:      { title:'全部行程',    tab:'cal',   render:()=>tripsHTML(),       push:true }
 };
 
 const STAGE_LABELS = {
@@ -1962,14 +2266,25 @@ function render(){
   const canBack = state.stack.length > 1;
   const noTab = !!page.noTab;
 
+  let titleHTML = `<span class="nav-bar__title">${page.title}</span>`;
+  if (c.name === 'home') {
+    titleHTML = `
+      <div class="nav-bar__loc press" data-act="toast:切换定位城市">
+        ${I.pin}<span>贵阳市 · 晴 22°C</span>
+        <span style="display:inline-block;transform:rotate(90deg);font-size:11px;opacity:.6">›</span>
+      </div>`;
+  }
+
   document.getElementById('navBar').innerHTML = `
     ${canBack
-      ? `<button class="nav-btn" data-act="back">${I.back}</button>`
+      ? `<button class="nav-btn press" data-act="back" aria-label="返回">${I.back}</button>`
       : '<span class="nav-btn--ph"></span>'}
-    <span class="nav-bar__title">${page.title}</span>
+    ${titleHTML}
     ${c.name==='detail'||c.name==='me'
-      ? `<button class="nav-btn" data-act="sheet:more">${I.menu}</button>`
-      : '<span class="nav-btn--ph"></span>'}`;
+      ? `<button class="nav-btn press" data-act="sheet:more" aria-label="更多">${I.menu}</button>`
+      : (c.name==='home'
+          ? `<button class="nav-btn press" data-act="sheet:filter" aria-label="筛选">${I.filter}</button>`
+          : '<span class="nav-btn--ph"></span>')}`;
 
   document.getElementById('scroll').innerHTML = page.render();
   const sc = document.getElementById('scroll');
@@ -1986,7 +2301,7 @@ function render(){
     </button>`).join('');
 
   document.getElementById('stageNav').innerHTML =
-    Object.keys(PAGES).filter(k=>!PAGES[k].noTab).map(k=>
+    Object.keys(PAGES).map(k=>
       `<button data-screen="${k}" class="${k===c.name?'is-on':''}">${STAGE_LABELS[k]}</button>`).join('');
 
   const t = document.getElementById('stageTitle');
@@ -2179,6 +2494,32 @@ document.getElementById('sheetMask').addEventListener('click', ()=>{ closeSheet(
   const root = document.documentElement;
   const saved = localStorage.getItem(KEY);
   if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  /* 实时输入监听：搜索框丝滑过滤且不丢失焦点 */
+document.addEventListener('input', (e)=>{
+  if (e.target.id === 'exploreSearch') {
+    state.explore.q = e.target.value;
+    const clearBtn = e.target.parentElement.querySelector('.search-box__clear');
+    if (clearBtn) clearBtn.style.display = state.explore.q ? 'flex' : 'none';
+    const listEl = document.getElementById('exploreList');
+    const countEl = document.getElementById('exploreListCount');
+    if (listEl) {
+      const filtered = getFilteredSpots();
+      listEl.innerHTML = exploreListItemsHTML(filtered);
+      if (countEl) countEl.textContent = `贵阳周边 · ${filtered.length} 个结果`;
+    }
+  } else if (e.target.id === 'guideSearch') {
+    state.guide.q = e.target.value;
+    const clearBtn = e.target.parentElement.querySelector('.search-box__clear');
+    if (clearBtn) clearBtn.style.display = state.guide.q ? 'flex' : 'none';
+    const listEl = document.getElementById('guideList');
+    if (listEl) {
+      const filtered = getFilteredGuides();
+      listEl.innerHTML = guideListItemsHTML(filtered);
+    }
+  }
+});
+
+/* 状态栏双击切深浅色 + 硬件灵动岛动效微弹 */
   document.getElementById('statusBar').addEventListener('dblclick', ()=>{
     const next = (root.getAttribute('data-theme') || 'light') === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
@@ -2187,6 +2528,13 @@ document.getElementById('sheetMask').addEventListener('click', ()=>{ closeSheet(
       [{transform:'scale(1)'},{transform:'scale(.975)'},{transform:'scale(1)'}],
       {duration:220, easing:'cubic-bezier(.34,1.56,.64,1)'}
     );
+    const island = document.getElementById('dynamicIsland');
+    if (island) {
+      island.animate(
+        [{transform:'translateX(-50%) scale(1)'},{transform:'translateX(-50%) scale(1.15, 0.88)'},{transform:'translateX(-50%) scale(1)'}],
+        {duration:360, easing:'cubic-bezier(.34,1.56,.64,1)'}
+      );
+    }
   });
 })();
 

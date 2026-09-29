@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/itinerary_model.dart';
 import '../models/feedback_model.dart';
 import '../services/travel_service.dart';
@@ -7,6 +9,7 @@ import 'api_provider.dart';
 class ItineraryState {
   final bool isLoading;
   final ItineraryPlanResponse? plan;
+  final List<ItineraryPlanResponse> savedPlans;
   final String? errorMessage;
   final bool isTripActive;
   final String? feedbackId;
@@ -14,6 +17,7 @@ class ItineraryState {
   ItineraryState({
     this.isLoading = false,
     this.plan,
+    this.savedPlans = const [],
     this.errorMessage,
     this.isTripActive = false,
     this.feedbackId,
@@ -22,6 +26,7 @@ class ItineraryState {
   ItineraryState copyWith({
     bool? isLoading,
     ItineraryPlanResponse? plan,
+    List<ItineraryPlanResponse>? savedPlans,
     String? errorMessage,
     bool? isTripActive,
     String? feedbackId,
@@ -29,6 +34,7 @@ class ItineraryState {
     return ItineraryState(
       isLoading: isLoading ?? this.isLoading,
       plan: plan ?? this.plan,
+      savedPlans: savedPlans ?? this.savedPlans,
       errorMessage: errorMessage,
       isTripActive: isTripActive ?? this.isTripActive,
       feedbackId: feedbackId ?? this.feedbackId,
@@ -37,9 +43,67 @@ class ItineraryState {
 }
 
 class ItineraryNotifier extends StateNotifier<ItineraryState> {
+  static const String _prefSavedPlansKey = 'saved_local_itineraries_v1';
   final TravelService travelService;
 
-  ItineraryNotifier({required this.travelService}) : super(ItineraryState());
+  ItineraryNotifier({required this.travelService}) : super(ItineraryState()) {
+    _loadLocalSavedPlans();
+  }
+
+  /// 本地加载缓存的行程列表
+  Future<void> _loadLocalSavedPlans() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final listJson = prefs.getStringList(_prefSavedPlansKey);
+      if (listJson != null && listJson.isNotEmpty) {
+        final plans = listJson.map((str) {
+          final map = jsonDecode(str) as Map<String, dynamic>;
+          return ItineraryPlanResponse.fromJson(map);
+        }).toList();
+        state = state.copyWith(savedPlans: plans);
+        if (state.plan == null && plans.isNotEmpty) {
+          state = state.copyWith(plan: plans.first);
+        }
+      }
+    } catch (_) {}
+  }
+
+  /// 保存行程到本地持久缓存
+  Future<void> _persistPlanLocally(ItineraryPlanResponse newPlan) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final currentList = List<ItineraryPlanResponse>.from(state.savedPlans);
+
+      // 若已存在相同 ID 则替换，否则追加到头部
+      final idx = currentList.indexWhere((p) => p.itineraryId == newPlan.itineraryId);
+      if (idx >= 0) {
+        currentList[idx] = newPlan;
+      } else {
+        currentList.insert(0, newPlan);
+      }
+
+      // 保留最近 10 条
+      final trimmed = currentList.take(10).toList();
+      final stringList = trimmed.map((p) => jsonEncode(p.toJson())).toList();
+      await prefs.setStringList(_prefSavedPlansKey, stringList);
+      state = state.copyWith(savedPlans: trimmed);
+    } catch (_) {}
+  }
+
+  /// 选择/切换当前活跃行程
+  void selectPlan(ItineraryPlanResponse plan) {
+    state = state.copyWith(
+      plan: plan,
+      errorMessage: null,
+      isTripActive: false,
+    );
+  }
+
+  /// 一键采用经典标杆路线
+  Future<void> adoptPresetRoute(ItineraryPlanResponse preset) async {
+    selectPlan(preset);
+    await _persistPlanLocally(preset);
+  }
 
   /// 生成行程
   Future<void> createPlan({
@@ -70,6 +134,7 @@ class ItineraryNotifier extends StateNotifier<ItineraryState> {
         save: true,
       );
       state = state.copyWith(isLoading: false, plan: res);
+      await _persistPlanLocally(res);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
@@ -93,9 +158,50 @@ class ItineraryNotifier extends StateNotifier<ItineraryState> {
       // 局部重排成功后刷新最新行程详情
       final updated = await travelService.getItineraryDetail(itineraryId);
       state = state.copyWith(isLoading: false, plan: updated);
+      await _persistPlanLocally(updated);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
+  }
+
+  /// 根据 ID 从后端拉取行程
+  Future<void> loadPlanById(String id) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final res = await travelService.getItineraryDetail(id);
+      state = state.copyWith(isLoading: false, plan: res);
+      await _persistPlanLocally(res);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    }
+  }
+
+  /// 删除行程
+  Future<bool> deletePlan(String id) async {
+    // 从后端删除
+    await travelService.deleteItinerary(id);
+
+    // 从本地缓存删除
+    final currentList = List<ItineraryPlanResponse>.from(state.savedPlans)
+      ..removeWhere((p) => p.itineraryId == id);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stringList = currentList.map((p) => jsonEncode(p.toJson())).toList();
+      await prefs.setStringList(_prefSavedPlansKey, stringList);
+    } catch (_) {}
+
+    // 若当前活跃行程被删除，切换到下一个或置空
+    ItineraryPlanResponse? nextPlan = state.plan;
+    if (state.plan?.itineraryId == id) {
+      nextPlan = currentList.isNotEmpty ? currentList.first : null;
+    }
+
+    state = state.copyWith(
+      savedPlans: currentList,
+      plan: nextPlan,
+    );
+    return true;
   }
 
   /// 开始旅程 (status: active)
