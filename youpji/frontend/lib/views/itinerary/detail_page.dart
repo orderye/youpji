@@ -234,12 +234,24 @@ class _ItineraryDetailPageState extends ConsumerState<ItineraryDetailPage> {
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (it.coverImageUrl != null && it.coverImageUrl!.isNotEmpty)
+            EntityCoverImage(
+              imageUrl: it.coverImageUrl,
+              category: it.itemType,
+              height: 130,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

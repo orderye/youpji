@@ -6,6 +6,7 @@ import '../../models/itinerary_model.dart';
 import '../../models/location_model.dart';
 import '../../providers/itinerary_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../widgets/entity_cover_image.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
