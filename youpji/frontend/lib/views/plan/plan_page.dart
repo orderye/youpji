@@ -26,6 +26,7 @@ class _PlanPageState extends ConsumerState<PlanPage> {
   late TextEditingController _destCtrl;
   final TextEditingController _naturalCtrl = TextEditingController();
 
+  DateTime _startDate = DateTime(2026, 10, 1);
   int _days = 2;
   int _people = 2;
   double _budget = 2000;
@@ -199,6 +200,50 @@ class _PlanPageState extends ConsumerState<PlanPage> {
             ),
             const SizedBox(height: 16),
 
+            // 出发日期与时间选择
+            InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: _startDate,
+                  firstDate: DateTime(2026, 1, 1),
+                  lastDate: DateTime(2027, 12, 31),
+                );
+                if (picked != null) {
+                  setState(() => _startDate = picked);
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.grey.shade50,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_month, size: 20, color: AppTheme.primaryBlue),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('出发日期', style: TextStyle(fontSize: 11, color: AppTheme.mutedGray)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_startDate.year}年${_startDate.month}月${_startDate.day}日 (预计出发)',
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.darkInk),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    const Text('修改 >', style: TextStyle(fontSize: 12, color: AppTheme.primaryBlue, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // 天数与人数选择
             Row(
               children: [
@@ -318,10 +363,12 @@ class _PlanPageState extends ConsumerState<PlanPage> {
                     ? null
                     : () async {
                         final natural = _naturalCtrl.text.trim();
+                        final startFormatted =
+                            '${_startDate.year}-${_startDate.month.toString().padLeft(2, '0')}-${_startDate.day.toString().padLeft(2, '0')}';
                         await ref.read(itineraryProvider.notifier).createPlan(
                               origin: _originCtrl.text.trim(),
                               destination: _destCtrl.text.trim(),
-                              startDate: '2026-10-01',
+                              startDate: startFormatted,
                               days: _days,
                               people: _people,
                               budget: _budget.toInt(),

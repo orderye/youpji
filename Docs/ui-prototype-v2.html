@@ -347,11 +347,13 @@ html[data-theme="dark"] .ambient-orb{opacity:.20}
 /* ---------- 悬浮液态玻璃标签栏 (Floating Glass Capsule) ---------- */
 .tab-bar{
   position:absolute;
-  left:20px;right:20px;bottom:22px;z-index:35;
-  height:62px;
-  padding:4px 6px;
+  left:50%;transform:translateX(-50%);bottom:22px;z-index:35;
+  width:min(286px, calc(100% - 36px));
+  height:58px;
+  padding:4px 5px;
   border-radius:999px;
   display:grid;grid-template-columns:repeat(5,1fr);
+  gap:2px;
   background:var(--glass-dock-bg);
   -webkit-backdrop-filter:var(--glass-dock-blur);
   backdrop-filter:var(--glass-dock-blur);
@@ -363,7 +365,7 @@ html[data-theme="dark"] .ambient-orb{opacity:.20}
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   border:none;background:transparent;cursor:pointer;
   color:var(--text-secondary);font-size:10.5px;font-weight:500;letter-spacing:.08px;
-  padding:3px 0;border-radius:999px;
+  padding:3px 0;border-radius:18px;
   transition:color .2s,transform .18s var(--spring),background .25s ease;
 }
 .tab-bar__item:active{transform:scale(.90)}
@@ -1053,7 +1055,7 @@ html[data-theme="dark"] .toast{
     border-radius:0;border:none;box-shadow:none;
   }
   .dynamic-island{top:8px}
-  .tab-bar{left:14px;right:14px;bottom:18px}
+  .tab-bar{bottom:18px}
   .action-dock{left:14px;right:14px;bottom:18px}
 }
 </style>
@@ -1173,31 +1175,106 @@ const CITIES = [
 ];
 
 const SPOTS = [
-  { id:'hgs', name:'黄果树景区', sub:'大瀑布 + 陡坡塘，喀斯特地貌标杆', theme:'a',
+  // 安顺
+  { id:'hgs', city:'安顺', name:'黄果树景区', sub:'大瀑布 + 陡坡塘，喀斯特地貌标杆', theme:'a',
     price:160, priceText:'¥160', open:'07:00–18:00', dur:'2.5h', dist:'128 km',
     verify:'ok', verifyText:'已核验', tier:'一级来源',
     src:'景区官方票务', srcDate:'9/18', score:4.8, hot:'最热门',
     tags:['自然风光','避暑','亲子'], desc:'黄果树瀑布群由大瀑布、陡坡塘、天星桥三部分组成，是中国喀斯特地貌的代表性景区。' },
-  { id:'lg', name:'龙宫景区', sub:'水溶洞群 + 游船，夏季避暑首选', theme:'b',
+  { id:'lg', city:'安顺', name:'龙宫景区', sub:'水溶洞群 + 游船，夏季避暑首选', theme:'b',
     price:130, priceText:'¥130', open:'08:00–17:30', dur:'2h', dist:'110 km',
     verify:'ok', verifyText:'已核验', tier:'一级来源',
     src:'景区官方票务', srcDate:'9/18', score:4.6, hot:'',
     tags:['自然风光','避暑'], desc:'以水溶洞群与地下暗河著称的喀斯特景区，洞内常年恒温，夏季避暑理想地。' },
-  { id:'qls', name:'黔灵山公园', sub:'贵阳市区登山看猴，1 小时可达', theme:'c',
+  { id:'tltb', city:'安顺', name:'天龙屯堡', sub:'明代军屯遗存，演出与古建筑', theme:'e',
+    price:65, priceText:'¥65', open:'08:30–17:00', dur:'2h', dist:'42 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/18', score:4.1, hot:'',
+    tags:['人文','亲子'], desc:'明代江西军人入黔形成的屯堡聚落，保存大量石砌建筑与傩堂戏演出。' },
+  { id:'jzgz', city:'安顺', name:'旧州古镇', sub:'千年古刹与民居古巷，悠闲漫步', theme:'d',
+    price:0, priceText:'免费', open:'全天开放', dur:'1.5h', dist:'68 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'安顺市文旅局', srcDate:'9/15', score:4.2, hot:'',
+    tags:['人文','古镇','免票','轻松'], desc:'全国历史文化名镇，保存完好的四合院落与古街石巷，游客少而清净。' },
+  
+  // 贵阳
+  { id:'qls', city:'贵阳', name:'黔灵山公园', sub:'贵阳市区登山看猴，1 小时可达', theme:'c',
     price:0, priceText:'免费', open:'07:00–22:00', dur:'2h', dist:'9 km',
     verify:'ok', verifyText:'已核验', tier:'一级来源',
     src:'公园管理处', srcDate:'9/12', score:4.4, hot:'市区',
     tags:['自然风光','亲子','免票'], desc:'贵阳市中心的大型山地公园，弘福寺与猕猴群是主要看点，登高可俯瞰全城。' },
-  { id:'qygz', name:'青岩古镇', sub:'600 年古镇，明清街巷与糕粑', theme:'d',
-    price:0, priceText:'免费', open:'全天', dur:'2.5h', dist:'32 km',
+  { id:'qygz', city:'贵阳', name:'青岩古镇', sub:'600 年古镇，明清街巷与糕粑', theme:'d',
+    price:0, priceText:'免费', open:'全天开放', dur:'2.5h', dist:'32 km',
     verify:'warn', verifyText:'待核验', tier:'二级来源',
     src:'地图地点信息', srcDate:'8/28', score:4.2, hot:'',
     tags:['人文','美食','免票'], desc:'明清军事屯堡形态的古镇，街巷格局完整，玫瑰糖与糕粑是当地代表性小吃。' },
-  { id:'tltb', name:'天龙屯堡', sub:'明代军屯遗存，演出与古建筑', theme:'e',
-    price:65, priceText:'¥65', open:'08:30–17:00', dur:'2h', dist:'42 km',
+  { id:'jxl', city:'贵阳', name:'甲秀楼', sub:'南明河畔标志性古建筑，夜景出片', theme:'e',
+    price:0, priceText:'免费', open:'08:30–21:30', dur:'1h', dist:'3 km',
     verify:'ok', verifyText:'已核验', tier:'一级来源',
-    src:'景区官方票务', srcDate:'9/18', score:4.1, hot:'',
-    tags:['人文','亲子'], desc:'明代江西军人入黔形成的屯堡聚落，保存大量石砌建筑与傩堂戏演出。' }
+    src:'贵阳市文物局', srcDate:'9/10', score:4.5, hot:'地标',
+    tags:['人文','历史','摄影','免票'], desc:'始建于明代万历年间的南明河上名楼，贵阳地标历史建筑，三层三檐攒尖顶。' },
+  { id:'hxsw', city:'贵阳', name:'花溪十里河滩', sub:'城市湿地绿道，骑行与野餐首选', theme:'a',
+    price:0, priceText:'免费', open:'全天开放', dur:'2h', dist:'18 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'贵阳市湿地办', srcDate:'9/08', score:4.3, hot:'',
+    tags:['自然风光','轻松','亲子','免票'], desc:'国家城市湿地公园，阿哈湖水系绿道环绕，空气清新人少舒适。' },
+
+  // 遵义
+  { id:'zyhy', city:'遵义', name:'遵义会议会址', sub:'红色圣地核心，历史陈列展览', theme:'d',
+    price:0, priceText:'免费', open:'08:30–17:00', dur:'2h', dist:'145 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'纪念馆官方预约', srcDate:'9/16', score:4.7, hot:'爱国主义',
+    tags:['人文','历史','免票'], desc:'中西合璧式二层砖木结构楼房，中国革命伟大转折纪念地。' },
+  { id:'csdb', city:'遵义', name:'赤水大瀑布', sub:'丹霞地貌峡谷壮观飞瀑，幽谷水帘', theme:'a',
+    price:80, priceText:'¥80', open:'08:00–17:00', dur:'3h', dist:'260 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/14', score:4.6, hot:'',
+    tags:['自然风光','避暑','摄影'], desc:'高76米宽80米的长江水系第一大瀑布，赤水丹霞世界自然遗产核心组成。' },
+
+  // 黔东南
+  { id:'xjhz', city:'黔东南', name:'西江千户苗寨', sub:'万家灯火与苗族木质吊脚楼群', theme:'d',
+    price:110, priceText:'¥110', open:'全天开放', dur:'4h', dist:'210 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/18', score:4.6, hot:'网红打卡',
+    tags:['人文','民俗','摄影','美食'], desc:'全球最大的苗族聚居村寨，十余个依山而建的自然村寨相连。' },
+  { id:'zxdz', city:'黔东南', name:'肇兴侗寨', sub:'千户侗寨，鼓楼群与侗族大歌', theme:'e',
+    price:80, priceText:'¥80', open:'全天开放', dur:'3h', dist:'280 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/15', score:4.5, hot:'',
+    tags:['人文','民俗','避人多'], desc:'中国最大的侗族村寨之一，五座壮观的鼓楼分别代表仁义礼智信。' },
+
+  // 黔南
+  { id:'lbxq', city:'黔南', name:'荔波小七孔', sub:'地球腰带上的绿宝石，水上森林与卧龙潭', theme:'a',
+    price:120, priceText:'¥120', open:'07:30–16:30', dur:'4h', dist:'240 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/19', score:4.9, hot:'5A核心',
+    tags:['自然风光','避暑','摄影','亲子'], desc:'樟江风景名胜区核心，集洞、林、湖、瀑、石、水多种景观于一体。' },
+  { id:'zgty', city:'黔南', name:'中国天眼 FAST', sub:'世界最大单口径射电望远镜科普基地', theme:'c',
+    price:100, priceText:'¥100', open:'08:30–17:00', dur:'3h', dist:'160 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'平塘天文小镇公示', srcDate:'9/10', score:4.5, hot:'科普研学',
+    tags:['亲子','人文','避暑'], desc:'大国重器射电望远镜观测点与天文体验馆，感受宇宙科学奥秘。' },
+
+  // 毕节
+  { id:'zjd', city:'毕节', name:'织金洞', sub:'中国溶洞之王，雄奇险秀地下天宫', theme:'b',
+    price:110, priceText:'¥110', open:'08:30–17:00', dur:'3h', dist:'130 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/12', score:4.7, hot:'世界地质公园',
+    tags:['自然风光','避暑'], desc:'被誉为“织金归来不看洞”的世界地质公园，拥有绝美的塔松与霸王盔石笋。' },
+
+  // 铜仁
+  { id:'fjs', city:'铜仁', name:'梵净山', sub:'武陵之巅红云金顶，蘑菇石与云海', theme:'a',
+    price:120, priceText:'¥120', open:'07:00–15:00', dur:'5h', dist:'320 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'景区官方票务', srcDate:'9/18', score:4.8, hot:'世界自然遗产',
+    tags:['自然风光','避暑','摄影'], desc:'世界自然遗产地、国家5A级景区，红云金顶拔地而起，云瀑佛光令人叹为观止。' },
+
+  // 六盘水
+  { id:'wmc', city:'六盘水', name:'乌蒙大草原', sub:'万亩高山草场与云海天池，中国凉都胜境', theme:'a',
+    price:30, priceText:'¥30', open:'全天开放', dur:'3.5h', dist:'220 km',
+    verify:'ok', verifyText:'已核验', tier:'一级来源',
+    src:'六盘水市文旅局', srcDate:'9/11', score:4.6, hot:'避暑自驾',
+    tags:['自然风光','避暑','轻松'], desc:'贵州海拔最高的草原之一，夏季均温19℃，适宜自驾露营与骑马观云海。' }
 ];
 
 const GUIDES = [
@@ -1218,46 +1295,282 @@ const GUIDES = [
     date:'9/16', likes:'1.1k', spot:'lg' }
 ];
 
-/* 行程数据：D1/D2 条目 */
-const ITINERARY = {
-  id:'it1', title:'贵阳 → 安顺 2 天', budget:1240, limit:1500, people:'2 大 1 小',
-  days:[
-    { d:'D1', date:'9/26', items:[
-      { t:'09:00 – 12:00', n:'黄果树景区', m:'大瀑布 + 陡坡塘，步行约 3.5 km',
-        v:'ok', vt:'已核验', tags:['门票 ¥160/人','07:00–18:00','建议 2.5h'],
-        src:'来源：景区官方票务（一级）· 核验于 9/18', spot:'hgs',
-        transit:{ m:'驾车 45 分钟 · 32 km', ic:'car' } },
-      { t:'12:40 – 13:40', n:'布依农家 · 午餐', m:'酸汤鱼 + 糯米饭，人均 ¥68',
-        v:'warn', vt:'待核验', tags:['人均 ¥68','11:00–14:00'],
-        src:'来源：地图餐饮（二级）· 上次核验 8/30' },
-      { t:'14:10 – 16:40', n:'龙宫景区', m:'水溶洞游船，洞内较冷',
-        v:'ok', vt:'已核验', tags:['门票 ¥130/人','08:00–17:30','建议 2h'],
-        src:'来源：景区官方票务（一级）· 核验于 9/18', spot:'lg',
-        transit:{ m:'入住安顺市区 · 距景区 20 分钟', ic:'bed' } },
-      { t:'18:30', n:'和府大酒店（标准档）', m:'含早 · 双床 · 可取消',
-        v:'warn', vt:'待核验', tags:['¥438/晚','含双早','可取消'],
-        src:'来源：酒店平台（二级）· 价格随日期浮动' }
-    ]},
-    { d:'D2', date:'9/27', items:[
-      { t:'09:30 – 11:30', n:'天龙屯堡', m:'明代屯堡遗存 + 傩堂戏',
-        v:'ok', vt:'已核验', tags:['门票 ¥65/人','08:30–17:00'],
-        src:'来源：景区官方票务（一级）· 核验于 9/18', spot:'tltb' },
-      { t:'12:00 – 13:00', n:'安顺米粉 · 午餐', m:'羊肉粉 + 冰浆',
-        v:'warn', vt:'待核验', tags:['人均 ¥22','06:30–14:00'],
-        src:'来源：地图餐饮（二级）· 上次核验 9/02' },
-      { t:'14:30 – 17:00', n:'青岩古镇', m:'明清街巷 + 糕粑',
-        v:'warn', vt:'待核验', tags:['免费','全天开放'],
-        src:'来源：地图地点（二级）· 上次核验 8/28', spot:'qygz' },
-      { t:'17:30', n:'返程', m:'安顺 → 贵阳 约 1.5 小时',
-        v:'ok', vt:'已核验', tags:['驾车 95 km','预计 19:15 到达'],
-        src:'来源：高德驾车矩阵（一级）· 实时' }
-    ]}
-  ]
-};
+/* 核心规划算法：AI 结构化解析 + 候选召回 + 降级阶梯 + 预算硬约束核算（DESIGN.md §3.5 / §6） */
+function formatHM(minutes) {
+  const h = Math.floor(minutes / 60) % 24;
+  const m = minutes % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function generateItineraryPlan(p) {
+  const dest = p.dest || '安顺';
+  const origin = p.origin || '贵阳';
+  const days = Math.max(1, p.days || 2);
+  const people = Math.max(1, p.people || 2);
+  const perPersonBudget = p.budget || 500;
+  const totalLimit = perPersonBudget * people;
+  const mode = p.mode || '标准';
+  const interests = Array.from(p.interests || []);
+
+  // 1. 召回目的地匹配候选景区
+  let pool = SPOTS.filter(s => {
+    if (s.city === dest) return true;
+    if (dest === '安顺' && ['hgs','lg','tltb','jzgz','qygz'].includes(s.id)) return true;
+    if (dest === '贵阳' && ['qls','qygz','jxl','hxsw'].includes(s.id)) return true;
+    if (dest === '遵义' && ['zyhy','csdb'].includes(s.id)) return true;
+    if (dest === '黔东南' && ['xjhz','zxdz','zygc'].includes(s.id)) return true;
+    if (dest === '黔南' && ['lbxq','zgty'].includes(s.id)) return true;
+    if (dest === '毕节' && ['zjd','bldj'].includes(s.id)) return true;
+    if (dest === '铜仁' && ['fjs'].includes(s.id)) return true;
+    if (dest === '六盘水' && ['wmc'].includes(s.id)) return true;
+    return s.name.includes(dest) || s.desc.includes(dest);
+  });
+  if (!pool.length) {
+    pool = SPOTS.slice();
+  }
+
+  // 2. 候选评分（匹配兴趣偏好与热度）
+  pool = pool.map(s => {
+    let score = s.score * 15;
+    if (interests.some(tag => s.tags.includes(tag))) score += 25;
+    if (s.price === 0) score += 6;
+    return { ...s, calcScore: score };
+  });
+  pool.sort((a,b) => b.calcScore - a.calcScore);
+
+  // 3. 降级阶梯（Relaxation Ladder，DESIGN.md §3.5）
+  const ladders = [
+    { level: 0, perDay: Math.min(3, Math.max(2, Math.ceil(pool.length / days))), tier: mode, pickType: 'top' },
+    { level: 1, perDay: 2, tier: mode, pickType: 'top' },
+    { level: 2, perDay: 2, tier: '经济', pickType: 'top' },
+    { level: 3, perDay: 1, tier: '经济', pickType: 'cheap' }
+  ];
+
+  let selectedPlan = null;
+  let minCostFound = Infinity;
+
+  for (const ladder of ladders) {
+    const tierRates = {
+      '舒适': { lodging: 438, food: 90, hotelName: '和府度假酒店（舒适档）' },
+      '标准': { lodging: 220, food: 60, hotelName: '和府大酒店（标准档）' },
+      '经济': { lodging: 120, food: 35, hotelName: '快捷精选酒店（经济档）' }
+    }[ladder.tier] || { lodging: 220, food: 60, hotelName: '和府大酒店（标准档）' };
+
+    let chosenSpots = [];
+    if (ladder.pickType === 'cheap') {
+      const cheapSorted = pool.slice().sort((a,b) => a.price - b.price || b.calcScore - a.calcScore);
+      chosenSpots = cheapSorted.slice(0, days * ladder.perDay);
+    } else {
+      chosenSpots = pool.slice(0, days * ladder.perDay);
+    }
+
+    const ticketCost = chosenSpots.reduce((sum, s) => sum + (s.price * people), 0);
+    const nights = Math.max(0, days - 1);
+    const rooms = Math.ceil(people / 2);
+    const lodgingCost = tierRates.lodging * nights * rooms;
+    const foodCost = tierRates.food * days * people;
+    const distEst = chosenSpots.reduce((acc, s) => acc + parseInt(s.dist || '40'), 60);
+    const transportCost = Math.round(distEst * 0.8 + 60 * days + 20 * days);
+    const otherCost = 20 * days * people;
+
+    const fixed = ticketCost + lodgingCost + foodCost + transportCost + otherCost;
+    if (fixed < minCostFound) minCostFound = fixed;
+
+    if (fixed <= totalLimit) {
+      const slack = totalLimit - fixed;
+      const reserve = Math.min(Math.round(totalLimit * 0.08), slack);
+      const total = fixed + reserve;
+
+      selectedPlan = {
+        level: ladder.level,
+        tier: ladder.tier,
+        hotelName: tierRates.hotelName,
+        lodgingPerNight: tierRates.lodging,
+        foodPerDay: tierRates.food,
+        spots: chosenSpots,
+        perDay: ladder.perDay,
+        costs: {
+          tickets: ticketCost,
+          transport: transportCost,
+          lodging: lodgingCost,
+          food: foodCost,
+          other: otherCost,
+          reserve,
+          total
+        }
+      };
+      break;
+    }
+  }
+
+  // 硬约束拦截：全部阶梯仍超限
+  if (!selectedPlan) {
+    return {
+      success: false,
+      error: 'BUDGET_EXCEEDED',
+      minCost: minCostFound,
+      limit: totalLimit,
+      perPersonBudget,
+      people,
+      days
+    };
+  }
+
+  // 4. 生成按天时间轴方案
+  const startDateStr = p.startDate || '9/26';
+  const planDays = [];
+  let spotIdx = 0;
+
+  for (let d = 0; d < days; d++) {
+    const curDate = calcEndDate(startDateStr, d + 1);
+    const dayLabel = `D${d + 1}`;
+    const daySpots = selectedPlan.spots.slice(spotIdx, spotIdx + selectedPlan.perDay);
+    spotIdx += selectedPlan.perDay;
+
+    const items = [];
+    let curTime = 9 * 60; // 09:00
+
+    if (daySpots.length > 0) {
+      const s1 = daySpots[0];
+      const dur = (parseFloat(s1.dur) || 2.5) * 60;
+      const end1 = curTime + dur;
+      items.push({
+        t: `${formatHM(curTime)} – ${formatHM(end1)}`,
+        n: s1.name,
+        m: `${s1.sub}，建议 ${s1.dur}`,
+        v: s1.verify,
+        vt: s1.verifyText,
+        tags: [`门票 ¥${s1.price}/人`, s1.open, `建议 ${s1.dur}`],
+        src: `来源：${s1.src}（${s1.tier}）· 核验于 ${s1.srcDate}`,
+        spot: s1.id,
+        transit: { m: `驾车 45 分钟 · ${s1.dist}`, ic: 'car' }
+      });
+      curTime = end1;
+    }
+
+    // 午餐
+    const lunchEnd = curTime + 60;
+    items.push({
+      t: `${formatHM(curTime + 15)} – ${formatHM(lunchEnd + 15)}`,
+      n: d === 0 ? '布依特色午餐' : '特色当地小吃 · 午餐',
+      m: `酸汤鱼 / 丝娃娃，${selectedPlan.tier}餐饮人均 ¥${Math.round(selectedPlan.foodPerDay * 0.45)}`,
+      v: 'warn',
+      vt: '待核验',
+      tags: [`人均 ¥${Math.round(selectedPlan.foodPerDay * 0.45)}`, '11:30–14:00'],
+      src: '来源：地图餐饮（二级）· 价格按档位估算'
+    });
+    curTime = lunchEnd + 15;
+
+    // 下午景点
+    if (daySpots.length > 1) {
+      const s2 = daySpots[1];
+      const dur = (parseFloat(s2.dur) || 2) * 60;
+      const start2 = curTime + 40;
+      const end2 = start2 + dur;
+      items.push({
+        t: `${formatHM(start2)} – ${formatHM(end2)}`,
+        n: s2.name,
+        m: `${s2.sub}，建议 ${s2.dur}`,
+        v: s2.verify,
+        vt: s2.verifyText,
+        tags: [`门票 ¥${s2.price}/人`, s2.open, `建议 ${s2.dur}`],
+        src: `来源：${s2.src}（${s2.tier}）· 核验于 ${s2.srcDate}`,
+        spot: s2.id,
+        transit: d < days - 1
+          ? { m: `入住${dest}市区 · 距景区 25 分钟`, ic: 'bed' }
+          : { m: `返程 · ${dest} → ${origin} 约 1.5 小时`, ic: 'car' }
+      });
+      curTime = end2;
+    }
+
+    // 入住酒店或返程
+    if (d < days - 1) {
+      items.push({
+        t: '18:30',
+        n: selectedPlan.hotelName,
+        m: `含早 · ${Math.ceil(people/2)} 间房 · 可取消`,
+        v: 'warn',
+        vt: '待核验',
+        tags: [`¥${selectedPlan.lodgingPerNight}/晚/间`, '含双早', '可取消'],
+        src: '来源：酒店平台（二级）· 价格随日期浮动'
+      });
+    } else {
+      items.push({
+        t: `${formatHM(curTime + 30)}`,
+        n: '返程',
+        m: `${dest} → ${origin} 约 1.5 小时`,
+        v: 'ok',
+        vt: '已核验',
+        tags: ['驾车 95 km', `预计 ${formatHM(curTime + 120)} 到达`],
+        src: '来源：高德驾车矩阵（一级）· 实时'
+      });
+    }
+
+    planDays.push({
+      d: dayLabel,
+      date: curDate,
+      items
+    });
+  }
+
+  // 降级提示
+  let degradeNotice = '';
+  let degradeMessage = '';
+  if (selectedPlan.level === 1) {
+    degradeNotice = '精简为每日至多2景';
+    degradeMessage = `原方案超出预算（上限 ¥${totalLimit}），已自动精简为每日至多 2 个核心景点，总支出控制在 ¥${selectedPlan.costs.total}。`;
+  } else if (selectedPlan.level === 2) {
+    degradeNotice = '已降为经济档住宿餐饮';
+    degradeMessage = `原方案超出预算（上限 ¥${totalLimit}），已自动降为经济档住宿（¥${selectedPlan.lodgingPerNight}/晚）与精选简餐，总支出控制在 ¥${selectedPlan.costs.total}。`;
+  } else if (selectedPlan.level === 3) {
+    degradeNotice = '极致精简与免票优先';
+    degradeMessage = `预算极为紧凑（人均 ¥${perPersonBudget}），系统已自动降为经济档并优选免票/高性价比景点，总支出严格压减至 ¥${selectedPlan.costs.total}（上限 ¥${totalLimit}）。`;
+  }
+
+  const breakdownRows = [
+    ['门票', selectedPlan.costs.tickets, selectedPlan.spots.map(s => `${s.name} ¥${s.price}×${people}`).join(' + ') || '免门票'],
+    ['交通油费', selectedPlan.costs.transport, '自驾油费 + 停车，高德驾车矩阵核算'],
+    ...(days > 1 ? [['住宿', selectedPlan.costs.lodging, `${dest}市区${selectedPlan.tier}档 ${days - 1} 晚 × ${Math.ceil(people/2)} 间`]] : []),
+    ['餐饮', selectedPlan.costs.food, `${days * 2} 正餐 + 早餐，按${selectedPlan.tier}档人均估算`],
+    ['其他杂项', selectedPlan.costs.other, '景区接驳车 / 零食杂费'],
+    ...(selectedPlan.costs.reserve > 0 ? [['应急备用金', selectedPlan.costs.reserve, '突发开销预留备用金']] : [])
+  ];
+
+  return {
+    success: true,
+    level: selectedPlan.level,
+    degradeNotice,
+    degradeMessage,
+    itinerary: {
+      id: 'it_' + Date.now(),
+      title: `${origin} → ${dest} ${days} 天`,
+      budget: selectedPlan.costs.total,
+      limit: totalLimit,
+      people: `${people} 人`,
+      degradeLevel: selectedPlan.level,
+      degradeNotice,
+      degradeMessage,
+      breakdown: breakdownRows,
+      days: planDays
+    }
+  };
+}
+
+/* 行程初始数据（动态由规划引擎驱动） */
+let ITINERARY = generateItineraryPlan({
+  origin: '贵阳',
+  dest: '安顺',
+  startDate: '9/26',
+  days: 2,
+  people: 2,
+  budget: 1500,
+  mode: '标准',
+  interests: new Set(['自然风光','亲子'])
+}).itinerary;
 
 const TRIPS = [
   { id:'it1', title:'贵阳 → 安顺 2 天', cover:'a', status:'ok', st:'进行中',
-    date:'9/26 出发', stops:['黄果树','龙宫','天龙屯堡'], money:'¥1,240 / 上限 ¥1,500' },
+    date:'9/26 出发', stops:['黄果树','龙宫','天龙屯堡'], money:`¥${ITINERARY.budget} / 上限 ¥${ITINERARY.limit}` },
   { id:'it2', title:'贵阳周边 1 日游', cover:'b', status:'none', st:'草稿',
     date:'9/12 创建', stops:['黔灵山','青岩古镇'], money:'预算未定' }
 ];
@@ -1336,13 +1649,13 @@ const homeHTML = () => `
 
   <div class="page">
     <div class="card" style="padding:6px var(--padding-card)">
-      <div class="field press" data-act="go:plan">
+      <div class="field press" data-act="sheet:route">
         <span class="field__lb">想去哪</span>
-        <span class="field__vl">安顺 <span class="faint">2 天</span> ${I.chevron}</span>
+        <span class="field__vl">${state.plan.dest} <span class="faint">${state.plan.days} 天</span> ${I.chevron}</span>
       </div>
       <div class="field press" data-act="sheet:city">
         <span class="field__lb">出发</span>
-        <span class="field__vl">${state.city.short} · 自驾 ${I.chevron}</span>
+        <span class="field__vl">${state.plan.origin} · 自驾 ${I.chevron}</span>
       </div>
       <div class="field press" data-act="go:plan">
         <span class="field__lb">预算上限</span>
@@ -1361,8 +1674,8 @@ const homeHTML = () => `
         ${verified('ok','已保存')}
         <span class="faint" style="font-size:12px">9/26</span>
       </div>
-      <h3 style="margin:9px 0 2px;font-size:17px">继续上次行程</h3>
-      <p class="muted" style="margin:0;font-size:14px">贵阳 → 安顺 2 天 · 预算 ¥1,240</p>
+      <h3 style="margin:9px 0 2px;font-size:17px">${ITINERARY.title}</h3>
+      <p class="muted" style="margin:0;font-size:14px">${ITINERARY.title} · 预估支出 ¥${ITINERARY.budget.toLocaleString()} / 上限 ¥${ITINERARY.limit.toLocaleString()}</p>
     </div>
   </div>
 
@@ -1505,7 +1818,7 @@ const generatingHTML = () => `
         <span style="width:26px;height:26px;display:block">${I.sparkle}</span>
       </div>
       <h3 style="margin:0 0 5px;font-size:19px">正在规划</h3>
-      <p class="muted" style="margin:0 0 18px;font-size:14px">贵阳 → 安顺 · ${state.plan.people} 人 · ¥${state.plan.budget.toLocaleString()}</p>
+      <p class="muted" style="margin:0 0 18px;font-size:14px">${state.plan.origin} → ${state.plan.dest} · ${state.plan.days} 天 · ${state.plan.people} 人 · 人均 ¥${state.plan.budget.toLocaleString()} (总上限 ¥${(state.plan.budget * state.plan.people).toLocaleString()})</p>
       <div class="progress"><div class="progress__bar" id="pgBar" style="width:${state.progress}%"></div></div>
       <p class="faint" id="pgText" style="margin:10px 0 0;font-size:12px">${['解析需求','召回景区','计算路线','按天装包','预算校验'][Math.min(4,Math.floor(state.progress/20))]}</p>
     </div>
@@ -1628,31 +1941,40 @@ const detailHTML = () => {
   }
 
   if (v === 'budget') {
-    const rows = [
-      ['门票', 870, '黄果树 160×3 + 龙宫 130×3 + 天龙屯堡 65×3'],
-      ['交通', 430, '自驾油费 + 停车，高德驾车矩阵'],
-      ['住宿', 438, '安顺市区标准档 1 晚'],
-      ['餐饮', 300, '3 正餐 + 早餐，按人均估算'],
-      ['其他', 120, '景区接驳车 + 零食']
+    const rows = d.breakdown || [
+      ['门票', Math.round(d.budget * 0.4), '景点门票核验支出'],
+      ['交通油费', Math.round(d.budget * 0.25), '自驾路网与油费核算'],
+      ['住宿', Math.round(d.budget * 0.2), '酒店住宿费用'],
+      ['餐饮', Math.round(d.budget * 0.1), '正餐与早餐估算'],
+      ['其他与备用', Math.round(d.budget * 0.05), '景区接驳与备用金']
     ];
-    const sum = rows.reduce((a,r)=>a+r[1],0);
+    const sum = d.budget;
+    const progressPct = Math.min(100, Math.round((sum / d.limit) * 100));
     return `
     <div class="page" style="padding-top:var(--gap-card)">
       ${segHTML}
       <div class="card">
         <div class="row row--between">
           <div>
-            <span class="faint" style="font-size:12px">预估总支出 (2 人)</span>
+            <span class="faint" style="font-size:12px">预估总支出 (${d.people || '2 人'})</span>
             <div class="budget__val" style="font-size:24px;margin-top:2px">¥${sum.toLocaleString()}</div>
           </div>
           ${verified('ok','单价已核验')}
         </div>
         <p class="muted" style="margin:8px 0 0;font-size:13px">已分配 / 上限 ¥${d.limit.toLocaleString()} · 结余约 ¥${(d.limit-sum).toLocaleString()}</p>
         <div class="budget" style="margin-top:10px">
-          <div class="budget__track"><div class="budget__fill" data-w="${(sum/d.limit*100).toFixed(0)}"></div></div>
+          <div class="budget__track"><div class="budget__fill" data-w="${progressPct}"></div></div>
         </div>
       </div>
     </div>
+
+    ${d.degradeLevel > 0 ? `
+    <div class="page" style="padding-top:0">
+      <div class="alert" style="background:rgba(201,123,63,0.12);border-color:rgba(201,123,63,0.3);color:var(--text-primary)">
+        <span style="color:var(--accent-primary);width:18px;height:18px;flex:none;display:block">${I.alert}</span>
+        <div><b>预算硬约束生效 · 自动降级</b><br>${d.degradeMessage}</div>
+      </div>
+    </div>` : ''}
 
     <div class="page" style="padding-top:0">
       ${rows.map(r=>`
@@ -1670,7 +1992,7 @@ const detailHTML = () => {
         <div class="row" style="gap:7px;align-items:flex-start">
           <span style="color:var(--warn);flex:none;width:17px;height:17px">${I.alert}</span>
           <p class="muted" style="margin:0;font-size:12.5px;line-height:1.45">
-            餐饮与住宿单价为二级来源估算，出发前可能变动；实际结算以现场为准。
+            门票价格已通过官方名录核验；餐饮与住宿单价为二级来源估算，出发前可能变动，实际结算以现场为准。
           </p>
         </div>
       </div>
@@ -1680,22 +2002,32 @@ const detailHTML = () => {
   }
 
   // list view (Day 1 / Day 2)
+  const progressPct = Math.min(100, Math.round((d.budget / d.limit) * 100));
+  const spotItems = day.items.filter(i => i.spot);
+  const spotNames = spotItems.map(i => i.n).join(' + ') || '市区游览';
+
   return `
   <div class="page" style="padding-top:var(--gap-card)">
     ${segHTML}
 
+    ${d.degradeLevel > 0 ? `
+    <div class="alert" style="background:rgba(201,123,63,0.12);border-color:rgba(201,123,63,0.3);color:var(--text-primary);margin-bottom:var(--gap-card)">
+      <span style="color:var(--accent-primary);width:18px;height:18px;flex:none;display:block">${I.alert}</span>
+      <div><b>预算偏紧 · 系统已自动降级重排</b><br>${d.degradeMessage}</div>
+    </div>` : ''}
+
     <div class="card">
       <div class="row row--between" style="margin-bottom:2px">
-        <h3 style="margin:0;font-size:17px">${day.d} · 行程概览</h3>
-        ${verified('ok','2 项已核验')}
+        <h3 style="margin:0;font-size:17px">${day.d} · 当日行程概览</h3>
+        ${verified('ok',`${spotItems.length} 个景区已核验`)}
       </div>
-      <p class="muted" style="margin:6px 0 0;font-size:14px">${day.items[0].n} · 驾车往返 · 约 8.5 小时</p>
+      <p class="muted" style="margin:6px 0 0;font-size:14px">${spotNames} · 驾车往返</p>
       <div class="budget">
         <div class="budget__nums">
           <span class="budget__val">¥${d.budget.toLocaleString()}</span>
           <span class="budget__cap">预算上限 ¥${d.limit.toLocaleString()}</span>
         </div>
-        <div class="budget__track"><div class="budget__fill" data-w="83"></div></div>
+        <div class="budget__track"><div class="budget__fill" data-w="${progressPct}"></div></div>
       </div>
     </div>
   </div>
@@ -1703,7 +2035,7 @@ const detailHTML = () => {
   <div class="page" style="padding-top:0">
     <div class="alert">
       ${I.alert}
-      <div><b>2 条提醒</b><br>段间距离为直线估算 · ${day.d==='D1'?'D2':'D1'} 下午有雨</div>
+      <div><b>2 条提醒</b><br>段间距离与车程由高德路网矩阵核算 · ${day.d==='D1'?'D2':'D1'} 下午建议备伞</div>
     </div>
   </div>
 
@@ -2274,6 +2606,147 @@ const SHEETS = {
       })),
       { a:'city:gps', ic:I.pin, lb:'重新自动定位 (GPS)', d:'使用高精度 GPS 自动识别所在城市基准', plain:true }
     ]
+  }),
+  route:()=>({
+    title:'选择出发地与目的地',
+    sub:'支持贵州全省 9 大市州及核心景区自由配置与一键对调',
+    html:`
+      <div style="padding:0 var(--margin-page)">
+        <div class="card" style="background:var(--bg-fill);border:1px solid var(--glass-border);padding:12px 14px;margin-bottom:14px">
+          <div class="row row--between" style="align-items:center">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:12px;color:var(--text-secondary)">当前规划</span>
+              <span style="font-size:16px;font-weight:700;color:var(--accent-primary)">${state.plan.origin}</span>
+              <span style="color:var(--text-tertiary);font-size:14px">➔</span>
+              <span style="font-size:16px;font-weight:700;color:var(--accent-primary)">${state.plan.dest}</span>
+            </div>
+            <button class="btn btn--tinted btn--sm press" data-act="route:swap" style="padding:4px 10px;font-size:12px;height:auto">
+              ${I.swap} <span>对调</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <p class="muted" style="font-size:12px;font-weight:600;margin:0 0 8px">热门经典路线</p>
+          <div class="row row--wrap" style="gap:7px">
+            ${[
+              ['贵阳','安顺','黄果树/龙宫/天龙屯堡'],
+              ['贵阳','荔波','大小七孔/水上森林'],
+              ['贵阳','西江苗寨','千户苗寨/镇远古城'],
+              ['贵阳','梵净山','蘑菇石/红云金顶'],
+              ['贵阳','遵义赤水','遵义会址/佛光岩丹霞'],
+              ['贵阳','兴义','万峰林/马岭河峡谷']
+            ].map(([orig, dst]) => {
+              const isSel = state.plan.origin === orig && state.plan.dest === dst;
+              return `<button class="chip press ${isSel ? 'is-on' : ''}" data-act="route:preset:${orig}:${dst}" style="font-size:12px;padding:6px 11px">
+                ${orig} → ${dst}
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <div class="row row--between" style="margin-bottom:8px">
+            <p class="muted" style="font-size:12px;font-weight:600;margin:0">出发地 (全省市州)</p>
+            <span class="faint" style="font-size:11px">已选：${state.plan.origin}</span>
+          </div>
+          <div class="row row--wrap" style="gap:6px">
+            ${CITIES.map(c => {
+              const isSel = state.plan.origin === c.short;
+              return `<button class="chip press ${isSel ? 'is-on' : ''}" data-act="route:origin:${c.short}" style="font-size:12px;padding:5px 10px">${c.short}</button>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px">
+          <div class="row row--between" style="margin-bottom:8px">
+            <p class="muted" style="font-size:12px;font-weight:600;margin:0">目的地 (核心区域/景区)</p>
+            <span class="faint" style="font-size:11px">已选：${state.plan.dest}</span>
+          </div>
+          <div class="row row--wrap" style="gap:6px">
+            ${['安顺','荔波','西江苗寨','梵净山','遵义','赤水','兴义','镇远','百里杜鹃','贵阳市区'].map(c => {
+              const isSel = state.plan.dest === c;
+              return `<button class="chip press ${isSel ? 'is-on' : ''}" data-act="route:dest:${c}" style="font-size:12px;padding:5px 10px">${c}</button>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <button class="btn press" data-act="route:done" style="width:100%">确认路线</button>
+      </div>
+    `
+  }),
+  date:()=>({
+    title:'选择行程日期与天数',
+    sub:'按天排期，自动联动核验各景点开放时间',
+    html:`
+      <div style="padding:0 var(--margin-page)">
+        <div class="card" style="background:var(--bg-fill);border:1px solid var(--glass-border);padding:12px 14px;margin-bottom:14px;text-align:center">
+          <div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:4px">已选行程排期</div>
+          <div style="font-size:18px;font-weight:700;color:var(--accent-primary)">
+            ${state.plan.startDate} – ${state.plan.endDate} · 共 ${state.plan.days} 天
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <p class="muted" style="font-size:12px;font-weight:600;margin:0 0 8px">行程天数</p>
+          <div class="row row--wrap" style="gap:7px">
+            ${[
+              [1, '1 天 · 短途速览'],
+              [2, '2 天 · 周末推荐'],
+              [3, '3 天 · 深度探索'],
+              [4, '4 天 · 环线游'],
+              [5, '5 天 · 全景自驾'],
+              [7, '7 天 · 贵州大环线']
+            ].map(([d, label]) => {
+              const isSel = state.plan.days === d;
+              return `<button class="chip press ${isSel ? 'is-on' : ''}" data-act="date:days:${d}" style="font-size:12px;padding:6px 11px">
+                ${label}
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <p class="muted" style="font-size:12px;font-weight:600;margin:0 0 8px">出发日期</p>
+          <div class="row row--wrap" style="gap:6px">
+            ${[
+              ['9/26', '9/26 演示'],
+              ['9/29', '今天 9/29'],
+              ['9/30', '明天 9/30'],
+              ['10/1', '国庆 10/1'],
+              ['10/2', '10/2'],
+              ['10/3', '10/3'],
+              ['10/4', '10/4'],
+              ['10/5', '10/5']
+            ].map(([dt, label]) => {
+              const isSel = state.plan.startDate === dt;
+              return `<button class="chip press ${isSel ? 'is-on' : ''}" data-act="date:start:${dt}" style="font-size:12px;padding:5px 10px">
+                ${label}
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px">
+          <p class="muted" style="font-size:12px;font-weight:600;margin:0 0 8px">推荐排期方案</p>
+          <div class="row row--wrap" style="gap:6px">
+            ${[
+              ['9/26', '9/27', 2, '9/26 – 9/27 · 2 天 (标准周末)'],
+              ['10/1', '10/3', 3, '10/1 – 10/3 · 3 天 (国庆黄金假)'],
+              ['10/1', '10/2', 2, '10/1 – 10/2 · 2 天 (国庆短途)'],
+              ['10/3', '10/5', 3, '10/3 – 10/5 · 3 天 (错峰出游)']
+            ].map(([s, e, d, title]) => {
+              const isSel = state.plan.startDate === s && state.plan.days === d;
+              return `<button class="chip press ${isSel ? 'is-on' : ''}" data-act="date:combo:${s}:${e}:${d}" style="font-size:12px;padding:5px 10px">
+                ${title}
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <button class="btn press" data-act="date:done" style="width:100%">确认排期</button>
+      </div>
+    `
   })
 };
 
@@ -2363,25 +2836,33 @@ function render(){
   const sheet = document.getElementById('sheet');
   if (state.sheet){
     const cfg = state.sheet;
-    sheet.innerHTML = `
-      <div class="sheet__grab"></div>
-      <p class="sheet__title">${cfg.title}</p>
-      ${cfg.sub?`<p class="sheet__sub">${cfg.sub}</p>`:''}
-      <div class="sheet__list">
-        ${cfg.items.map(it=>`
-          <button class="field press ${it.plain?'':''}" data-act="${it.a}" style="width:100%;background:${it.highlight?'var(--bg-fill)':'none'};border:none;border-radius:${it.highlight?'12px':'0'};text-align:left;font:inherit;padding:${it.highlight?'11px 10px':'13px 0'};margin-bottom:${it.highlight?'4px':'0'}">
-            <span class="row" style="gap:11px;width:100%">
-              <span style="color:${it.danger?'#FF453A':(it.highlight?'var(--ok)':'var(--accent-primary)')};width:19px;height:19px;flex:none;display:block">${it.ic}</span>
-              <span style="flex:1;min-width:0">
-                <span style="display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:${it.highlight?'600':'500'};color:${it.danger?'#FF453A':'var(--text-primary)'}">
-                  <span>${it.lb}</span>
-                  ${it.highlight ? `<span style="font-size:12px;color:var(--ok);font-weight:600">当前</span>` : ''}
+    if (cfg.html) {
+      sheet.innerHTML = `
+        <div class="sheet__grab"></div>
+        <p class="sheet__title">${cfg.title}</p>
+        ${cfg.sub?`<p class="sheet__sub">${cfg.sub}</p>`:''}
+        ${cfg.html}`;
+    } else {
+      sheet.innerHTML = `
+        <div class="sheet__grab"></div>
+        <p class="sheet__title">${cfg.title}</p>
+        ${cfg.sub?`<p class="sheet__sub">${cfg.sub}</p>`:''}
+        <div class="sheet__list">
+          ${cfg.items.map(it=>`
+            <button class="field press ${it.plain?'':''}" data-act="${it.a}" style="width:100%;background:${it.highlight?'var(--bg-fill)':'none'};border:none;border-radius:${it.highlight?'12px':'0'};text-align:left;font:inherit;padding:${it.highlight?'11px 10px':'13px 0'};margin-bottom:${it.highlight?'4px':'0'}">
+              <span class="row" style="gap:11px;width:100%">
+                <span style="color:${it.danger?'#FF453A':(it.highlight?'var(--ok)':'var(--accent-primary)')};width:19px;height:19px;flex:none;display:block">${it.ic}</span>
+                <span style="flex:1;min-width:0">
+                  <span style="display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:${it.highlight?'600':'500'};color:${it.danger?'#FF453A':'var(--text-primary)'}">
+                    <span>${it.lb}</span>
+                    ${it.highlight ? `<span style="font-size:12px;color:var(--ok);font-weight:600">当前</span>` : ''}
+                  </span>
+                  ${it.d?`<span style="display:block;font-size:12.5px;color:var(--text-secondary);margin-top:1px">${it.d}</span>`:''}
                 </span>
-                ${it.d?`<span style="display:block;font-size:12.5px;color:var(--text-secondary);margin-top:1px">${it.d}</span>`:''}
               </span>
-            </span>
-          </button>`).join('')}
-      </div>`;
+            </button>`).join('')}
+        </div>`;
+    }
     mask.classList.add('is-open'); sheet.classList.add('is-open');
   } else {
     mask.classList.remove('is-open'); sheet.classList.remove('is-open');
@@ -2485,12 +2966,90 @@ document.getElementById('stage').addEventListener('click', (e)=>{
         toast('GPS 定位成功：已更新至贵阳市基准');
         return;
       }
-      const found = CITIES.find(c=>c.id===arg);
+      const found = CITIES.find(c=>c.id===arg || c.short===arg);
       if (found){
         state.city = found;
         state.plan.origin = found.short;
         closeSheet(); render();
         toast(`已切换定位至 ${found.name} · ${found.weather}`);
+      }
+      return;
+    }
+    case 'route':{
+      const parts = act.split(':');
+      if (parts[1] === 'preset'){
+        state.plan.origin = parts[2];
+        state.plan.dest = parts[3];
+        const matchCity = CITIES.find(c => c.short === parts[2]);
+        if (matchCity) state.city = matchCity;
+        closeSheet(); render();
+        toast(`已选择路线：${parts[2]} → ${parts[3]}`);
+        return;
+      }
+      if (parts[1] === 'origin'){
+        state.plan.origin = parts[2];
+        const matchCity = CITIES.find(c => c.short === parts[2]);
+        if (matchCity) state.city = matchCity;
+        openSheet('route');
+        render();
+        toast(`出发地已选为 ${parts[2]}`);
+        return;
+      }
+      if (parts[1] === 'dest'){
+        state.plan.dest = parts[2];
+        openSheet('route');
+        render();
+        toast(`目的地已选为 ${parts[2]}`);
+        return;
+      }
+      if (parts[1] === 'swap'){
+        const t = state.plan.origin;
+        state.plan.origin = state.plan.dest;
+        state.plan.dest = t;
+        const matchCity = CITIES.find(c => c.short === state.plan.origin);
+        if (matchCity) state.city = matchCity;
+        openSheet('route');
+        render();
+        toast('已对调出发地与目的地');
+        return;
+      }
+      if (parts[1] === 'done'){
+        closeSheet(); render();
+        toast(`路线已确认：${state.plan.origin} → ${state.plan.dest}`);
+        return;
+      }
+      return;
+    }
+    case 'date':{
+      const parts = act.split(':');
+      if (parts[1] === 'days'){
+        state.plan.days = +parts[2];
+        updateEndDateFormat();
+        openSheet('date');
+        render();
+        toast(`行程天数调整为 ${parts[2]} 天`);
+        return;
+      }
+      if (parts[1] === 'start'){
+        state.plan.startDate = parts[2];
+        updateEndDateFormat();
+        openSheet('date');
+        render();
+        toast(`出发日期设为 ${parts[2]}`);
+        return;
+      }
+      if (parts[1] === 'combo'){
+        state.plan.startDate = parts[2];
+        state.plan.endDate = parts[3];
+        state.plan.days = +parts[4];
+        closeSheet(); render();
+        toast(`已选排期：${parts[2]} – ${parts[3]} · ${parts[4]}天`);
+        return;
+      }
+      if (parts[1] === 'done'){
+        closeSheet(); render();
+        toast(`排期已更新：${state.plan.startDate} – ${state.plan.endDate} · ${state.plan.days}天`);
+        return;
       }
       return;
     }
@@ -2540,16 +3099,60 @@ function runGenerate(){
   go('generating');
   clearInterval(genTimer);
   genTimer = setInterval(()=>{
-    state.progress += 5;
+    state.progress += 10;
     const bar = document.getElementById('pgBar');
     const txt = document.getElementById('pgText');
-    if (bar) bar.style.width = state.progress + '%';
-    if (txt) txt.textContent = ['解析需求','召回景区','计算路线','按天装包','预算校验'][Math.min(4,Math.floor(state.progress/20))];
+    if (bar) bar.style.width = Math.min(100, state.progress) + '%';
+    if (txt) txt.textContent = ['需求结构化','召回匹配景区','高德路网计算','按天规则装包','预算硬约束校验'][Math.min(4,Math.floor(state.progress/20))];
     if (state.progress >= 100){
       clearInterval(genTimer);
-      setTimeout(()=>{ state.generating=false; state.stack=[{name:'detail'}]; render(); toast('行程已生成'); },420);
+      setTimeout(()=>{
+        state.generating = false;
+        const res = generateItineraryPlan(state.plan);
+        if (!res.success) {
+          // 预算硬约束拦截（DESIGN.md §3.5）
+          state.stack = [{name:'plan'}];
+          render();
+          openSheet({
+            title: '⚠️ 预算超限拦截 · 硬约束',
+            sub: `人均 ¥${res.perPersonBudget}（${res.people} 人 ${res.days} 天 总预算上限 ¥${res.limit.toLocaleString()}）`,
+            html: `
+              <div class="card" style="background:rgba(255,69,58,0.08);border:1px solid rgba(255,69,58,0.25);margin-bottom:14px">
+                <p style="margin:0 0 6px;font-size:14px;font-weight:600;color:#FF453A">无法装入行程方案</p>
+                <p class="muted" style="margin:0;font-size:12.5px;line-height:1.5">
+                  即使系统已自动降为最省的【经济档】并优选免票/低价景区，${res.days} 天最低必需支出仍需约 <b>¥${res.minCost.toLocaleString()}</b>（人均约 <b>¥${Math.ceil(res.minCost / res.people).toLocaleString()}</b>）。<br><br>
+                  根据《游迹 V0.1 研发规范》，<b>预算为硬约束，严禁静默超支</b>。请提高预算上限，或精简出行天数/人数。
+                </p>
+              </div>
+              <button class="btn press" data-act="budget:100" style="margin-bottom:8px">提高预算 (+¥100/人)</button>
+              <button class="btn btn--tinted press" data-act="close">返回调整天数/人数</button>
+            `
+          });
+          toast(`预算不足以支撑 ${res.days} 日游最低支出，已拦截超支`);
+        } else {
+          ITINERARY = res.itinerary;
+          state.detail.day = 0;
+          TRIPS[0] = {
+            id: ITINERARY.id,
+            title: ITINERARY.title,
+            cover: 'a',
+            status: 'ok',
+            st: '进行中',
+            date: `${state.plan.startDate} 出发`,
+            stops: ITINERARY.days.flatMap(d => d.items.filter(i => i.spot).map(i => i.n.replace('景区','').replace('公园',''))),
+            money: `¥${ITINERARY.budget.toLocaleString()} / 上限 ¥${ITINERARY.limit.toLocaleString()}`
+          };
+          state.stack = [{name:'detail'}];
+          render();
+          if (res.level > 0) {
+            toast(`行程已生成（${res.degradeNotice}）`);
+          } else {
+            toast('行程已生成，预算完全符合要求');
+          }
+        }
+      }, 360);
     }
-  },190);
+  }, 140);
 }
 
 /* 返回顶部 */

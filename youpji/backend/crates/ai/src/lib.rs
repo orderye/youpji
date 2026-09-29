@@ -48,7 +48,7 @@ pub async fn llm_parse(state: &AppState, input: &str) -> Option<Value> {
     let body = serde_json::json!({
         "model": "travel-plan",
         "messages": [
-            {"role": "system", "content": "你是旅游需求解析器。只输出 JSON：origin,destination,days,people,budget,transport,interests[],avoid[],intensity,mode。不要输出门票/时间/价格等事实。"},
+            {"role": "system", "content": "你是旅游需求解析器。只输出 JSON：origin,destination,days,people,budget,transport,interests[],avoid[],intensity,mode。注意：budget 为所有出行人的总预算上限数值（如用户说明人均500且2人，则budget为1000；若说明总预算2000则为2000）。不要输出门票/时间/价格等事实。"},
             {"role": "user", "content": input}
         ],
         "temperature": 0

@@ -127,6 +127,25 @@ fn score_prefers_matching_interests() {
 }
 
 #[test]
+fn score_prefers_museum_when_selected() {
+    let mut req = sample_req();
+    req.interests = vec!["museum".into()];
+    let mut museum = sample_candidate("贵州省博物馆");
+    museum.category = Some("文化场馆/博物馆".into());
+    museum.tags = Some(vec!["文博".into(), "民族文物".into()]);
+    museum.popularity = 75;
+
+    let mut park = sample_candidate("某普通公园");
+    park.category = Some("自然风光".into());
+    park.tags = Some(vec!["公园".into()]);
+    park.popularity = 85;
+
+    let s_museum = score_candidate(&museum, &req, 5.0);
+    let s_park = score_candidate(&park, &req, 5.0);
+    assert!(s_museum > s_park, "museum ({s_museum}) should beat park ({s_park})");
+}
+
+#[test]
 fn score_penalizes_shopping_avoid() {
     let mut req = sample_req();
     req.avoid = vec!["shopping".into()];

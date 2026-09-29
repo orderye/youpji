@@ -34,6 +34,7 @@ pub struct AttractionRow {
     pub status: String,
     pub parking: Option<String>,
     pub transport: Option<String>,
+    pub cover_image_url: Option<String>,
     pub verification_status: String,
     pub confidence: f64,
     pub last_verified: Option<chrono::DateTime<chrono::Utc>>,
@@ -121,6 +122,7 @@ pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<AttractionR
                   a.opening_time, a.closing_time, a.ticket_price, a.recommended_duration_min,
                   a.difficulty, a.family_score, a.elderly_score, a.photography_score,
                   a.couple_score, a.indoor, a.popularity, a.status, a.parking, a.transport,
+                  a.cover_image_url,
                   a.verification_status::text AS verification_status, a.confidence,
                   a.last_verified, a.source_type::text AS source_type, a.source_url,
                   CASE WHEN $6::float8 IS NOT NULL THEN
@@ -169,6 +171,7 @@ pub async fn detail(state: &AppState, id: Uuid) -> ApiResult<AttractionDetail> {
                   opening_time, closing_time, ticket_price, recommended_duration_min,
                   difficulty, family_score, elderly_score, photography_score,
                   couple_score, indoor, popularity, status, parking, transport,
+                  cover_image_url,
                   verification_status::text AS verification_status, confidence,
                   last_verified, source_type::text AS source_type, source_url
            FROM attractions WHERE id = $1"#,
@@ -249,6 +252,7 @@ pub async fn admin_list(state: &AppState, q: AdminListQuery) -> ApiResult<Paged<
                   a.opening_time, a.closing_time, a.ticket_price, a.recommended_duration_min,
                   a.difficulty, a.family_score, a.elderly_score, a.photography_score,
                   a.couple_score, a.indoor, a.popularity, a.status, a.parking, a.transport,
+                  a.cover_image_url,
                   a.verification_status::text AS verification_status, a.confidence,
                   a.last_verified, a.source_type::text AS source_type, a.source_url
            FROM attractions a
@@ -347,6 +351,7 @@ pub struct AdminUpdateInput {
     pub latitude: Option<f64>,
     pub parking: Option<String>,
     pub transport: Option<String>,
+    pub cover_image_url: Option<String>,
 }
 
 pub async fn admin_update(state: &AppState, id: Uuid, input: AdminUpdateInput) -> ApiResult<()> {
@@ -376,8 +381,9 @@ pub async fn admin_update(state: &AppState, id: Uuid, input: AdminUpdateInput) -
                latitude = COALESCE($11, latitude),
                parking = COALESCE($12, parking),
                transport = COALESCE($13, transport),
+               cover_image_url = COALESCE($14, cover_image_url),
                updated_at = now()
-           WHERE id = $14"#,
+           WHERE id = $15"#,
     )
     .bind(&input.name)
     .bind(&input.alias)
@@ -392,6 +398,7 @@ pub async fn admin_update(state: &AppState, id: Uuid, input: AdminUpdateInput) -
     .bind(input.latitude)
     .bind(&input.parking)
     .bind(&input.transport)
+    .bind(&input.cover_image_url)
     .bind(id)
     .execute(&mut *tx)
     .await?;

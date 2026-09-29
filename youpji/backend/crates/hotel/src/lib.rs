@@ -23,6 +23,7 @@ pub struct HotelRow {
     pub city: Option<String>,
     pub district: Option<String>,
     pub booking_url: Option<String>,
+    pub cover_image_url: Option<String>,
     pub verification_status: String,
 }
 
@@ -47,6 +48,7 @@ pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<HotelRow>> 
         r#"SELECT id, name, brand, address, longitude, latitude,
                   price_min, price_max, rating::float8 AS rating,
                   parking, breakfast, family_friendly, city, district, booking_url,
+                  cover_image_url,
                   verification_status::text AS verification_status
            FROM hotels
            WHERE ($1::text IS NULL OR city = $1)

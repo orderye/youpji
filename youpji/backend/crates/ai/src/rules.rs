@@ -44,6 +44,11 @@ pub fn parse_natural_text(input: &str) -> Result<PlanRequest, String> {
         "西江",
         "黔东南",
         "青岩",
+        "省博",
+        "贵州省博物馆",
+        "地质博物馆",
+        "博物馆",
+        "博物院",
         "遵义",
         "云南",
         "大理",
@@ -53,6 +58,11 @@ pub fn parse_natural_text(input: &str) -> Result<PlanRequest, String> {
             destination = key.to_string();
             if matches!(key, "黄果树" | "龙宫" | "天龙屯堡") {
                 destination = "安顺".into();
+            } else if matches!(
+                key,
+                "省博" | "贵州省博物馆" | "地质博物馆" | "博物馆" | "博物院"
+            ) {
+                destination = "贵阳".into();
             }
             break;
         }
@@ -77,16 +87,6 @@ pub fn parse_natural_text(input: &str) -> Result<PlanRequest, String> {
     .next()
     .unwrap_or(2);
 
-    // 预算（支持 0/负数写法以便校验拒绝）
-    let mut budget = 3000;
-    if let Some(pos) = input.find("预算") {
-        let rest = &input[pos + "预算".len()..];
-        budget = extract_int_after(rest).unwrap_or(3000);
-    } else if let Some(pos) = input.find("不超过") {
-        let rest = &input[pos + "不超过".len()..];
-        budget = extract_int_after(rest).unwrap_or(3000);
-    }
-
     let people = if input.contains("一个人")
         || input.contains("1人")
         || input.contains("独自")
@@ -102,6 +102,34 @@ pub fn parse_natural_text(input: &str) -> Result<PlanRequest, String> {
     } else {
         2
     };
+
+    // 预算（支持 0/负数写法以便校验拒绝；支持人均折算总预算）
+    let mut budget = 3000;
+    if let Some(pos) = input.find("人均") {
+        let rest = &input[pos + "人均".len()..];
+        if let Some(per_person) = extract_int_after(rest) {
+            budget = per_person * people;
+        }
+    } else if let Some(pos) = input.find("每人") {
+        let rest = &input[pos + "每人".len()..];
+        if let Some(per_person) = extract_int_after(rest) {
+            budget = per_person * people;
+        }
+    } else if let Some(pos) = input.find("单人") {
+        let rest = &input[pos + "单人".len()..];
+        if let Some(per_person) = extract_int_after(rest) {
+            budget = per_person * people;
+        }
+    } else if let Some(pos) = input.find("总预算") {
+        let rest = &input[pos + "总预算".len()..];
+        budget = extract_int_after(rest).unwrap_or(3000);
+    } else if let Some(pos) = input.find("预算") {
+        let rest = &input[pos + "预算".len()..];
+        budget = extract_int_after(rest).unwrap_or(3000);
+    } else if let Some(pos) = input.find("不超过") {
+        let rest = &input[pos + "不超过".len()..];
+        budget = extract_int_after(rest).unwrap_or(3000);
+    }
 
     let transport = if input.contains("自驾") || input.contains("开车") {
         "self_drive".into()
@@ -123,6 +151,17 @@ pub fn parse_natural_text(input: &str) -> Result<PlanRequest, String> {
     }
     if input.contains("历史") || input.contains("古镇") || input.contains("文化") {
         interests.push("history".into());
+    }
+    if input.contains("博物")
+        || input.contains("文博")
+        || input.contains("展馆")
+        || input.contains("展览")
+        || input.contains("地质")
+    {
+        interests.push("museum".into());
+        if !interests.contains(&"history".to_string()) {
+            interests.push("history".into());
+        }
     }
     if interests.is_empty() {
         interests.push("nature".into());

@@ -21,6 +21,7 @@ pub struct RestaurantRow {
     pub opening_hours: Option<String>,
     pub parking: bool,
     pub local_specialty: bool,
+    pub cover_image_url: Option<String>,
     pub verification_status: String,
 }
 
@@ -42,6 +43,7 @@ pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<RestaurantR
         r#"SELECT id, name, category, city, district, longitude, latitude,
                   price_per_person, rating::float8 AS rating, signature_dishes,
                   opening_hours, parking, local_specialty,
+                  cover_image_url,
                   verification_status::text AS verification_status
            FROM restaurants
            WHERE ($1::text IS NULL OR city = $1)

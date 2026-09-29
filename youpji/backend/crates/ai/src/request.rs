@@ -7,6 +7,7 @@ pub const ALLOWED_INTERESTS: &[&str] = &[
     "history",
     "food",
     "photography",
+    "museum",
     "family",
     "couple",
     "elderly",
@@ -14,6 +15,16 @@ pub const ALLOWED_INTERESTS: &[&str] = &[
     "drive",
     "night",
     "shopping",
+    // 前端中文标签兼容支持
+    "自然风光",
+    "历史文化",
+    "文博场馆",
+    "博物院",
+    "博物馆",
+    "喀斯特溶洞",
+    "特色美食",
+    "古镇古寨",
+    "亲子休闲",
 ];
 
 pub const ALLOWED_AVOID: &[&str] = &["shopping", "high_intensity", "night", "hiking"];
@@ -43,6 +54,10 @@ pub const GUIZHOU_SCOPE: &[&str] = &[
     "凯里",
     "雷山",
     "格凸",
+    "观山湖",
+    "省博",
+    "博物",
+    "文博",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

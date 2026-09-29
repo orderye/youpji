@@ -107,20 +107,30 @@ class HomePage extends ConsumerWidget {
         title: const Text('游迹 · 贵州 AI 旅行'),
         actions: [
           // 顶部定位切换按钮
-          TextButton.icon(
-            style: TextButton.styleFrom(foregroundColor: AppTheme.primaryBlue),
-            icon: const Icon(Icons.location_on, size: 18),
-            label: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  locState.currentCity.shortName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                const Icon(Icons.arrow_drop_down, size: 18),
-              ],
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => _showCitySwitcherSheet(context, ref),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlue.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.location_on, size: 15, color: AppTheme.primaryBlue),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${locState.currentCity.name} · ${locState.currentCity.weather}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.primaryBlue),
+                  ),
+                  const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primaryBlue),
+                ],
+              ),
             ),
-            onPressed: () => _showCitySwitcherSheet(context, ref),
           ),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline),

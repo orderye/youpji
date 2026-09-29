@@ -216,7 +216,7 @@ pub fn score_candidate(c: &Candidate, req: &PlanRequest, dist_to_city: f64) -> f
     score += c.family_score as f64 * 0.1;
 
     let interests = &req.interests;
-    if interests.iter().any(|i| i == "nature") {
+    if interests.iter().any(|i| i == "nature" || i == "自然风光") {
         if let Some(cat) = &c.category {
             if cat.contains("自然") || cat.contains("瀑布") || cat.contains("山水") {
                 score += 25.0;
@@ -228,7 +228,10 @@ pub fn score_candidate(c: &Candidate, req: &PlanRequest, dist_to_city: f64) -> f
             }
         }
     }
-    if interests.iter().any(|i| i == "history") {
+    if interests
+        .iter()
+        .any(|i| i == "history" || i == "历史文化" || i == "古镇古寨")
+    {
         if let Some(cat) = &c.category {
             if cat.contains("历史")
                 || cat.contains("古镇")
@@ -239,10 +242,31 @@ pub fn score_candidate(c: &Candidate, req: &PlanRequest, dist_to_city: f64) -> f
             }
         }
     }
-    if interests.iter().any(|i| i == "photography") {
+    if interests
+        .iter()
+        .any(|i| i == "museum" || i == "文博场馆" || i == "博物院" || i == "博物馆")
+    {
+        if let Some(cat) = &c.category {
+            if cat.contains("博物") || cat.contains("文化场馆") || cat.contains("展馆") {
+                score += 35.0;
+            }
+        }
+        if c.name.contains("博物") || c.name.contains("展馆") {
+            score += 30.0;
+        }
+        if let Some(tags) = &c.tags {
+            if tags
+                .iter()
+                .any(|t| t.contains("博物") || t.contains("文化") || t.contains("展馆"))
+            {
+                score += 15.0;
+            }
+        }
+    }
+    if interests.iter().any(|i| i == "photography" || i == "摄影拍照") {
         score += c.photography_score as f64 * 0.2;
     }
-    if interests.iter().any(|i| i == "food") {
+    if interests.iter().any(|i| i == "food" || i == "特色美食") {
         // 靠近城市中心略加分（后续接餐厅）
         score += 5.0;
     }

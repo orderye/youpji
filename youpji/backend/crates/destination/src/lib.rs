@@ -15,6 +15,7 @@ pub struct Destination {
     pub full_path: Option<String>,
     pub longitude: Option<f64>,
     pub latitude: Option<f64>,
+    pub cover_image_url: Option<String>,
     pub verification_status: String,
     pub confidence: f64,
 }
@@ -37,6 +38,7 @@ pub async fn list(state: &AppState, q: ListQuery) -> ApiResult<Paged<Destination
 
     let rows: Vec<Destination> = sqlx::query_as(
         r#"SELECT id, parent_id, name, level::text AS level, full_path, longitude, latitude,
+                  cover_image_url,
                   verification_status::text AS verification_status, confidence
            FROM destinations
            WHERE ($1::uuid IS NULL OR parent_id = $1)

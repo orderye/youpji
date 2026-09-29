@@ -75,6 +75,7 @@ pub mod interest {
     pub const FOOD: &str = "food";
     pub const PHOTO: &str = "photography";
     pub const HISTORY: &str = "history";
+    pub const MUSEUM: &str = "museum";
     pub const FAMILY: &str = "family";
     pub const SHOPPING: &str = "shopping";
     pub const HIGH_INTENSITY: &str = "high_intensity";

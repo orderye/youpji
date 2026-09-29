@@ -5,6 +5,7 @@ class GuizhouCity {
   final double longitude;
   final double latitude;
   final String description;
+  final String weather;
   final bool isCapital;
 
   const GuizhouCity({
@@ -13,6 +14,7 @@ class GuizhouCity {
     required this.longitude,
     required this.latitude,
     required this.description,
+    this.weather = '晴 22°C',
     this.isCapital = false,
   });
 
@@ -22,6 +24,7 @@ class GuizhouCity {
         'longitude': longitude,
         'latitude': latitude,
         'description': description,
+        'weather': weather,
         'is_capital': isCapital,
       };
 
@@ -31,6 +34,7 @@ class GuizhouCity {
         longitude: (json['longitude'] as num?)?.toDouble() ?? 106.630153,
         latitude: (json['latitude'] as num?)?.toDouble() ?? 26.647661,
         description: json['description'] as String? ?? '',
+        weather: json['weather'] as String? ?? '晴 22°C',
         isCapital: json['is_capital'] as bool? ?? false,
       );
 }
@@ -43,6 +47,7 @@ class GuizhouCities {
     longitude: 106.630153,
     latitude: 26.647661,
     description: '林城贵阳 · 省会枢纽 · 人文生态',
+    weather: '晴 22°C',
     isCapital: true,
   );
 
@@ -52,6 +57,7 @@ class GuizhouCities {
     longitude: 105.947594,
     latitude: 26.253089,
     description: '瀑乡安顺 · 黄果树 · 龙宫 · 屯堡文化',
+    weather: '多云 21°C',
   );
 
   static const GuizhouCity zunyi = GuizhouCity(
@@ -60,6 +66,7 @@ class GuizhouCities {
     longitude: 106.927271,
     latitude: 27.725454,
     description: '红色圣地 · 遵义会议 · 赤水丹霞 · 酱酒之乡',
+    weather: '晴 23°C',
   );
 
   static const GuizhouCity qiandongnan = GuizhouCity(
@@ -68,6 +75,7 @@ class GuizhouCities {
     longitude: 107.98117,
     latitude: 26.56689,
     description: '千户苗寨 · 肇兴侗寨 · 民族非遗风情',
+    weather: '阴 20°C',
   );
 
   static const GuizhouCity qiannan = GuizhouCity(
@@ -76,6 +84,7 @@ class GuizhouCities {
     longitude: 107.52358,
     latitude: 26.26444,
     description: '荔波大小七孔 · 中国天眼 FAST · 绿宝石',
+    weather: '多云 22°C',
   );
 
   static const GuizhouCity qianxinan = GuizhouCity(
@@ -84,6 +93,7 @@ class GuizhouCities {
     longitude: 104.90638,
     latitude: 25.08779,
     description: '万峰林 · 马岭河峡谷 · 户外运动胜地',
+    weather: '晴 24°C',
   );
 
   static const GuizhouCity bijie = GuizhouCity(
@@ -92,6 +102,7 @@ class GuizhouCities {
     longitude: 105.29132,
     latitude: 27.30198,
     description: '百里杜鹃 · 织金洞 · 韭菜坪高原风光',
+    weather: '阴 18°C',
   );
 
   static const GuizhouCity tongren = GuizhouCity(
@@ -100,6 +111,7 @@ class GuizhouCities {
     longitude: 109.18956,
     latitude: 27.71835,
     description: '梵净山 · 佛光圣境 · 锦江风光',
+    weather: '小雨 21°C',
   );
 
   static const GuizhouCity liupanshui = GuizhouCity(
@@ -108,6 +120,7 @@ class GuizhouCities {
     longitude: 104.83042,
     latitude: 25.59063,
     description: '中国凉都 · 乌蒙大草原 · 玉舍滑雪',
+    weather: '晴 17°C',
   );
 
   static const List<GuizhouCity> all = [
